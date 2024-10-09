@@ -1,0 +1,14 @@
+# docker-compose run ttex bash
+
+services:
+
+  jaix:
+    container_name: jaix
+    env_file: .env
+    image: jaix
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
+    volumes:
+      - ../jaix:/jaix
+      - ../tests:/tests
