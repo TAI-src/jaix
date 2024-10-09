@@ -31,7 +31,7 @@ jobs:
       contents: write
       pull-requests: write
     with:
-      docker-service: ttex
-      lint-src: ttex
+      docker-service: jaix
+      lint-src: jaix
     secrets: inherit
 
