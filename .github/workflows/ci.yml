@@ -24,7 +24,7 @@ on:
 
 jobs:
   run-ci:
-    uses: TAI-src/workflows/.github/workflows/ci.yml@main
+    uses: TAI-src/.github/.github/workflows/ci.yml@main
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
       # added or changed files to the repository and create PR
