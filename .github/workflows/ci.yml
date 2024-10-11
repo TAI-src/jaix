@@ -24,7 +24,7 @@ on:
 
 jobs:
   run-ci:
-    uses: TAI-src/.github/.github/workflows/ci.yml@main
+    if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
       # added or changed files to the repository and create PR
