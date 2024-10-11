@@ -26,7 +26,12 @@ import os
 
 @pytest.fixture(scope="function")
 def single_obs_space():
-    single_obs_space = spaces.Box(np.array([-1.2, -0.07], dtype=np.float32), np.array([0.6, 0.07], dtype=np.float32), (2,), dtype=np.float32)
+    single_obs_space = spaces.Box(
+        np.array([-1.2, -0.07], dtype=np.float32),
+        np.array([0.6, 0.07], dtype=np.float32),
+        (2,),
+        dtype=np.float32,
+    )
     return single_obs_space
 
 
