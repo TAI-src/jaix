@@ -5,9 +5,8 @@ from gymnasium import spaces
 import numpy as np
 import logging
 
-from jacked_x.config.configurable_object import ConfigurableObject
-from jacked_x.config.config import Config
-from jacked_x.suites.static.problems.static_problem import StaticProblem
+from ttex.config import ConfigurableObject, Config
+from jaix.env.utils.problem import StaticProblem
 from typing import Optional
 
 logger = logging.getLogger("DefaultLogger")
@@ -37,7 +36,7 @@ class ECEnvironment(ConfigurableObject, gym.Env):
             low=np.array(func.lower_bounds),
             high=np.array(func.upper_bounds),
             shape=(func.dimension,),
-            dtype=np.float32,
+            dtype=np.float64,
         )
         # An observation are the objective values of the last action
         # f(x) = y
@@ -45,7 +44,7 @@ class ECEnvironment(ConfigurableObject, gym.Env):
             low=np.array(func.min_values),
             high=np.array(func.max_values),
             shape=(func.num_objectives,),
-            dtype=np.float32,
+            dtype=np.float64,
         )
         # Count how often the environment is reset
         # (corresponds to algorithms restarts +1 )

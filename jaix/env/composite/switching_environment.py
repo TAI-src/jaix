@@ -1,14 +1,13 @@
-from jacked_x.config.configurable_object import (
+from ttex.config import (
     ConfigurableObject,
     ConfigurableObjectFactory as COF,
+    Config,
 )
-from jacked_x.config.config import Config
-from jacked_x.suites.dynamic.environments.utils.switching_pattern import (
+from jaix.env.utils.switching_pattern import (
     SwitchingPattern,
 )
-from jacked_x.suites.wrappers.auto_reset_wrapper import AutoResetWrapper
+from jaix.env.wrapper import AutoResetWrapper, AnyFitWrapper
 from typing import Type, List, Optional
-from jacked_x.suites.wrappers.any_fit_wrapper import AnyFitWrapper
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
