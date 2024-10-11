@@ -1,8 +1,8 @@
-from jacked_x.config.configurable_object import (
+from ttex.config import (
     ConfigurableObject,
     ConfigurableObjectFactory as COF,
+    Config
 )
-from jacked_x.config.config import Config
 import math
 from abc import abstractmethod
 from gymnasium import spaces
@@ -43,8 +43,6 @@ class SeqRegSwitchingPattern(ConfigurableObject, SwitchingPattern):
     def switch(self, t: float, valid: List[bool] = None) -> int:
         valid = [True] * self.num_choices if valid is None else valid
         env_num = math.floor((t + self.offset) / self.wait_period)
-        print(f"valid {valid}")
-        print(f"env_num {env_num}")
         if env_num >= self.num_choices:
             # Out of environments, return -1
             return -1
@@ -59,8 +57,6 @@ class SeqRegSwitchingPattern(ConfigurableObject, SwitchingPattern):
                 # Add an internal offset as remaining budget cannot be carried over
                 self.offset = current * self.wait_period - t
                 # TODO: better tests for offset
-                print(f"offset {self.offset}")
-        print(f"env_num {env_num}")
         return env_num
 
 
