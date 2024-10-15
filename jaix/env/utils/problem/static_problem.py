@@ -10,9 +10,11 @@ class StaticProblem:
         self.dimension = dimension
         self.evaluations = 0
         self.num_objectives = num_objectives
+        self.lower_bounds = [-np.inf] * self.dimension
+        self.upper_bounds = [np.inf] * self.dimension
         self.min_values = [-np.inf] * self.num_objectives
         self.max_values = [np.inf] * self.num_objectives
-        self.recommendations = defaultdict(list)
+        self.recommendations = defaultdict(list) # type: defaultdict[int, list[np.ndarray]]
         self.last_recommended_at = 0
 
     def evalsleft(self, budget_multiplier):

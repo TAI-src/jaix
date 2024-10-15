@@ -2,7 +2,7 @@ from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Co
 import math
 from abc import abstractmethod
 from gymnasium import spaces
-from typing import List
+from typing import List, Optional
 
 
 class SwitchingPattern:
@@ -36,7 +36,7 @@ class SeqRegSwitchingPattern(ConfigurableObject, SwitchingPattern):
     def reset(self, seed=None):
         self.offset = 0
 
-    def switch(self, t: float, valid: List[bool] = None) -> int:
+    def switch(self, t: float, valid: Optional[List[bool]] = None) -> int:
         valid = [True] * self.num_choices if valid is None else valid
         env_num = math.floor((t + self.offset) / self.wait_period)
         if env_num >= self.num_choices:

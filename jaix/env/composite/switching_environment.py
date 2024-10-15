@@ -7,15 +7,16 @@ from jaix.env.utils.switching_pattern import (
     SwitchingPattern,
 )
 from jaix.env.wrapper import AutoResetWrapper, AnyFitWrapper
-from typing import Type, List, Optional
+from typing import Type, List, Optional, Callable, Any, TypeVar
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
+from functools import wraps
 
 import logging
 
 logger = logging.getLogger("DefaultLogger")
-
+FuncT = TypeVar("FuncT", bound=Callable[..., Any]) 
 
 class SwitchingEnvironmentConfig(Config):
     def __init__(
@@ -23,7 +24,7 @@ class SwitchingEnvironmentConfig(Config):
         switching_pattern_class: Type[SwitchingPattern],
         switching_pattern_config: Config,
         real_time: bool,
-        next_after_resets: int = np.inf,
+        next_after_resets: int = np.iinfo(np.int32).max,
     ):
         self.switching_pattern_class = switching_pattern_class
         self.switching_pattern_config = switching_pattern_config
@@ -63,8 +64,9 @@ class SwitchingEnvironment(ConfigurableObject, gym.Env):
         self.observation_space = spaces.Tuple((switcher_space, observation_space))
         self._stopped = False
 
-    def update_env(func):
-        def decorator_func(self, *args, **kwargs):
+    def update_env(func: FuncT):
+        @wraps(func)
+        def decorator_func(self: SwitchingEnvironment, *args: Any, **kwargs: Any) -> Any:
             self._update_current_env()
             return func(self, *args, **kwargs)
 
