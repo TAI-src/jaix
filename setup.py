@@ -6,7 +6,7 @@ setup(
     packages=[
         "jaix",
     ],
-    install_requires=["cma", "gymnasium", "coco-experiment", "regex"],
+    install_requires=["cma", "gymnasium", "coco-experiment", "regex", "tai-ttex"],
     license="GPL3",
     long_description="jaix",
 )

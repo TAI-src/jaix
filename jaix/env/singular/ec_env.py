@@ -1,0 +1,133 @@
+"""Defines environment as in EC context"""
+
+import gymnasium as gym
+from gymnasium import spaces
+import numpy as np
+import logging
+
+from ttex.config import ConfigurableObject, Config
+from jaix.env.utils.problem import StaticProblem
+from typing import Optional
+
+logger = logging.getLogger("DefaultLogger")
+
+
+class ECEnvironmentConfig(Config):
+    """EC Environment Config"""
+
+    def __init__(self, budget_multiplier: int):
+        """
+        * budget_multiplier (int): Function budget = n*budget_multiplier
+        """
+        self.budget_multiplier = budget_multiplier
+
+
+class ECEnvironment(ConfigurableObject, gym.Env):
+    """EC environment to run static problems with EC algorithms"""
+
+    metadata = {"render_modes": ["ansi"], "render_fps": 4}
+    config_class = ECEnvironmentConfig
+
+    def __init__(self, config: ECEnvironmentConfig, func: StaticProblem):
+        ConfigurableObject.__init__(self, config)
+        self.func = func
+        # An action is a point in search space (x)
+        self.action_space = spaces.Box(
+            low=np.array(func.lower_bounds),
+            high=np.array(func.upper_bounds),
+            shape=(func.dimension,),
+            dtype=np.float64,
+        )
+        # An observation are the objective values of the last action
+        # f(x) = y
+        self.observation_space = spaces.Box(
+            low=np.array(func.min_values),
+            high=np.array(func.max_values),
+            shape=(func.num_objectives,),
+            dtype=np.float64,
+        )
+        # Count how often the environment is reset
+        # (corresponds to algorithms restarts +1 )
+        self.num_resets = 0
+        self.closed = False
+
+    def _get_info(self):
+        """Simple representation of environment state
+        * num_resets: The number of time the environment has been reset
+        * The number of evaluations left on the function
+        """
+        return {
+            "num_resets": self.num_resets,
+            "evals_left": self.func.evalsleft(self.budget_multiplier),
+            "stop": self.stop(),
+        }
+
+    def sample_pop(self, pop_size):
+        pop = [self.action_space.sample() for _ in range(pop_size)]
+        return pop
+
+    def stop(self):
+        return self.func.stop(self.budget_multiplier)
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict] = None,
+    ):
+        """
+        Resets the environment to an initial state,
+        required before calling step.
+        Returns the first agent observation for an episode and information,
+        i.e. metrics, debug info.
+        """
+        if options is None:
+            options = {}
+        if "online" not in options or not options["online"]:
+            # Warn that we only do partial resets for ec, so still "online"
+            logger.warning(
+                f"Requesting non-online reset from EC environment {self} which does not exist. Doing online instead."
+            )
+        self.num_resets += 1
+        return None, self._get_info()
+
+    def step(self, x):
+        """
+        Updates an environment with actions returning the next agent observation,
+        the reward for taking that actions,
+        if the environment has terminated or truncated due to the latest action
+        and information from the environment about the step,
+        i.e. metrics, debug info.
+        """
+        x = np.asarray(x, dtype=self.action_space.dtype)
+        obs = self.func(x)
+        terminated = self.func.final_target_hit()
+        truncated = (
+            self.func.evalsleft(self.budget_multiplier) <= 0
+        )  # or not self.action_space.contains(x)
+        # Not truncating if out of bounds for EC
+        # If algorithm wants to implement that, that is fine
+        # TODO: potential constraint handling strategies
+        # if out out bounds
+
+        # observation, reward, terminated, truncated, info
+        # TODO: reward cannot be multi-dimensional
+        return obs, obs[0], terminated, truncated, self._get_info()
+
+    def render(self):
+        """
+        Renders the environments to help visualise what the agent see,
+        examples modes are “human”, “rgb_array”, “ansi” for text.
+        """
+        logger.debug(self._get_info())
+
+    def __str__(self):
+        return f"EC Environment {str(self.func)}"
+
+    def close(self):
+        """
+        Closes the environment, important when external software is used,
+        i.e. pygame for rendering, databases
+        """
+        self.closed = True
+        return self.func.close()
