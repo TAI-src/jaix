@@ -67,9 +67,7 @@ class SwitchingEnvironment(ConfigurableObject, gym.Env):
 
     def update_env(func: FuncT):
         @wraps(func)
-        def decorator_func(
-            self, *args: Any, **kwargs: Any
-        ) -> Any:
+        def decorator_func(self, *args: Any, **kwargs: Any) -> Any:
             self._update_current_env()
             return func(self, *args, **kwargs)
 
