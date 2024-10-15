@@ -2,10 +2,7 @@ from jaix.env.singular import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
-from ttex.config import (
-    ConfigurableObject,
-    ConfigurableObjectFactory as COF, Config
-)
+from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
 from jaix.suite import Suite, AggType
 from jaix.suite.coco import COCOProblem
 import cocoex as ex
@@ -51,7 +48,7 @@ class COCOSuite(ConfigurableObject, Suite):
     def _get_agg_problem_dict(self, agg_type: AggType, seed: Optional[int] = None):
         if agg_type != AggType.INST:
             raise NotImplementedError()
-        problems = {} # type: dict[int, dict[int, ex.Problem]]
+        problems = {}  # type: dict[int, dict[int, ex.Problem]]
         for dim in self.suite.dimensions:
             problems[dim] = {}
             function_names = set(

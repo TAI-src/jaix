@@ -3,10 +3,7 @@ from jaix.env.singular import (
     ECEnvironmentConfig,
 )
 from jaix.env.utils.problem import StaticProblem
-from ttex.config import (
-    ConfigurableObject,
-    ConfigurableObjectFactory as COF, Config
-)
+from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
 from typing import Type, Optional
 from jaix.suite import Suite, AggType
 
