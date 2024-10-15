@@ -14,7 +14,6 @@ class SphereConfig(Config):
         # box constraints
         self.lower_bounds = np.array([-5.0] * dimension)
         self.upper_bounds = np.array([5.0] * dimension)
-        super().__init__(Sphere)
 
 
 class Sphere(ConfigurableObject, StaticProblem):

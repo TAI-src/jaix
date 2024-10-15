@@ -1,8 +1,17 @@
-from jaix.env.utils.problem import Sphere, SphereConfig
+from jaix.env.utils.problem import Sphere, SphereConfig, StaticProblem
 from ttex.config import ConfigurableObjectFactory as COF
 import pickle
 import os
+import math
 
+def test_init():
+    # Test that defaults are set correctly
+    keys = ["lower_bounds", "upper_bounds", "min_values", "max_values"]
+    stat_prob = StaticProblem(3,2)
+    for key in keys:
+        assert hasattr(stat_prob, key)
+
+   
 
 def test_evals_left():
     config = SphereConfig(

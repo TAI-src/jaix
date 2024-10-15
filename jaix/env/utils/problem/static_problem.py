@@ -3,6 +3,7 @@ import numpy as np
 from collections import defaultdict
 import uuid
 import pickle
+from typing import DefaultDict, List
 
 
 class StaticProblem:
@@ -10,13 +11,13 @@ class StaticProblem:
         self.dimension = dimension
         self.evaluations = 0
         self.num_objectives = num_objectives
-        self.lower_bounds = [-np.inf] * self.dimension
-        self.upper_bounds = [np.inf] * self.dimension
-        self.min_values = [-np.inf] * self.num_objectives
-        self.max_values = [np.inf] * self.num_objectives
+        self.lower_bounds = [-np.inf] * self.dimension if not hasattr(self,"lower_bounds") else self.lower_bounds # type: List[float]
+        self.upper_bounds = [np.inf] * self.dimension if not hasattr(self, "upper_bounds") else self.upper_bounds # type: List[float]
+        self.min_values = [-np.inf] * self.num_objectives if not hasattr(self, "min_values") else self.min_values # type: List[float]
+        self.max_values = [np.inf] * self.num_objectives if not hasattr(self, "max_values") else self.max_values # type: List[float]
         self.recommendations = defaultdict(
             list
-        )  # type: defaultdict[int, list[np.ndarray]]
+        )  # type: DefaultDict[int, List[np.ndarray]]
         self.last_recommended_at = 0
 
     def evalsleft(self, budget_multiplier):
