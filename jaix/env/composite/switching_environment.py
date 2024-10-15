@@ -16,7 +16,8 @@ from functools import wraps
 import logging
 
 logger = logging.getLogger("DefaultLogger")
-FuncT = TypeVar("FuncT", bound=Callable[..., Any]) 
+FuncT = TypeVar("FuncT", bound=Callable[..., Any])
+
 
 class SwitchingEnvironmentConfig(Config):
     def __init__(
@@ -66,7 +67,9 @@ class SwitchingEnvironment(ConfigurableObject, gym.Env):
 
     def update_env(func: FuncT):
         @wraps(func)
-        def decorator_func(self: SwitchingEnvironment, *args: Any, **kwargs: Any) -> Any:
+        def decorator_func(
+            self: SwitchingEnvironment, *args: Any, **kwargs: Any
+        ) -> Any:
             self._update_current_env()
             return func(self, *args, **kwargs)
 
