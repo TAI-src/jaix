@@ -11,7 +11,7 @@ from jaix.suite.coco import COCOProblem
 import cocoex as ex
 import regex as re
 import random as rnd
-from typing import Optional
+from typing import Optional, Dict
 
 
 class COCOSuiteConfig(Config):
@@ -51,7 +51,7 @@ class COCOSuite(ConfigurableObject, Suite):
     def _get_agg_problem_dict(self, agg_type: AggType, seed: Optional[int] = None):
         if agg_type != AggType.INST:
             raise NotImplementedError()
-        problems = {} # type: dict[int, dict[int, ex.Problem]]
+        problems = {} # type: Dict[int, dict[int, ex.Problem]]
         for dim in self.suite.dimensions:
             problems[dim] = {}
             function_names = set(
