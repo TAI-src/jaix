@@ -11,8 +11,7 @@ logger = logging.getLogger("DefaultLogger")
 
 class ATRunnerConfig(Config):
     def __init__(self):
-        pass
-
+    	self.disp_interval = disp_interval
 
 class ATRunner(ConfigurableObject, Runner):
     config_class = ATRunnerConfig
@@ -21,15 +20,12 @@ class ATRunner(ConfigurableObject, Runner):
         logger.debug("Starting experiment with %s on %s", opt_class, env)
         # Independent restarts (runs)
         while not env.stop():
-            run_info = []
-            # TODO: these reset settings need better wording
             # BlackBox setting only makes sense with online resets
             env.reset(options={"online": True})
             logger.debug("Resetting optimiser")
             init_pop = env.unwrapped.sample_pop(opt_config.init_pop_size)
             opt = COF.create(opt_class, opt_config, init_pop)
             while not opt.stop() and not env.unwrapped.stop():
-                it_info = {}
                 X = opt.ask(env=env)
                 res_list = []
                 for x in X:
@@ -45,16 +41,10 @@ class ATRunner(ConfigurableObject, Runner):
                 # Should define an action and observation space for algorithms
                 # As well as potentially a checker for which wrappers
                 opt.tell(X, res_dict["obs"], **res_dict, env=env)
-                # display info every 20th iteration
-                # TODO: print based on loglevel
-                # opt.disp(self.disp_interval)
-                it_info["res_dict"] = res_dict
-                it_info["Q"] = copy.deepcopy(opt.Q)
-                it_info["N"] = copy.deepcopy(opt.N)
-                run_info.append(it_info)
+                opt.disp(self.disp_interval)
+                logger.debug(res_dict)
 
 
-            # TODO collect metrics (via CMAResult?)
             info["opt_stop"] = opt.stop()
             info["env_stop"] = env.stop()
             logger.debug("Optimiser stopped.")

@@ -46,12 +46,9 @@ class ECEnvironment(ConfigurableObject, gym.Env):
             shape=(func.num_objectives,),
             dtype=np.float64,
         )
-        # Count how often the environment is reset
-        # (corresponds to algorithms restarts +1 )
-        self.num_resets = 0
-        self.closed = False
 
-    def _get_info(self):
+    @property
+    def state(self):
         """Simple representation of environment state
         * num_resets: The number of time the environment has been reset
         * The number of evaluations left on the function
@@ -61,10 +58,6 @@ class ECEnvironment(ConfigurableObject, gym.Env):
             "evals_left": self.func.evalsleft(self.budget_multiplier),
             "stop": self.stop(),
         }
-
-    def sample_pop(self, pop_size):
-        pop = [self.action_space.sample() for _ in range(pop_size)]
-        return pop
 
     def stop(self):
         return self.func.stop(self.budget_multiplier)
@@ -89,7 +82,7 @@ class ECEnvironment(ConfigurableObject, gym.Env):
                 f"Requesting non-online reset from EC environment {self} which does not exist. Doing online instead."
             )
         self.num_resets += 1
-        return None, self._get_info()
+        return None, self.state
 
     def step(self, x):
         """
@@ -112,14 +105,7 @@ class ECEnvironment(ConfigurableObject, gym.Env):
 
         # observation, reward, terminated, truncated, info
         # TODO: reward cannot be multi-dimensional
-        return obs, obs[0], terminated, truncated, self._get_info()
-
-    def render(self):
-        """
-        Renders the environments to help visualise what the agent see,
-        examples modes are “human”, “rgb_array”, “ansi” for text.
-        """
-        logger.debug(self._get_info())
+        return obs, obs[0], terminated, truncated, self.state
 
     def __str__(self):
         return f"EC Environment {str(self.func)}"

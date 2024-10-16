@@ -1,3 +1,4 @@
 class Optimiser:
-    def get_name(self):
+    @property
+    def name(self):
         raise NotImplementedError()
