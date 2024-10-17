@@ -6,7 +6,7 @@ from ttex.config import (
 from jaix.env.utils.switching_pattern import (
     SwitchingPattern,
 )
-from jaix.env.wrapper import AutoResetWrapper, AnyFitWrapper
+from jaix.env.wrapper import AutoResetWrapper, AnyFitWrapper, AutoResetWrapperConfig, WrappedEnvFactory as WEF
 from typing import Type, List, Optional, Callable, Any, TypeVar
 import gymnasium as gym
 from gymnasium import spaces
@@ -26,12 +26,17 @@ class SwitchingEnvironmentConfig(Config):
         switching_pattern_config: Config,
         real_time: bool,
         next_after_resets: int = np.iinfo(np.int32).max,
+        auto_reset_wrapper_config: Optional[AutoResetWrapperConfig] = None 
     ):
         self.switching_pattern_class = switching_pattern_class
         self.switching_pattern_config = switching_pattern_config
         self.real_time = real_time
         self.next_after_resets = next_after_resets
         assert self.next_after_resets > 0
+        if auto_reset_wrapper_config is None:
+            self.auto_reset_wrapper_config = AutoResetWrapperConfig()
+        else:
+            self.auto_reset_wrapper_config = auto_reset_wrapper_config
 
 
 class SwitchingEnvironment(ConfigurableObject, gym.Env):
@@ -47,7 +52,11 @@ class SwitchingEnvironment(ConfigurableObject, gym.Env):
         action_space: spaces.Space,
     ):
         ConfigurableObject.__init__(self, config)
-        self.env_list = [AutoResetWrapper(AnyFitWrapper(env)) for env in env_list]
+        wrappers = [
+            (AnyFitWrapper, {}),
+            (AutoResetWrapper, self.auto_reset_wrapper_config)
+        ]
+        self.env_list = [WEF.wrap(env, wrappers) for env in env_list]
         self._current_env = 0
 
         self.pattern_switcher = COF.create(

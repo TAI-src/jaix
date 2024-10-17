@@ -4,9 +4,9 @@ from typing import Optional
 
 
 class DummyEnv(gym.Env):
-    def __init__(self):
-        self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.Discrete(5)
+    def __init__(self, dimension = 3, num_objectives = 1):
+        self.action_space = spaces.Box(low=-5, high=5, shape=(dimension,))
+        self.observation_space = spaces.Box(low=0, high=100, shape=(num_objectives,))   
         self.reward_space = spaces.Box(low=0, high=5)
         self._trunc = False
         self._term = False
