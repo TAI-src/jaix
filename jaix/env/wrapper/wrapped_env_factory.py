@@ -5,6 +5,7 @@ import gymnasium as gym
 
 
 class WrappedEnvFactory:
+    @staticmethod
     def wrap(env: gym.Env,
              wrappers: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]],
         ):
