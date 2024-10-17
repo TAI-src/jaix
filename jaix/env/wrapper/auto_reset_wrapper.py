@@ -1,9 +1,11 @@
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 
+
 class AutoResetWrapperConfig(Config):
     def __init__(self, min_steps: int = 1):
         self.min_steps = min_steps
+
 
 class AutoResetWrapper(gym.Wrapper, ConfigurableObject):
     config_class = AutoResetWrapperConfig
