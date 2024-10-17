@@ -6,7 +6,7 @@ import pytest
 
 def test_init():
     env = DummyEnv()
-    config = AutoResetWrapperConfig(min_steps = 2)
+    config = AutoResetWrapperConfig(min_steps=2)
     wrapped_env = AutoResetWrapper(config, env)
     assert wrapped_env.steps == 0
     assert wrapped_env.failed_resets == 0
@@ -15,7 +15,7 @@ def test_init():
 
 def test_normal_exec():
     env = DummyEnv()
-    config = AutoResetWrapperConfig(min_steps = 2)
+    config = AutoResetWrapperConfig(min_steps=2)
     wrapped_env = AutoResetWrapper(config, env)
     _, info = wrapped_env.reset()
     assert "final_r" not in info
@@ -38,7 +38,7 @@ def test_normal_exec():
 def test_final_r_step(num_steps):
     min_steps = 3
     env = DummyEnv()
-    config = AutoResetWrapperConfig(min_steps = min_steps)
+    config = AutoResetWrapperConfig(min_steps=min_steps)
     wrapped_env = AutoResetWrapper(config, env)
     _, info = wrapped_env.reset()
 
@@ -66,7 +66,7 @@ def test_final_r_step(num_steps):
 def test_final_r_reset(num_steps):
     min_steps = 3
     env = DummyEnv()
-    config = AutoResetWrapperConfig(min_steps = min_steps)
+    config = AutoResetWrapperConfig(min_steps=min_steps)
     wrapped_env = AutoResetWrapper(config, env)
     _, info = wrapped_env.reset()
 
