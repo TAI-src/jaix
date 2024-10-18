@@ -78,7 +78,7 @@ class COCOSuite(ConfigurableObject, Suite):
                 ]
         return problems
 
-    def get_envs(self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None):
+    def get_envs_generator(self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None):
         if agg_type == AggType.NONE:
             observer = ex.Observer(
                 self.suite_name, "result_folder: " + self.output_folder
@@ -94,7 +94,7 @@ class COCOSuite(ConfigurableObject, Suite):
                 func.observe_with(observer)
                 env = COF.create(ECEnvironment, self.env_config, func)
                 yield env
-                assert env.closed
+
         else:
             # Currently, this only makes sense for single batches
             assert self.num_batches == 1

@@ -25,7 +25,7 @@ class ECSuiteConfig(Config):
 class ECSuite(ConfigurableObject, Suite):
     config_class = ECSuiteConfig
 
-    def get_envs(self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None):
+    def get_envs_generator(self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None):
         if agg_type != AggType.INST and agg_type != AggType.NONE:
             raise NotImplementedError()
         if agg_type == AggType.NONE:

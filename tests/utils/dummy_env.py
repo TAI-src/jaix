@@ -1,7 +1,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 from typing import Optional
-
+from gymnasium.utils.env_checker import check_env
 
 class DummyEnv(gym.Env):
     def __init__(self, dimension=3, num_objectives=1):
@@ -10,6 +10,7 @@ class DummyEnv(gym.Env):
         self.reward_space = spaces.Box(low=0, high=5)
         self._trunc = False
         self._term = False
+        super().__init__()
 
     def reset(
         self,
@@ -17,6 +18,10 @@ class DummyEnv(gym.Env):
         seed: Optional[int] = None,
         options: Optional[dict] = None,
     ):
+        super().reset(seed=seed)
+        self.observation_space.seed(seed)
+        self.action_space.seed(seed)
+        self.reward_space.seed(seed)
         self._trunc = False
         self._term = False
         return self.observation_space.sample(), {}
@@ -29,3 +34,6 @@ class DummyEnv(gym.Env):
             self._trunc,
             {},
         )
+
+def test_dummy_env():
+    check_env(DummyEnv(), skip_render_check=True)

@@ -49,7 +49,6 @@ class ECEnvironment(ConfigurableObject, gym.Env):
         # Count how often the environment is reset
         # (corresponds to algorithms restarts +1 )
         self.num_resets = 0
-        self.closed = False
 
     def _get_info(self):
         """Simple representation of environment state
@@ -129,5 +128,4 @@ class ECEnvironment(ConfigurableObject, gym.Env):
         Closes the environment, important when external software is used,
         i.e. pygame for rendering, databases
         """
-        self.closed = True
         return self.func.close()

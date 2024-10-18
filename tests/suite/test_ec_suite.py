@@ -38,7 +38,7 @@ def test_get_envs_no_agg(func_config, env_config):
     suite = COF.create(ECSuite, config)
 
     for env in suite.get_envs(AggType.NONE):
-        assert isinstance(env.func, Sphere)
+        assert isinstance(env.unwrapped.func, Sphere)
         assert not env.stop()
         rec_file = env.close()
         if rec_file is not None:

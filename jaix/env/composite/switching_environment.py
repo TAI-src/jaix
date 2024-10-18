@@ -164,9 +164,7 @@ class SwitchingEnvironment(ConfigurableObject, gym.Env):
         return self._stop()
 
     def close(self):
-        rec_files = [env.close() for env in self.env_list]
-        self.closed = True
-        return rec_files
+        return [env.close() for env in self.env_list]
 
     @update_env
     def __getattr__(self, name):
