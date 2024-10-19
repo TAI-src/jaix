@@ -3,6 +3,7 @@ from gymnasium import spaces
 from typing import Optional
 from gymnasium.utils.env_checker import check_env
 
+
 class DummyEnv(gym.Env):
     def __init__(self, dimension=3, num_objectives=1):
         self.action_space = spaces.Box(low=-5, high=5, shape=(dimension,))
@@ -34,6 +35,7 @@ class DummyEnv(gym.Env):
             self._trunc,
             {},
         )
+
 
 def test_dummy_env():
     check_env(DummyEnv(), skip_render_check=True)

@@ -59,7 +59,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         ConfigurableObject.__init__(self, config)
         wrappers = [
             (AutoResetWrapper, self.auto_reset_wrapper_config),
-        ] # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
         self.env_list = [WEF.wrap(env, wrappers) for env in env_list]
         self._current_env = 0
 

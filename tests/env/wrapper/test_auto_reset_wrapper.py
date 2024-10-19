@@ -4,6 +4,7 @@ from . import DummyEnv
 import pytest
 from gymnasium.utils.env_checker import check_env
 
+
 def test_init():
     env = DummyEnv()
     config = AutoResetWrapperConfig(min_steps=2)
@@ -12,9 +13,11 @@ def test_init():
     assert wrapped_env.failed_resets == 0
     assert wrapped_env.min_steps == 2
 
+
 def test_default():
     wrapped_env = AutoResetWrapper(AutoResetWrapperConfig(min_steps=2), DummyEnv())
     check_env(wrapped_env, skip_render_check=True)
+
 
 def test_normal_exec():
     env = DummyEnv()

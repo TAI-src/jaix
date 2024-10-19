@@ -2,6 +2,7 @@ import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 from jaix.env.wrapper import PassthroughWrapper
 
+
 class AutoResetWrapperConfig(Config):
     def __init__(self, min_steps: int = 1, passthrough: bool = True):
         self.min_steps = min_steps

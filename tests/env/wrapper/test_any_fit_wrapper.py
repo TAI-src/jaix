@@ -3,14 +3,17 @@ from jaix.env.wrapper import AnyFitWrapper
 from gymnasium.utils.env_checker import check_env
 from . import DummyEnv
 
+
 def test_init():
     env = gym.make("MountainCar-v0", render_mode="rgb_array")
     wrapped_env = AnyFitWrapper(env)
     assert wrapped_env.steps == 0
 
+
 def test_default():
     wrapped_env = AnyFitWrapper(DummyEnv())
     check_env(wrapped_env, skip_render_check=True)
+
 
 def test_post_log_scale_axis():
     assert AnyFitWrapper._pos_log_scale_axis(10) == 1

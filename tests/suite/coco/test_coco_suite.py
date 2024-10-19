@@ -69,7 +69,7 @@ def test_get_envs_agg(env_config):
             assert isinstance(env.func, COCOProblem)
             assert env.func.is_observed
 
-            #env.reset()
+            # env.reset()
             env.step(env.action_space.sample())
         rec_files = [env.close() for env in envs]
         for rec_file in rec_files:
