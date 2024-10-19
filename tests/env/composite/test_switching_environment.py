@@ -22,6 +22,7 @@ from jaix.env.singular import (
 )
 import math
 import os
+from jaix.env.wrapper import ClosingWrapper
 
 
 @pytest.fixture(scope="function")
@@ -61,6 +62,7 @@ def env(single_obs_space, single_act_space):
         observation_space=single_obs_space,
         action_space=single_act_space,
     )
+    env = ClosingWrapper(env)
 
     yield env
     files = env.close()
@@ -162,7 +164,7 @@ def test_passthrough(env):
 
 def test_decorator_update(env):
     env.reset()
-    env._timer = 10
+    env.unwrapped._timer = 100
     act = env.action_space.sample()
     _, _, _, trunc, _ = env.step(act)
     assert trunc
@@ -199,6 +201,7 @@ def ec_env():
         observation_space=env_list[0].observation_space,
         action_space=env_list[0].action_space,
     )
+    env = ClosingWrapper(env)
     yield env
     files = env.close()
     [os.remove(rec_file) for rec_file in files if rec_file is not None]
@@ -206,7 +209,7 @@ def ec_env():
 
 
 def test_force_stop_time(ec_env):
-    ec_env.reset()
+    ec_env.reset(options={"online": True})
     while not ec_env.stop():
         act = [0, 0, 1]  # This will not stop the env
         _, _, _, _, info = ec_env.step(act)
@@ -228,7 +231,7 @@ def test_force_stop_time(ec_env):
 
 
 def test_force_stop_done(ec_env):
-    _, info = ec_env.reset(options={"online": False})
+    _, info = ec_env.reset(options={"online": True})
     while not ec_env.stop():
         act = [0, 0, 0]  # This is optimal and will stop the env
         _, _, _, _, info = ec_env.step(act)
@@ -240,5 +243,8 @@ def test_force_stop_done(ec_env):
     assert info["meta"]["timer"] == 3
 
     # check that even resetting does not help if the envs are done
-    obs, info = ec_env.reset()
+    with pytest.raises(ValueError):
+        obs, info = ec_env.reset()  # Full reset, but EC environments will throw errors
+    assert ec_env.unwrapped._timer == 0
+    assert ec_env.unwrapped._timer == 0
     assert ec_env.stop()

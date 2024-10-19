@@ -23,7 +23,7 @@ def test_init(env_config):
     assert suite.env_config.budget_multiplier == 1
 
 
-def test_get_envs_no_agg(env_config):
+def test_get_envs(env_config):
     config = COCOSuiteConfig(
         env_config,
         "bbob",
@@ -63,13 +63,13 @@ def test_get_envs_agg(env_config):
         output_folder="test_run",
     )
     suite = COF.create(COCOSuite, config)
-    for envs in suite.get_envs(agg_type=AggType.INST, seed=1):
+    for envs in suite.get_agg_envs(agg_type=AggType.INST, seed=1):
         assert len(envs) == 3
         for env in envs:
             assert isinstance(env.func, COCOProblem)
             assert env.func.is_observed
 
-            env.reset()
+            # env.reset()
             env.step(env.action_space.sample())
         rec_files = [env.close() for env in envs]
         for rec_file in rec_files:

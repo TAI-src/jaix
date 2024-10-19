@@ -10,5 +10,9 @@ class AggType(Enum):
 
 class Suite:
     @abstractmethod
-    def get_envs(self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None):
+    def get_envs(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_agg_envs(self, agg_type: AggType, seed: Optional[int] = None):
         raise NotImplementedError()

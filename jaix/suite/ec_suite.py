@@ -25,21 +25,17 @@ class ECSuiteConfig(Config):
 class ECSuite(ConfigurableObject, Suite):
     config_class = ECSuiteConfig
 
-    def get_envs(self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None):
-        if agg_type != AggType.INST and agg_type != AggType.NONE:
-            raise NotImplementedError()
-        if agg_type == AggType.NONE:
-            num_instances = 1
-        else:
-            num_instances = self.num_instances
+    def get_envs(self):
+        for _ in range(1):
+            func = COF.create(self.func_class, self.func_config)
+            env = COF.create(ECEnvironment, self.env_config, func)
+            yield env
+
+    def get_agg_envs(self, agg_type: AggType, seed: Optional[int] = None):
         for _ in range(1):
             funcs = [
                 COF.create(self.func_class, self.func_config)
-                for _ in range(num_instances)
+                for _ in range(self.num_instances)
             ]
             envs = [COF.create(ECEnvironment, self.env_config, func) for func in funcs]
-            if agg_type == AggType.NONE:
-                yield envs[0]
-            else:
-                yield envs
-            assert all([env.closed for env in envs])
+            yield envs

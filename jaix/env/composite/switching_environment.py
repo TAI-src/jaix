@@ -8,15 +8,15 @@ from jaix.env.utils.switching_pattern import (
 )
 from jaix.env.wrapper import (
     AutoResetWrapper,
-    AnyFitWrapper,
     AutoResetWrapperConfig,
     WrappedEnvFactory as WEF,
 )
-from typing import Type, List, Optional, Callable, Any, TypeVar
+from typing import Dict, Type, List, Optional, Callable, Any, TypeVar, Tuple, Union
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from functools import wraps
+from jaix.env.composite import CompositeEnvironment
 
 import logging
 
@@ -44,7 +44,7 @@ class SwitchingEnvironmentConfig(Config):
             self.auto_reset_wrapper_config = auto_reset_wrapper_config
 
 
-class SwitchingEnvironment(ConfigurableObject, gym.Env):
+class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
     """Environment that dynamically switches between a list of environments depending on time"""
 
     config_class = SwitchingEnvironmentConfig
@@ -58,9 +58,8 @@ class SwitchingEnvironment(ConfigurableObject, gym.Env):
     ):
         ConfigurableObject.__init__(self, config)
         wrappers = [
-            (AnyFitWrapper, {}),
             (AutoResetWrapper, self.auto_reset_wrapper_config),
-        ]
+        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
         self.env_list = [WEF.wrap(env, wrappers) for env in env_list]
         self._current_env = 0
 
@@ -164,9 +163,7 @@ class SwitchingEnvironment(ConfigurableObject, gym.Env):
         return self._stop()
 
     def close(self):
-        rec_files = [env.close() for env in self.env_list]
-        self.closed = True
-        return rec_files
+        return [env.close() for env in self.env_list]
 
     @update_env
     def __getattr__(self, name):
