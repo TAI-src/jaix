@@ -3,6 +3,7 @@ import numpy as np
 import math
 from jaix.env.wrapper import PassthroughWrapper
 
+
 class AnyFitWrapper(PassthroughWrapper):
     def __init__(self, env: gym.Env, passthrough: bool = True):
         # TODO:could in the future have a config for what exactly to return

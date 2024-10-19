@@ -39,4 +39,3 @@ class ECSuite(ConfigurableObject, Suite):
             ]
             envs = [COF.create(ECEnvironment, self.env_config, func) for func in funcs]
             yield envs
-

@@ -1,9 +1,9 @@
 import gymnasium as gym
 from jaix.env.wrapper import PassthroughWrapper
 
+
 class ClosingWrapper(PassthroughWrapper):
-    
-    def __init__(self, env:gym.Env, passthrough: bool = True):
+    def __init__(self, env: gym.Env, passthrough: bool = True):
         super().__init__(env, passthrough)
         self.closed = False
 
@@ -23,4 +23,3 @@ class ClosingWrapper(PassthroughWrapper):
         res = self.env.close(**kwargs)
         self.closed = True
         return res
-

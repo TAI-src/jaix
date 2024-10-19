@@ -1,5 +1,5 @@
 from jaix import EnvironmentConfig, CompositeEnvironmentConfig, EnvironmentFactory
-from jaix.suite import AggType, ECSuite, ECSuiteConfig 
+from jaix.suite import AggType, ECSuite, ECSuiteConfig
 from jaix.env.composite import SwitchingEnvironment, SwitchingEnvironmentConfig
 from jaix.env.utils.switching_pattern import (
     SwitchingPattern,
@@ -12,6 +12,7 @@ import pytest
 from jaix import EnvironmentFactory as EF
 import gymnasium as gym
 
+
 @pytest.fixture(scope="function")
 def comp_config():
     sp_config = SeqRegSwitchingPatternConfig(wait_period=3, num_choices=3)
@@ -19,11 +20,12 @@ def comp_config():
         SeqRegSwitchingPattern, sp_config, real_time=False, next_after_resets=1
     )
     comp_config = CompositeEnvironmentConfig(
-        agg_type = AggType.INST,
-        comp_env_class = SwitchingEnvironment,
-        comp_env_config = config,
+        agg_type=AggType.INST,
+        comp_env_class=SwitchingEnvironment,
+        comp_env_config=config,
     )
     return comp_config
+
 
 @pytest.fixture(scope="function")
 def ec_config():
@@ -39,15 +41,17 @@ def ec_config():
     config = ECSuiteConfig(Sphere, func_config, ec_config)
     return config
 
+
 def env_config(ec_config, wrappers=None, comp_config=None, seed=None):
     env_config = EnvironmentConfig(
-        suite_class = ECSuite,
-        suite_config = ec_config,
-        env_wrappers = wrappers,
-        comp_config = comp_config,
-        seed = seed
+        suite_class=ECSuite,
+        suite_config=ec_config,
+        env_wrappers=wrappers,
+        comp_config=comp_config,
+        seed=seed,
     )
     return env_config
+
 
 def test_singular(ec_config):
     config = env_config(ec_config)
@@ -56,10 +60,10 @@ def test_singular(ec_config):
         assert isinstance(env.unwrapped, ECEnvironment)
         env.close()
 
+
 def test_composite(ec_config, comp_config):
     config = env_config(ec_config, comp_config=comp_config)
     for env in EF.get_envs(config):
         assert isinstance(env, gym.Wrapper)
         assert isinstance(env.unwrapped, SwitchingEnvironment)
         env.close()
-   

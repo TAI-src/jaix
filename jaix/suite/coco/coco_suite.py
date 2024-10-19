@@ -79,9 +79,7 @@ class COCOSuite(ConfigurableObject, Suite):
         return problems
 
     def get_envs(self):
-        observer = ex.Observer(
-            self.suite_name, "result_folder: " + self.output_folder
-        )
+        observer = ex.Observer(self.suite_name, "result_folder: " + self.output_folder)
         for batch_counter, coco_func in enumerate(self.suite):
             # Only responsible for running part of the experiments
             if (
@@ -94,8 +92,9 @@ class COCOSuite(ConfigurableObject, Suite):
             env = COF.create(ECEnvironment, self.env_config, func)
             yield env
 
-
-    def get_agg_envs(self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None):
+    def get_agg_envs(
+        self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None
+    ):
         # Currently, this only makes sense for single batches
         assert self.num_batches == 1
         assert self.current_batch == 0
@@ -113,8 +112,7 @@ class COCOSuite(ConfigurableObject, Suite):
                 for obs, func in zip(observers, funcs):
                     func.observe_with(obs)
                 envs = [
-                    COF.create(ECEnvironment, self.env_config, func)
-                    for func in funcs
+                    COF.create(ECEnvironment, self.env_config, func) for func in funcs
                 ]
                 yield envs
                 # TODO: combine logs for post-processing (or add it to the post-processing)

@@ -10,9 +10,11 @@ def test_init():
     wrapped_env = ClosingWrapper(env, **kwargs)
     assert not wrapped_env.closed
 
+
 def test_default():
     wrapped_env = ClosingWrapper(DummyEnv())
     check_env(wrapped_env, skip_render_check=True)
+
 
 def test_closed():
     wrapped_env = ClosingWrapper(DummyEnv())

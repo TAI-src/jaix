@@ -24,6 +24,7 @@ import math
 import os
 from jaix.env.wrapper import ClosingWrapper
 
+
 @pytest.fixture(scope="function")
 def single_obs_space():
     single_obs_space = spaces.Box(
@@ -208,7 +209,7 @@ def ec_env():
 
 
 def test_force_stop_time(ec_env):
-    ec_env.reset(options={"online":True})
+    ec_env.reset(options={"online": True})
     while not ec_env.stop():
         act = [0, 0, 1]  # This will not stop the env
         _, _, _, _, info = ec_env.step(act)
@@ -243,7 +244,7 @@ def test_force_stop_done(ec_env):
 
     # check that even resetting does not help if the envs are done
     with pytest.raises(ValueError):
-        obs, info = ec_env.reset() #Full reset, but EC environments will throw errors
+        obs, info = ec_env.reset()  # Full reset, but EC environments will throw errors
     assert ec_env.unwrapped._timer == 0
     assert ec_env.unwrapped._timer == 0
     assert ec_env.stop()
