@@ -46,6 +46,9 @@ class ECEnvironment(ConfigurableObject, gym.Env):
             shape=(func.num_objectives,),
             dtype=np.float64,
         )
+        # Count how often the environment is reset
+        # (corresponds to algorithms restarts +1 )
+        self.num_resets = 0
 
     @property
     def state(self):
@@ -74,13 +77,9 @@ class ECEnvironment(ConfigurableObject, gym.Env):
         Returns the first agent observation for an episode and information,
         i.e. metrics, debug info.
         """
-        if options is None:
-            options = {}
-        if "online" not in options or not options["online"]:
-            # Warn that we only do partial resets for ec, so still "online"
-            logger.warning(
-                f"Requesting non-online reset from EC environment {self} which does not exist. Doing online instead."
-            )
+        if options is None or "online" not in options or not options["online"]:
+            # We only do partial resets for ec, so still "online"
+            raise ValueError("EC environments are always online")
         self.num_resets += 1
         return None, self.state
 
@@ -115,5 +114,4 @@ class ECEnvironment(ConfigurableObject, gym.Env):
         Closes the environment, important when external software is used,
         i.e. pygame for rendering, databases
         """
-        self.closed = True
         return self.func.close()

@@ -1,13 +1,14 @@
 import gymnasium as gym
 import numpy as np
 import math
+from jaix.env.wrapper import PassthroughWrapper
 
 
-class AnyFitWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Env):
+class AnyFitWrapper(PassthroughWrapper):
+    def __init__(self, env: gym.Env, passthrough: bool = True):
         # TODO:could in the future have a config for what exactly to return
         # Could be best target or different scaling etc
-        super().__init__(env)
+        super().__init__(env, passthrough)
         self.steps = 0
         self.best_r = np.inf
 

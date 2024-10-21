@@ -1,20 +1,28 @@
-from jaix.env.wrapper import AutoResetWrapper
+from jaix.env.wrapper import AutoResetWrapper, AutoResetWrapperConfig
 import gymnasium as gym
 from . import DummyEnv
 import pytest
+from gymnasium.utils.env_checker import check_env
 
 
 def test_init():
     env = DummyEnv()
-    wrapped_env = AutoResetWrapper(env, min_steps=2)
+    config = AutoResetWrapperConfig(min_steps=2)
+    wrapped_env = AutoResetWrapper(config, env)
     assert wrapped_env.steps == 0
     assert wrapped_env.failed_resets == 0
     assert wrapped_env.min_steps == 2
 
 
+def test_default():
+    wrapped_env = AutoResetWrapper(AutoResetWrapperConfig(min_steps=2), DummyEnv())
+    check_env(wrapped_env, skip_render_check=True)
+
+
 def test_normal_exec():
     env = DummyEnv()
-    wrapped_env = AutoResetWrapper(env, min_steps=2)
+    config = AutoResetWrapperConfig(min_steps=2)
+    wrapped_env = AutoResetWrapper(config, env)
     _, info = wrapped_env.reset()
     assert "final_r" not in info
     assert wrapped_env.man_resets == 1
@@ -36,7 +44,8 @@ def test_normal_exec():
 def test_final_r_step(num_steps):
     min_steps = 3
     env = DummyEnv()
-    wrapped_env = AutoResetWrapper(env, min_steps=min_steps)
+    config = AutoResetWrapperConfig(min_steps=min_steps)
+    wrapped_env = AutoResetWrapper(config, env)
     _, info = wrapped_env.reset()
 
     for _ in range(num_steps):
@@ -63,7 +72,8 @@ def test_final_r_step(num_steps):
 def test_final_r_reset(num_steps):
     min_steps = 3
     env = DummyEnv()
-    wrapped_env = AutoResetWrapper(env, min_steps=min_steps)
+    config = AutoResetWrapperConfig(min_steps=min_steps)
+    wrapped_env = AutoResetWrapper(config, env)
     _, info = wrapped_env.reset()
 
     for _ in range(num_steps):
@@ -87,7 +97,9 @@ def test_final_r_reset(num_steps):
 def test_stop(failed_resets):
     thresh = 3
     env = DummyEnv()
-    wrapped_env = AutoResetWrapper(env)
+    config = AutoResetWrapperConfig()
+    wrapped_env = AutoResetWrapper(config, env)
+
     _, info = wrapped_env.reset()
 
     for i in range(1, failed_resets + 1):

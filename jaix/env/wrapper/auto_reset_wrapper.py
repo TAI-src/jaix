@@ -1,14 +1,24 @@
 import gymnasium as gym
+from ttex.config import ConfigurableObject, Config
+from jaix.env.wrapper import PassthroughWrapper
 
 
-class AutoResetWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Env, min_steps: int = 1):
-        super().__init__(env)
+class AutoResetWrapperConfig(Config):
+    def __init__(self, min_steps: int = 1, passthrough: bool = True):
+        self.min_steps = min_steps
+        self.passthrough = passthrough
+
+
+class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
+    config_class = AutoResetWrapperConfig
+
+    def __init__(self, config: AutoResetWrapperConfig, env: gym.Env):
+        ConfigurableObject.__init__(self, config)
+        PassthroughWrapper.__init__(self, env, self.passthrough)
         self.man_resets = 0
         self.auto_resets = 0
         self.failed_resets = 0
         self.steps = 0
-        self.min_steps = min_steps
         self.prev_r = None
 
     def reset(self, **kwargs):

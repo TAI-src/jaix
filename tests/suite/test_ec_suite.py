@@ -32,13 +32,12 @@ def test_init(func_config, env_config):
     assert suite.func_class == Sphere
     assert suite.func_config.dimension == 3
 
-
-def test_get_envs_no_agg(func_config, env_config):
+def test_get_envs(func_config, env_config):
     config = ECSuiteConfig(Sphere, func_config, env_config)
     suite = COF.create(ECSuite, config)
 
-    for env in suite.get_envs(AggType.NONE):
-        assert isinstance(env.func, Sphere)
+    for env in suite.get_envs():
+        assert isinstance(env.unwrapped.func, Sphere)
         assert not env.stop()
         rec_file = env.close()
         if rec_file is not None:
@@ -49,7 +48,7 @@ def test_get_envs_agg(func_config, env_config):
     config = ECSuiteConfig(Sphere, func_config, env_config, num_instances=3)
     suite = COF.create(ECSuite, config)
 
-    for envs in suite.get_envs(AggType.INST):
+    for envs in suite.get_agg_envs(AggType.INST):
         assert len(envs) == 3
         assert all([isinstance(env.func, Sphere) for env in envs])
         assert all([not env.stop() for env in envs])
