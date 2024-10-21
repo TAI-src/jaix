@@ -32,6 +32,7 @@ def test_init(func_config, env_config):
     assert suite.func_class == Sphere
     assert suite.func_config.dimension == 3
 
+
 def test_get_envs(func_config, env_config):
     config = ECSuiteConfig(Sphere, func_config, env_config)
     suite = COF.create(ECSuite, config)

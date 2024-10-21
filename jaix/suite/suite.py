@@ -9,8 +9,8 @@ class AggType(Enum):
 
 
 class Suite:
-
-  def get_envs(self):
+    @abstractmethod
+    def get_envs(self):
         raise NotImplementedError()
 
     @abstractmethod
