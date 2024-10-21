@@ -61,7 +61,6 @@ class ECEnvironment(ConfigurableObject, gym.Env):
             "stop": self.stop(),
         }
 
-
     def stop(self):
         return self.func.stop(self.budget_multiplier)
 

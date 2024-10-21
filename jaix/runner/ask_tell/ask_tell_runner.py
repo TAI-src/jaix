@@ -1,6 +1,8 @@
 """An Experiment"""
 from ttex.config import (
-    ConfigurableObjectFactory as COF, Config, ConfigurableObject
+    ConfigurableObjectFactory as COF,
+    Config,
+    ConfigurableObject,
 )  # E501: ignore
 from jaix.runner import Runner
 import logging
@@ -11,7 +13,8 @@ logger = logging.getLogger("DefaultLogger")
 
 class ATRunnerConfig(Config):
     def __init__(self):
-    	self.disp_interval = disp_interval
+        self.disp_interval = disp_interval
+
 
 class ATRunner(ConfigurableObject, Runner):
     config_class = ATRunnerConfig
@@ -43,7 +46,6 @@ class ATRunner(ConfigurableObject, Runner):
                 opt.tell(X, res_dict["obs"], **res_dict, env=env)
                 opt.disp(self.disp_interval)
                 logger.debug(res_dict)
-
 
             info["opt_stop"] = opt.stop()
             info["env_stop"] = env.stop()
