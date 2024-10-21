@@ -4,9 +4,10 @@ from jaix.runner.ask_tell import ATStrategy
 from ttex.config import Config, ConfigurableObject
 import gymnasium as gym
 
+
 class RandomATStratConfig(Config):
-    def __init__(self, ask_size:int):
-    	self.ask_size = ask_size
+    def __init__(self, ask_size: int):
+        self.ask_size = ask_size
 
 
 class RandomATStrat(ConfigurableObject, ATStrategy):
@@ -15,7 +16,7 @@ class RandomATStrat(ConfigurableObject, ATStrategy):
     def __init__(self, config: RandomATStratConfig, xstart):
         ConfigurableObject.__init__(self, config)
         ATStrategy.__init__(self, xstart)
-        
+
     def initialize(self):
         self.xcurrent = [np.array(xi) for xi in self.xstart]
 
@@ -26,9 +27,9 @@ class RandomATStrat(ConfigurableObject, ATStrategy):
     def ask(self, env, **kwargs):
         self.xcurrent = [env.action_space.sample() for _ in range(self.ask_size)]
         return self.xcurrent
-        
+
     def tell(self, **kwargs):
-    	pass
-    	
+        pass
+
     def stop(self):
-    	return {}
+        return {}
