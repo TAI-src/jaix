@@ -29,7 +29,14 @@ class ATRunnerConfig(Config):
 class ATRunner(ConfigurableObject, Runner):
     config_class = ATRunnerConfig
 
-    def run(self, env: gym.Env, opt_class: Type[Optimiser], opt_config: Config):
+    def run(
+        self,
+        env: gym.Env,
+        opt_class: Type[Optimiser],
+        opt_config: Config,
+        *args,
+        **kwargs,
+    ):
         logger.debug("Starting experiment with %s on %s", opt_class, env)
         wrappers = [
             (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))
