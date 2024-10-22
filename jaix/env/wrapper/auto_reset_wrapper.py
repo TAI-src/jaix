@@ -4,9 +4,12 @@ from jaix.env.wrapper import PassthroughWrapper
 
 
 class AutoResetWrapperConfig(Config):
-    def __init__(self, min_steps: int = 1,
-                 passthrough: bool = True,
-                 failed_resets_thresh: int = 1):
+    def __init__(
+        self,
+        min_steps: int = 1,
+        passthrough: bool = True,
+        failed_resets_thresh: int = 1,
+    ):
         self.min_steps = min_steps
         self.passthrough = passthrough
         self.failed_resets_thresh = failed_resets_thresh

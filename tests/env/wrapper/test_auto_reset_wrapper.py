@@ -97,7 +97,7 @@ def test_final_r_reset(num_steps):
 def test_stop(failed_resets):
     thresh = 3
     env = DummyEnv()
-    config = AutoResetWrapperConfig(failed_resets_thresh = failed_resets)
+    config = AutoResetWrapperConfig(failed_resets_thresh=failed_resets)
     wrapped_env = AutoResetWrapper(config, env)
 
     _, info = wrapped_env.reset()

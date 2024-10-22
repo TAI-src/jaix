@@ -3,6 +3,7 @@ from ttex.config import ConfigurableObject, Config
 from jaix.env.wrapper import PassthroughWrapper
 from typing import Optional
 
+
 class MaxEvalWrapperConfig(Config):
     def __init__(self, max_evals: int, passthrough: bool = True):
         self.max_evals = max_evals
@@ -12,7 +13,7 @@ class MaxEvalWrapperConfig(Config):
 class MaxEvalWrapper(PassthroughWrapper, ConfigurableObject):
     config_class = MaxEvalWrapperConfig
 
-    def __init__(self, config:MaxEvalWrapperConfig, env: gym.Env):
+    def __init__(self, config: MaxEvalWrapperConfig, env: gym.Env):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, self.passthrough)
         self._evals = 0
@@ -26,10 +27,10 @@ class MaxEvalWrapper(PassthroughWrapper, ConfigurableObject):
         if options is None or "online" not in options or not options["online"]:
             # Reset evaluations _unless_ it is online
             self._evals = 0
-        return self.env.reset(seed = seed, options= options)
+        return self.env.reset(seed=seed, options=options)
 
     def step(self, action):
-        self._evals +=1
+        self._evals += 1
         return self.env.step(action)
 
     def _stop(self):
@@ -37,5 +38,3 @@ class MaxEvalWrapper(PassthroughWrapper, ConfigurableObject):
             return {"max_evals": self._evals}
         else:
             return {}
-
-

@@ -1,6 +1,7 @@
 from jaix.env.wrapper import PassthroughWrapper
 from . import DummyWrapper, DummyEnv
 
+
 def test_stopping():
     env = DummyEnv()
     env = DummyWrapper(env)
