@@ -213,21 +213,18 @@ def test_force_stop_time(ec_env):
     while not ec_env.stop():
         act = [0, 0, 1]  # This will not stop the env
         _, _, _, _, info = ec_env.step(act)
-        if info["meta"]["steps_counter"] % 4 == 0:
+        if info["meta"]["steps_counter"] % 3 == 0:
             # each environments only has 3 evals and will thus stop
             # even if wait period is 5
-            # but will stop after 3 + 1 (3 steps plus 1 failed reset)
-            assert info["evals_left"] == -1
+            assert info["evals_left"] == 0
             assert "final_observation" in info
-            assert not "final_r" in info
-        if info["meta"]["steps_counter"] % 4 == 1:
+            assert "final_r" in info
+        if info["meta"]["steps_counter"] % 3 == 1:
             assert info["evals_left"] == 2
             assert not "final_observation" in info
-        if info["meta"]["steps_counter"] % 4 == 3:
-            assert info["evals_left"] == 0
-            assert "final_r" in info
-    assert info["meta"]["steps_counter"] == 12
-    assert info["meta"]["timer"] == 12
+            assert not "final_r" in info
+    assert info["meta"]["steps_counter"] == 9
+    assert info["meta"]["timer"] == 9
 
 
 def test_force_stop_done(ec_env):
