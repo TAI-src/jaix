@@ -17,7 +17,7 @@ import gymnasium as gym
 def comp_config():
     sp_config = SeqRegSwitchingPatternConfig(wait_period=3, num_choices=3)
     config = SwitchingEnvironmentConfig(
-        SeqRegSwitchingPattern, sp_config, real_time=False, next_after_resets=1
+        SeqRegSwitchingPattern, sp_config, real_time=False
     )
     comp_config = CompositeEnvironmentConfig(
         agg_type=AggType.INST,

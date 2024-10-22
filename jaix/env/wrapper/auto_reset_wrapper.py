@@ -10,6 +10,7 @@ class AutoResetWrapperConfig(Config):
         self.min_steps = min_steps
         self.passthrough = passthrough
         self.failed_resets_thresh = failed_resets_thresh
+        assert self.failed_resets_thresh > 0
 
 
 class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):

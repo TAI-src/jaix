@@ -38,10 +38,7 @@ class DummyEnv(gym.Env):
         )
 
     def stop(self):
-        if self._stop:
-            return {"manual_stop": True}
-        else:
-            return {}
+        return self._stop
 
 
 def test_dummy_env():

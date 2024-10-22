@@ -13,4 +13,4 @@ def test_stopping():
     assert env.stop() == {"wrapper 1": "test", "wrapper 3": "test"}
     assert not env.unwrapped._stop
     env.unwrapped._stop = True
-    assert env.stop()["manual_stop"]
+    assert env.stop()["unwrapped"]

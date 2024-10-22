@@ -26,6 +26,6 @@ class PassthroughWrapper(gym.Wrapper):
 
     def stop(self) -> Dict:
         term_conds = self._rec_stop()
-        if hasattr(self.env.unwrapped, "stop"):
-            term_conds.update(self.env.unwrapped.stop())
+        if hasattr(self.env.unwrapped, "stop") and self.env.unwrapped.stop():
+            term_conds["unwrapped"] = self.env.unwrapped.stop()
         return term_conds  

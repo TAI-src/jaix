@@ -14,7 +14,6 @@ from jaix.env.wrapper import (
 from typing import Dict, Type, List, Optional, Callable, Any, TypeVar, Tuple, Union
 import gymnasium as gym
 from gymnasium import spaces
-import numpy as np
 from functools import wraps
 from jaix.env.composite import CompositeEnvironment
 
@@ -30,14 +29,11 @@ class SwitchingEnvironmentConfig(Config):
         switching_pattern_class: Type[SwitchingPattern],
         switching_pattern_config: Config,
         real_time: bool,
-        next_after_resets: int = np.iinfo(np.int32).max,
         auto_reset_wrapper_config: Optional[AutoResetWrapperConfig] = None,
     ):
         self.switching_pattern_class = switching_pattern_class
         self.switching_pattern_config = switching_pattern_config
         self.real_time = real_time
-        self.next_after_resets = next_after_resets
-        assert self.next_after_resets > 0
         if auto_reset_wrapper_config is None:
             self.auto_reset_wrapper_config = AutoResetWrapperConfig()
         else:
@@ -148,14 +144,14 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
             raise NotImplementedError()
 
         # Get current environment and return accordingly
-        valid_envs = [not env.stop(self.next_after_resets) for env in self.env_list]
+        valid_envs = [not env.stop() for env in self.env_list]
         new_env = self.pattern_switcher.switch(self._timer, valid=valid_envs)
         # only update env if not invalid (-1)
         self._stopped = True if new_env < 0 else False
         self._current_env = max(0, new_env)
 
     def _stop(self):
-        stopped_envs = [env.stop(self.next_after_resets) for env in self.env_list]
+        stopped_envs = [env.stop() for env in self.env_list]
         return all(stopped_envs) or self._stopped
 
     @update_env

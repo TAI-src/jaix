@@ -192,7 +192,7 @@ def ec_env():
     sp_config = SeqRegSwitchingPatternConfig(wait_period=5, num_choices=n_envs)
 
     config = SwitchingEnvironmentConfig(
-        SeqRegSwitchingPattern, sp_config, real_time=False, next_after_resets=1
+        SeqRegSwitchingPattern, sp_config, real_time=False
     )
     env = COF.create(
         SwitchingEnvironment,
