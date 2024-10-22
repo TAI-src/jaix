@@ -10,5 +10,12 @@ logger = logging.getLogger("DefaultLogger")
 
 class Runner:
     @abstractmethod
-    def run(self, env: gym.Env, opt_class: Type[Optimiser], opt_config: Config, *args, **kwargs):
+    def run(
+        self,
+        env: gym.Env,
+        opt_class: Type[Optimiser],
+        opt_config: Config,
+        *args,
+        **kwargs,
+    ):
         raise NotImplementedError()
