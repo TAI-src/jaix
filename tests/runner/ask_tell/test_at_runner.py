@@ -8,7 +8,11 @@ from . import DummyEnv
 from jaix.runner.ask_tell import ATRunnerConfig, ATRunner
 import pytest
 from ttex.config import ConfigurableObjectFactory as COF
-from jaix.env.wrapper import WrappedEnvFactory as WEF, MaxEvalWrapper, MaxEvalWrapperConfig
+from jaix.env.wrapper import (
+    WrappedEnvFactory as WEF,
+    MaxEvalWrapper,
+    MaxEvalWrapperConfig,
+)
 from jaix import EnvironmentConfig as EC
 from jaix.runner.ask_tell import ATOptimiserConfig, ATOptimiser
 
@@ -37,5 +41,5 @@ def test_run(opts):
 
     env = WEF.wrap(DummyEnv(), wrappers)
     opt_config = get_optimiser(opts)
-    runner = COF.create(ATRunner, ATRunnerConfig(max_evals = 4, disp_interval=50))
+    runner = COF.create(ATRunner, ATRunnerConfig(max_evals=4, disp_interval=50))
     runner.run(env, ATOptimiser, opt_config)

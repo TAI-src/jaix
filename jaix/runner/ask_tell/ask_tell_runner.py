@@ -9,7 +9,12 @@ import logging
 import copy
 import gymnasium as gym
 from typing import Type
-from jaix.env.wrapper import PassthroughWrapper, MaxEvalWrapper, MaxEvalWrapperConfig, WrappedEnvFactory as WEF
+from jaix.env.wrapper import (
+    PassthroughWrapper,
+    MaxEvalWrapper,
+    MaxEvalWrapperConfig,
+    WrappedEnvFactory as WEF,
+)
 from typing import Type, Optional, Union, Dict, Tuple, List
 
 logger = logging.getLogger("DefaultLogger")
@@ -27,10 +32,10 @@ class ATRunner(ConfigurableObject, Runner):
     def run(self, env: gym.Env, opt_class: Type[Optimiser], opt_config: Config):
         logger.debug("Starting experiment with %s on %s", opt_class, env)
         wrappers = [
-            (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals = self.max_evals))
-        ] # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+            (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))
+        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
 
-        wenv = WEF.wrap(env, wrappers) # type: PassthroughWrapper
+        wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)
         while not wenv.stop():
             wenv.reset()
