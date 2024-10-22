@@ -1,8 +1,8 @@
 from abc import abstractmethod
 import logging
-import gymnasiums as gym
+import gymnasium as gym
 from typing import Type
-from ttex import Config
+from ttex.config import Config
 from jaix.runner import Optimiser
 
 logger = logging.getLogger("DefaultLogger")
