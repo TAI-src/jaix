@@ -35,6 +35,16 @@ def test_init(env):
     assert info["evals_left"] == 3
 
 
+def test_sample_pop(env):
+    pop = env.sample_pop(2)
+    assert len(pop) == 2
+    for x in pop:
+        assert env.action_space.contains(x)
+    info = env._get_info()
+    assert info["num_resets"] == 0
+    assert info["evals_left"] == 3
+
+
 def test_reset(env):
     obs, info = env.reset(options={"online": True})
     assert info["num_resets"] == 1
