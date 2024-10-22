@@ -61,6 +61,10 @@ class ECEnvironment(ConfigurableObject, gym.Env):
             "stop": self.stop(),
         }
 
+    def sample_pop(self, pop_size):
+        pop = [self.action_space.sample() for _ in range(pop_size)]
+        return pop
+
     def stop(self):
         return self.func.stop(self.budget_multiplier)
 
