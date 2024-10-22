@@ -4,9 +4,16 @@ from jaix.env.wrapper import PassthroughWrapper
 
 
 class AutoResetWrapperConfig(Config):
-    def __init__(self, min_steps: int = 1, passthrough: bool = True):
+    def __init__(
+        self,
+        min_steps: int = 1,
+        passthrough: bool = True,
+        failed_resets_thresh: int = 1,
+    ):
         self.min_steps = min_steps
         self.passthrough = passthrough
+        self.failed_resets_thresh = failed_resets_thresh
+        assert self.failed_resets_thresh > 0
 
 
 class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
@@ -70,6 +77,8 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
         self.prev_r = r
         return obs, r, term, trunc, info
 
-    def stop(self, failed_resets_thresh: int = 1):
-        # Consider finally stopped if more failed resets than desired
-        return self.failed_resets >= failed_resets_thresh
+    def _stop(self):
+        if self.failed_resets >= self.failed_resets_thresh:
+            return {"failed_resets": self.failed_resets}
+        else:
+            return {}

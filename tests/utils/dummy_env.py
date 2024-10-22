@@ -11,6 +11,7 @@ class DummyEnv(gym.Env):
         self.reward_space = spaces.Box(low=0, high=5)
         self._trunc = False
         self._term = False
+        self._stop = False
         super().__init__()
 
     def reset(
@@ -35,6 +36,9 @@ class DummyEnv(gym.Env):
             self._trunc,
             {},
         )
+
+    def stop(self):
+        return self._stop
 
 
 def test_dummy_env():
