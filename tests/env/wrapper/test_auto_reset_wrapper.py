@@ -97,13 +97,13 @@ def test_final_r_reset(num_steps):
 def test_stop(failed_resets):
     thresh = 3
     env = DummyEnv()
-    config = AutoResetWrapperConfig()
+    config = AutoResetWrapperConfig(failed_resets_thresh=failed_resets)
     wrapped_env = AutoResetWrapper(config, env)
 
     _, info = wrapped_env.reset()
 
     for i in range(1, failed_resets + 1):
-        assert not wrapped_env.stop(failed_resets)
+        assert not wrapped_env.stop()
         wrapped_env.reset()
         wrapped_env.unwrapped._term = True
         wrapped_env.step(wrapped_env.action_space.sample())
@@ -112,4 +112,4 @@ def test_stop(failed_resets):
         assert wrapped_env.auto_resets == i
         assert wrapped_env.unwrapped._term == False
 
-    assert wrapped_env.stop(failed_resets)
+    assert wrapped_env.stop()
