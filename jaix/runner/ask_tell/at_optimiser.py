@@ -33,6 +33,7 @@ class ATOptimiser(ConfigurableObject, Optimiser):
             logger.error(f"Compatibility check not passed {self.comp_issues(env)}")
             raise ValueError(f"Compatibility check not passed {self.comp_issues(env)}")
 
+        # TODO: in the future, algorithm might want to select start itself
         init_pop = [env.action_space.sample() for _ in range(self.init_pop_size)]
         self.strategy = COF.create(
             self.strategy_class, self.strategy_config, xstart=init_pop
