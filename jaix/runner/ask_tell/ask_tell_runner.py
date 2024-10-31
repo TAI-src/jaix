@@ -6,11 +6,12 @@ from ttex.config import (
 from jaix.runner import Runner, Optimiser
 import logging
 import gymnasium as gym
-from typing import Type
+from typing import Type, List, Tuple, Union, Dict
 from jaix.env.wrapper import (
     MaxEvalWrapper,
     MaxEvalWrapperConfig,
     WrappedEnvFactory as WEF,
+    PassthroughWrapper,
 )
 
 logger = logging.getLogger("DefaultLogger")
