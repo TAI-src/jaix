@@ -7,7 +7,7 @@ from jaix.runner.ask_tell.strategy import (
 from jaix.runner.ask_tell import ATOptimiserConfig
 from jaix.runner.ask_tell.strategy.utils import BanditConfig, BanditExploitStrategy
 from . import DummyEnv
-from jaix.env.wrapper import AutoResetWrapper
+from jaix.env.wrapper import AutoResetWrapper, AutoResetWrapperConfig
 
 
 def get_bandit(num_choices: int = 2, stop_after: int = -1):
@@ -23,7 +23,6 @@ def get_bandit(num_choices: int = 2, stop_after: int = -1):
         opt_confs.append(config)
 
     bandit_config = BanditConfig(
-        num_choices,
         epsilon=0.1,
         min_tries=10,
         exploit_strategy=BanditExploitStrategy.MAX,
@@ -75,17 +74,17 @@ def test_tell_update():
     bandit_opt = get_bandit(num_choices=2)
 
     # Checking init state
-    assert sum(bandit_opt.N) == 0
+    assert sum(bandit_opt.bandit.N) == 0
     assert bandit_opt._active_opt == 0
     assert bandit_opt.opt.countiter == 0
 
     obs, info = env.reset(options={"online": True})
 
     x = bandit_opt.ask(env)
-    y = [env.func(x) for x in x]
+    y = [env.step(x) for x in x]
     r = 1
 
-    assert sum(bandit_opt.N) == 0
+    assert sum(bandit_opt.bandit.N) == 0
 
     # Tell without final r - just regular execution
     bandit_opt.tell(
@@ -98,7 +97,7 @@ def test_tell_update():
         term=[False],
         info=[info],
     )
-    assert sum(bandit_opt.N) == 0
+    assert sum(bandit_opt.bandit.N) == 0
     assert bandit_opt.opt.countiter == 1
 
     info["final_obs"] = env.observation_space.sample()
@@ -112,7 +111,7 @@ def test_tell_update():
         term=[False],
         info=[info],
     )
-    assert sum(bandit_opt.N) == 0
+    assert sum(bandit_opt.bandit.N) == 0
     assert bandit_opt.opt.countiter == 2
 
     info["final_r"] = r
@@ -126,15 +125,30 @@ def test_tell_update():
         term=[False],
         info=[info],
     )
-    assert bandit_opt.N[0] == 1
-    assert bandit_opt.Q[0] == 1
+    assert bandit_opt.bandit.N[0] == 1
+    assert bandit_opt.bandit.Q[0] == 1
+    assert bandit_opt.opt.countiter == 0
+
+    info.pop("final_r")
+    bandit_opt.tell(
+        x,
+        y,
+        obs=env.observation_space.sample(),
+        env=env,
+        r=y,
+        trunc=[False],
+        term=[False],
+        info=[info],
+    )
+    assert bandit_opt.bandit.N[0] == 1
+    assert bandit_opt.bandit.Q[0] == 1
     assert bandit_opt.opt.countiter == 1
 
 
 def test_ask_update():
     env = DummyEnv()
     bandit_opt = get_bandit(num_choices=2, stop_after=2)
-    env = AutoResetWrapper(DummyEnv())
+    env = AutoResetWrapper(AutoResetWrapperConfig(), DummyEnv())
 
     obs, info = env.reset(options={"online": True})
 
@@ -157,7 +171,7 @@ def test_ask_update():
         )
     assert bandit_opt.opt.stop()
     assert not env.unwrapped.stop()
-    assert bandit_opt.N[0] == 0
+    assert bandit_opt.bandit.N[0] == 0
     assert bandit_opt.opt.countiter == 2
     assert env.man_resets == 1
 
@@ -165,6 +179,6 @@ def test_ask_update():
     bandit_opt.ask(env)
     assert not bandit_opt.stop()
     assert not bandit_opt.opt.stop()
-    assert bandit_opt.N[0] == 1
+    assert bandit_opt.bandit.N[0] == 1
     assert bandit_opt.opt.countiter == 0
     assert env.man_resets == 2

@@ -3,9 +3,10 @@ from ttex.config import (
     ConfigurableObject,
     ConfigurableObjectFactory as COF,
 )
-from typing import List
+from typing import List, Dict
 from jaix.runner.ask_tell import ATOptimiser, ATOptimiserConfig, ATStrategy
 from jaix.runner.ask_tell.strategy.utils import BanditConfig, Bandit
+from gymnasium import Env
 
 
 class ATBanditConfig(Config):
@@ -26,7 +27,8 @@ class ATBandit(ConfigurableObject, ATStrategy):
         ConfigurableObject.__init__(self, config)
         ATStrategy.__init__(self, None)
         # Initialise bandit
-        self.bandit = COF.create(Bandit, self.bandit_config)
+        num_choices = len(self.opt_confs)
+        self.bandit = COF.create(Bandit, self.bandit_config, num_choices)
 
         # Initialise the first optimiser
         self.opt = COF.create(ATOptimiser, self.opt_confs[0], env)
@@ -65,7 +67,15 @@ class ATBandit(ConfigurableObject, ATStrategy):
         # Ask the active optimiser
         return self.opt.ask(env, **optional_kwargs)
 
-    def tell(self, solutions, function_values, info, r, env, **optional_kwargs):
+    def tell(
+        self,
+        solutions,
+        function_values,
+        info: Dict,
+        r: float,
+        env: Env,
+        **optional_kwargs,
+    ):
         # Update Q info if any env stopped
         updated = self._update(info, env)
         # Otherwise we would start with tell, not ask
@@ -75,7 +85,12 @@ class ATBandit(ConfigurableObject, ATStrategy):
         # also not independent otherwise
         if not updated:
             return self.opt.tell(
-                solutions, function_values, info=info, r=r, env=env, **optional_kwargs
+                env=env,
+                solutions=solutions,
+                function_values=function_values,
+                info=info,
+                r=r,
+                **optional_kwargs,
             )
 
     def stop(self):

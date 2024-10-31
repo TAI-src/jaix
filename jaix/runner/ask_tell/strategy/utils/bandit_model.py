@@ -9,12 +9,10 @@ BanditExploitStrategy = Enum("BanditExploitStrategy", ["MAX", "PROP"])
 class BanditConfig(Config):
     def __init__(
         self,
-        num_choices: int,
         epsilon: float,
         min_tries: int = 10,
         exploit_strategy: BanditExploitStrategy = BanditExploitStrategy.MAX,
     ):
-        self.n = num_choices
         self.epsilon = epsilon
         # Choices are tried at least min_tries times before exploiting
         self.min_tries = min_tries
@@ -24,13 +22,14 @@ class BanditConfig(Config):
 class Bandit(ConfigurableObject):
     config_class = BanditConfig
 
-    def __init__(self, config: BanditConfig):
+    def __init__(self, config: BanditConfig, num_choices: int):
         ConfigurableObject.__init__(self, config)
         """
         Initialises a multi-armed bandit problems with n arms.
         Q: The agent's estimated mean reward for each arm
         N: The number of times each arm has been chosen
         """
+        self.n = num_choices
         self.Q = np.zeros(self.n)
         self.N = np.zeros(self.n)
 

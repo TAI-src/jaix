@@ -14,12 +14,11 @@ def get_bandit(
     exploit_strategy: BanditExploitStrategy = BanditExploitStrategy.MAX,
 ):
     config = BanditConfig(
-        num_choices=num_choices,
         epsilon=epsilon,
         min_tries=min_tries,
         exploit_strategy=exploit_strategy,
     )
-    bandit = Bandit(config)
+    bandit = Bandit(config, num_choices=num_choices)
     return bandit
 
 
