@@ -1,8 +1,6 @@
-"""An Experiment"""
 import numpy as np
 from jaix.runner.ask_tell import ATStrategy
 from ttex.config import Config, ConfigurableObject
-import gymnasium as gym
 
 
 class RandomATStratConfig(Config):

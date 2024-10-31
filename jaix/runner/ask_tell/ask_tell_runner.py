@@ -1,4 +1,3 @@
-"""An Experiment"""
 from ttex.config import (
     ConfigurableObjectFactory as COF,
     Config,
@@ -6,16 +5,14 @@ from ttex.config import (
 )  # E501: ignore
 from jaix.runner import Runner, Optimiser
 import logging
-import copy
 import gymnasium as gym
-from typing import Type
+from typing import Type, List, Tuple, Union, Dict
 from jaix.env.wrapper import (
-    PassthroughWrapper,
     MaxEvalWrapper,
     MaxEvalWrapperConfig,
     WrappedEnvFactory as WEF,
+    PassthroughWrapper,
 )
-from typing import Type, Optional, Union, Dict, Tuple, List
 
 logger = logging.getLogger("DefaultLogger")
 
