@@ -1,6 +1,7 @@
 from ttex.config import Config, ConfigurableObject
 import numpy as np
 from enum import Enum
+
 # https://medium.com/@enendufrankc/implement-a-multi-armed-bandit-algorithm-18afa2354c3f
 
 BanditExploitStrategy = Enum("BanditExploitStrategy", ["MAX", "PROP"])
