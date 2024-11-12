@@ -7,10 +7,10 @@ from typing import DefaultDict, List
 
 
 class StaticProblem:
-    def __init__(self, dimension: int, num_objectives: int):
+    def __init__(self, dimension: int, num_objectives: int, precision: float = None):
         self.dimension = dimension
-        self.evaluations = 0
         self.num_objectives = num_objectives
+        self.precision = precision
         self.lower_bounds = (
             [-np.inf] * self.dimension
             if not hasattr(self, "lower_bounds")
@@ -31,17 +31,26 @@ class StaticProblem:
             if not hasattr(self, "max_values")
             else self.max_values
         )  # type: List[float]
-        self.recommendations = defaultdict(
-            list
-        )  # type: DefaultDict[int, List[np.ndarray]]
+        self.evaluations = 0
+        self.recommendations = defaultdict(list)  # type: DefaultDict[int, List[np.ndarray]]
         self.last_recommended_at = 0
+        self.current_best = self.max_values
 
     def evalsleft(self, budget_multiplier):
         return int(self.dimension * budget_multiplier - self.evaluations)
 
-    @abstractmethod
     def final_target_hit(self):
-        pass
+        if self.precision is None:
+            raise NotImplementedError()
+        if self.current_best is None:
+            return False
+        else:
+            target_hit = [
+                cb - mv <= self.precision
+                for cb, mv in zip(self.current_best, self.min_values)
+            ]
+            # TODO: should this be all or any?
+            return np.array(target_hit).all()
 
     def stop(self, budget_multiplier):
         return self.evalsleft(budget_multiplier) <= 0 or self.final_target_hit()
@@ -68,7 +77,11 @@ class StaticProblem:
             ][1:]
         """
         self.evaluations += 1
-        return self._eval(x)
+        fitness = self._eval(x)
+        self.current_best = [
+            f if f < cb else cb for f, cb in zip(fitness, self.current_best)
+        ]
+        return fitness
 
     def recommend(self, x):
         # TODO validate x

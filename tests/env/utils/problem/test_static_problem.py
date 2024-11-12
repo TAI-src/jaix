@@ -2,7 +2,6 @@ from jaix.env.utils.problem import Sphere, SphereConfig, StaticProblem
 from ttex.config import ConfigurableObjectFactory as COF
 import pickle
 import os
-import math
 
 
 def test_init():
