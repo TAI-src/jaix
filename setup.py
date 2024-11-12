@@ -5,7 +5,7 @@ __version__ = "0.0.0"
 
 setup(
     name="tai_jaix",
-    version = __version__,
+    version=__version__,
     packages=find_packages(),
     install_requires=["cma", "gymnasium", "coco-experiment", "regex", "tai-ttex"],
     license="GPL3",
