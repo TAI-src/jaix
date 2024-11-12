@@ -14,21 +14,22 @@ class SphereConfig(Config):
         # box constraints
         self.lower_bounds = np.array([-5.0] * dimension)
         self.upper_bounds = np.array([5.0] * dimension)
+        self.max_values = [
+            np.inf
+        ] * self.num_objectives  # There is a tigher bound but does not matter
+        self.min_values = [self._eval(xs)[i] for i, xs in enumerate(self.x_shifts)]
 
 
 class Sphere(ConfigurableObject, StaticProblem):
     config_class = SphereConfig
 
-    def __init__(self, config: SphereConfig):
+    def __init__(self, config: SphereConfig, inst: int):
         ConfigurableObject.__init__(self, config)
-        self.max_values = [
-            np.inf
-        ] * self.num_objectives  # There is a tigher bound but does not matter
-        # Resetting current_best after using it to compute min values
-        self.min_values = [self._eval(xs)[i] for i, xs in enumerate(self.x_shifts)]
         StaticProblem.__init__(
             self, self.dimension, self.num_objectives, self.precision
         )
+        # TODO: need to make shifts part of instance instead
+        self.inst = inst
 
     def _eval(self, x):
         fitness = [

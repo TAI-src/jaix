@@ -34,8 +34,8 @@ class ECSuite(ConfigurableObject, Suite):
     def get_agg_envs(self, agg_type: AggType, seed: Optional[int] = None):
         for _ in range(1):
             funcs = [
-                COF.create(self.func_class, self.func_config)
-                for _ in range(self.num_instances)
+                COF.create(self.func_class, self.func_config, inst=i)
+                for i in range(self.num_instances)
             ]
             envs = [COF.create(ECEnvironment, self.env_config, func) for func in funcs]
             yield envs
