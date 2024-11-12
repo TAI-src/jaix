@@ -60,14 +60,16 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         self._current_env = 0
 
         self.pattern_switcher = COF.create(
-            self.switching_pattern_class, self.switching_pattern_config
+            self.switching_pattern_class,
+            self.switching_pattern_config,
+            num_choices=len(self.env_list),
         )
         if self.real_time:
             # save current wallclocktime etc
             raise NotImplementedError()
         else:
             self._timer = 0
-        switcher_space = spaces.Discrete(self.switching_pattern_config.num_choices)
+        switcher_space = spaces.Discrete(len(self.env_list))
         self.steps_counter = 0
 
         self.action_space = action_space

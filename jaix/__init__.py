@@ -3,3 +3,4 @@ from jaix.environment_factory import (
     CompositeEnvironmentConfig,
     EnvironmentFactory,
 )
+from jaix.experiment import ExperimentConfig, Experiment

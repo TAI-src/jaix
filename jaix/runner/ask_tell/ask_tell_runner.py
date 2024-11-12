@@ -1,7 +1,6 @@
 from ttex.config import (
     ConfigurableObjectFactory as COF,
     Config,
-    ConfigurableObject,
 )  # E501: ignore
 from jaix.runner import Runner, Optimiser
 import logging
@@ -23,7 +22,7 @@ class ATRunnerConfig(Config):
         self.max_evals = max_evals
 
 
-class ATRunner(ConfigurableObject, Runner):
+class ATRunner(Runner):
     config_class = ATRunnerConfig
 
     def run(
@@ -35,9 +34,7 @@ class ATRunner(ConfigurableObject, Runner):
         **kwargs,
     ):
         logger.debug("Starting experiment with %s on %s", opt_class, env)
-        wrappers = [
-            (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))
-        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        wrappers = [(MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
 
         wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)
