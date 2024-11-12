@@ -1,5 +1,4 @@
 from ttex.config import (
-    ConfigurableObject,
     ConfigurableObjectFactory as COF,
 )
 from jaix.env.composite import (
@@ -7,7 +6,6 @@ from jaix.env.composite import (
     SwitchingEnvironment,
 )
 from jaix.env.utils.switching_pattern import (
-    SwitchingPattern,
     SeqRegSwitchingPatternConfig,
     SeqRegSwitchingPattern,
 )
@@ -20,7 +18,6 @@ from jaix.env.singular import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
-import math
 import os
 from jaix.env.wrapper import ClosingWrapper
 
@@ -44,7 +41,7 @@ def single_act_space():
 
 @pytest.fixture(scope="function")
 def env(single_obs_space, single_act_space):
-    sp_config = SeqRegSwitchingPatternConfig(wait_period=3, num_choices=3)
+    sp_config = SeqRegSwitchingPatternConfig(wait_period=3)
 
     env_list = [
         gym.make("MountainCar-v0", render_mode="rgb_array"),
@@ -148,7 +145,7 @@ def test_truncate(env, single_act_space):
 def test_render(env):
     env.reset()
     with pytest.raises(gym.error.DependencyNotInstalled):
-        renders = env.render()
+        env.render()
 
 
 def test_passthrough(env):
@@ -189,7 +186,7 @@ def ec_env():
         env = COF.create(ECEnvironment, config, func)
         env_list[i] = env
 
-    sp_config = SeqRegSwitchingPatternConfig(wait_period=5, num_choices=n_envs)
+    sp_config = SeqRegSwitchingPatternConfig(wait_period=5)
 
     config = SwitchingEnvironmentConfig(
         SeqRegSwitchingPattern, sp_config, real_time=False
@@ -221,8 +218,8 @@ def test_force_stop_time(ec_env):
             assert "final_r" in info
         if info["meta"]["steps_counter"] % 3 == 1:
             assert info["evals_left"] == 2
-            assert not "final_observation" in info
-            assert not "final_r" in info
+            assert "final_observation" not in info
+            assert "final_r" not in info
     assert info["meta"]["steps_counter"] == 9
     assert info["meta"]["timer"] == 9
 
@@ -235,7 +232,7 @@ def test_force_stop_done(ec_env):
         assert info["evals_left"] == 2
         assert "final_observation" in info
         # no final_r since done on the first step
-        assert not "final_r" in info
+        assert "final_r" not in info
     assert info["meta"]["steps_counter"] == 3
     assert info["meta"]["timer"] == 3
 

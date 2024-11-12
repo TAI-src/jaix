@@ -2,13 +2,13 @@ from abc import abstractmethod
 import logging
 import gymnasium as gym
 from typing import Type
-from ttex.config import Config
+from ttex.config import Config, ConfigurableObject
 from jaix.runner import Optimiser
 
 logger = logging.getLogger("DefaultLogger")
 
 
-class Runner:
+class Runner(ConfigurableObject):
     @abstractmethod
     def run(
         self,

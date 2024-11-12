@@ -1,5 +1,4 @@
 from jaix.env.utils.switching_pattern import (
-    SwitchingPattern,
     SeqRegSwitchingPatternConfig,
     SeqRegSwitchingPattern,
     SeqForcedSwitchingPatternConfig,
@@ -9,8 +8,8 @@ from ttex.config import ConfigurableObjectFactory as COF
 
 
 def test_init_reg():
-    config = SeqRegSwitchingPatternConfig(wait_period=0.5, num_choices=3)
-    sp = COF.create(SeqRegSwitchingPattern, config)
+    config = SeqRegSwitchingPatternConfig(wait_period=0.5)
+    sp = COF.create(SeqRegSwitchingPattern, config, num_choices=3)
 
     assert sp.wait_period == 0.5
     assert sp.num_choices == 3
@@ -18,8 +17,8 @@ def test_init_reg():
 
 
 def test_switch_reg():
-    config = SeqRegSwitchingPatternConfig(wait_period=0.5, num_choices=3)
-    sp = COF.create(SeqRegSwitchingPattern, config)
+    config = SeqRegSwitchingPatternConfig(wait_period=0.5)
+    sp = COF.create(SeqRegSwitchingPattern, config, num_choices=3)
 
     for _ in range(2):
         sp.reset()
@@ -31,8 +30,8 @@ def test_switch_reg():
 
 
 def test_switch_reg_force():
-    config = SeqRegSwitchingPatternConfig(wait_period=0.5, num_choices=3)
-    sp = COF.create(SeqRegSwitchingPattern, config)
+    config = SeqRegSwitchingPatternConfig(wait_period=0.5)
+    sp = COF.create(SeqRegSwitchingPattern, config, num_choices=3)
 
     for _ in range(2):
         sp.reset()
@@ -47,10 +46,8 @@ def test_switch_reg_force():
 
 
 def test_switch_reg_force_carry():
-    config = SeqRegSwitchingPatternConfig(
-        wait_period=0.5, num_choices=3, carry_over=True
-    )
-    sp = COF.create(SeqRegSwitchingPattern, config)
+    config = SeqRegSwitchingPatternConfig(wait_period=0.5, carry_over=True)
+    sp = COF.create(SeqRegSwitchingPattern, config, num_choices=3)
 
     for _ in range(2):
         sp.reset()
@@ -66,16 +63,16 @@ def test_switch_reg_force_carry():
 
 
 def test_init_force():
-    config = SeqForcedSwitchingPatternConfig(num_choices=3)
-    sp = COF.create(SeqForcedSwitchingPattern, config)
+    config = SeqForcedSwitchingPatternConfig()
+    sp = COF.create(SeqForcedSwitchingPattern, config, num_choices=3)
 
     assert sp.num_choices == 3
     assert hasattr(sp, "switch")
 
 
 def test_switch_force():
-    config = SeqForcedSwitchingPatternConfig(num_choices=3)
-    sp = COF.create(SeqForcedSwitchingPattern, config)
+    config = SeqForcedSwitchingPatternConfig()
+    sp = COF.create(SeqForcedSwitchingPattern, config, num_choices=3)
 
     for _ in range(2):
         sp.reset()

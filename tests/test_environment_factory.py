@@ -1,8 +1,7 @@
-from jaix import EnvironmentConfig, CompositeEnvironmentConfig, EnvironmentFactory
+from jaix import EnvironmentConfig, CompositeEnvironmentConfig
 from jaix.suite import AggType, ECSuite, ECSuiteConfig
 from jaix.env.composite import SwitchingEnvironment, SwitchingEnvironmentConfig
 from jaix.env.utils.switching_pattern import (
-    SwitchingPattern,
     SeqRegSwitchingPatternConfig,
     SeqRegSwitchingPattern,
 )
@@ -15,7 +14,7 @@ import gymnasium as gym
 
 @pytest.fixture(scope="function")
 def comp_config():
-    sp_config = SeqRegSwitchingPatternConfig(wait_period=3, num_choices=3)
+    sp_config = SeqRegSwitchingPatternConfig(wait_period=3)
     config = SwitchingEnvironmentConfig(
         SeqRegSwitchingPattern, sp_config, real_time=False
     )
@@ -58,6 +57,8 @@ def test_singular(ec_config):
     for env in EF.get_envs(config):
         assert isinstance(env, gym.Wrapper)
         assert isinstance(env.unwrapped, ECEnvironment)
+        action = env.action_space.sample()
+        env.step(action)
         env.close()
 
 
@@ -66,4 +67,6 @@ def test_composite(ec_config, comp_config):
     for env in EF.get_envs(config):
         assert isinstance(env, gym.Wrapper)
         assert isinstance(env.unwrapped, SwitchingEnvironment)
+        action = env.action_space.sample()
+        env.step(action)
         env.close()

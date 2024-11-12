@@ -5,7 +5,11 @@ from gymnasium import spaces
 from typing import List, Optional
 
 
-class SwitchingPattern:
+class SwitchingPattern(ConfigurableObject):
+    def __init__(self, config: Config, num_choices: int):
+        ConfigurableObject.__init__(self, config)
+        self.num_choices = num_choices
+
     @abstractmethod
     def reset(self, seed=None):
         # reset so the surrounding environment can reset
@@ -21,22 +25,21 @@ class SeqRegSwitchingPatternConfig(Config):
     def __init__(
         self,
         wait_period: float,
-        num_choices: int,
         carry_over: bool = False,
     ):
         self.wait_period = wait_period
-        self.num_choices = num_choices
         self.carry_over = carry_over
         self.offset = 0
 
 
-class SeqRegSwitchingPattern(ConfigurableObject, SwitchingPattern):
+class SeqRegSwitchingPattern(SwitchingPattern):
     config_class = SeqRegSwitchingPatternConfig
 
     def reset(self, seed=None):
         self.offset = 0
 
     def switch(self, t: float, valid: Optional[List[bool]] = None) -> int:
+        assert valid is None or self.num_choices == len(valid)
         valid = [True] * self.num_choices if valid is None else valid
         env_num = math.floor((t + self.offset) / self.wait_period)
         if env_num >= self.num_choices:
@@ -59,13 +62,11 @@ class SeqRegSwitchingPattern(ConfigurableObject, SwitchingPattern):
 class SeqForcedSwitchingPatternConfig(Config):
     def __init__(
         self,
-        num_choices: int,
     ):
-        self.num_choices = num_choices
         self.current = 0
 
 
-class SeqForcedSwitchingPattern(ConfigurableObject, SwitchingPattern):
+class SeqForcedSwitchingPattern(SwitchingPattern):
     config_class = SeqForcedSwitchingPatternConfig
 
     def reset(self, seed=None):

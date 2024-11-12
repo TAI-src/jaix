@@ -1,7 +1,6 @@
 from ttex.config import (
     ConfigurableObjectFactory as COF,
     Config,
-    ConfigurableObject,
 )  # E501: ignore
 from jaix.runner import Runner, Optimiser
 import logging
@@ -23,7 +22,7 @@ class ATRunnerConfig(Config):
         self.max_evals = max_evals
 
 
-class ATRunner(ConfigurableObject, Runner):
+class ATRunner(Runner):
     config_class = ATRunnerConfig
 
     def run(
