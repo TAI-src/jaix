@@ -30,8 +30,8 @@ class RBFFit(ConfigurableObject, StaticProblem):
         # TODO: correct dimension depends on kernel
         # For now just assuming gaussian with eps
         self.dimension = 2 * self.rbf_adapter.num_rad
-        self.lower_bounds = np.array([-5.0] * self.dimension)
-        self.upper_bounds = np.array([5.0] * self.dimension)
+        self.lower_bounds = [-5.0] * self.dimension
+        self.upper_bounds = [5.0] * self.dimension
 
         StaticProblem.__init__(
             self, self.dimension, self.num_objectives, self.precision

@@ -13,10 +13,8 @@ def test_init():
         precision=1e-8,
     )
     sphere = COF.create(Sphere, config, 1)
-    for key in ["dimension", "mult", "precision"]:
+    for key in ["dimension", "mult", "precision", "lower_bounds", "upper_bounds"]:
         assert getattr(sphere, key) == getattr(config, key)
-    for key in ["lower_bounds", "upper_bounds"]:
-        assert (getattr(sphere, key) == getattr(config, key)).all()
     assert not sphere.final_target_hit()
 
 
