@@ -14,43 +14,28 @@ class SphereConfig(Config):
         # box constraints
         self.lower_bounds = np.array([-5.0] * dimension)
         self.upper_bounds = np.array([5.0] * dimension)
+        self.max_values = [
+            np.inf
+        ] * self.num_objectives  # There is a tigher bound but does not matter
 
 
 class Sphere(ConfigurableObject, StaticProblem):
     config_class = SphereConfig
 
-    def __init__(self, config: SphereConfig):
+    def __init__(self, config: SphereConfig, inst: int):
         ConfigurableObject.__init__(self, config)
-        StaticProblem.__init__(self, self.dimension, self.num_objectives)
-        self.max_values = [
-            np.inf
-        ] * self.num_objectives  # There is a tigher bound but does not matter
-        # Resetting current_best after using it to compute min values
         self.min_values = [self._eval(xs)[i] for i, xs in enumerate(self.x_shifts)]
-        self.current_best = self.max_values
-
-    def final_target_hit(self):
-        if self.current_best is None:
-            return False
-        else:
-            target_hit = [
-                cb - mv <= self.precision
-                for cb, mv in zip(self.current_best, self.min_values)
-            ]
-            # TODO should this be all or any?
-            return np.array(target_hit).all()
+        StaticProblem.__init__(
+            self, self.dimension, self.num_objectives, self.precision
+        )
+        # TODO: need to make shifts part of instance instead
+        self.inst = inst
 
     def _eval(self, x):
         fitness = [
             self.mult * np.linalg.norm(x - xs) + ys
             for xs, ys in zip(self.x_shifts, self.y_shifts)
         ]
-        if getattr(self, "current_best", None) is None:
-            self.current_best = self.max_values
-        else:
-            self.current_best = [
-                f if f < cb else cb for f, cb in zip(fitness, self.current_best)
-            ]
         return fitness
 
     def __str__(self):

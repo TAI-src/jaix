@@ -2,7 +2,6 @@ from jaix.env.utils.problem import Sphere, SphereConfig, StaticProblem
 from ttex.config import ConfigurableObjectFactory as COF
 import pickle
 import os
-import math
 
 
 def test_init():
@@ -22,7 +21,7 @@ def test_evals_left():
         y_shifts=[0, 0],
         precision=1e-8,
     )
-    sphere = COF.create(Sphere, config)
+    sphere = COF.create(Sphere, config, 1)
     assert sphere.evalsleft(budget_multiplier=2) == 6
     sphere([0, 0, 0])
     assert sphere.evalsleft(budget_multiplier=2) == 5
@@ -37,7 +36,7 @@ def test_stop_evals():
         y_shifts=[0, 0],
         precision=1e-8,
     )
-    sphere = COF.create(Sphere, config)
+    sphere = COF.create(Sphere, config, 1)
     sphere([1, 2, 3])
     assert not sphere.stop(1)
     assert not sphere.final_target_hit()
@@ -58,7 +57,7 @@ def test_stop_target_hit():
         y_shifts=[4, 4],
         precision=1e-8,
     )
-    sphere = COF.create(Sphere, config)
+    sphere = COF.create(Sphere, config, 1)
     sphere([0, 0, 0])
     assert not sphere.stop(1000)
     assert not sphere.final_target_hit()
@@ -127,7 +126,7 @@ def test_close():
         y_shifts=[0, 0],
         precision=1e-8,
     )
-    sphere = COF.create(Sphere, config)
+    sphere = COF.create(Sphere, config, 1)
     sphere.recommend([0, 0, 0])
     rec_file_name = sphere.close()
     with open(rec_file_name, "rb") as rec_file:
