@@ -3,11 +3,11 @@ import numpy as np
 from collections import defaultdict
 import uuid
 import pickle
-from typing import DefaultDict, List
+from typing import DefaultDict, List, Optional
 
 
 class StaticProblem:
-    def __init__(self, dimension: int, num_objectives: int, precision: float = None):
+    def __init__(self, dimension: int, num_objectives: int, precision: Optional[float] = None):
         self.dimension = dimension
         self.num_objectives = num_objectives
         self.precision = precision
@@ -40,8 +40,8 @@ class StaticProblem:
         return int(self.dimension * budget_multiplier - self.evaluations)
 
     def final_target_hit(self):
-        if self.precision is None:
-            raise NotImplementedError()
+        if self.precision is None or any(np.isinf(self.min_values)):
+            raise ValueError("Need precision and min values for automatic target detection.") 
         if self.current_best is None:
             return False
         else:

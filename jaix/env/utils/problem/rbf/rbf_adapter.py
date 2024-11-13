@@ -35,7 +35,10 @@ class RBFAdapter(ConfigurableObject):
     def _split_range(start: float, length: float, num_splits: int):
         assert length > 0
         assert num_splits > 0
-        points = [start + x / (num_splits - 1) * length for x in range(num_splits)]
+        if num_splits == 1:
+            points = [start + length/2]
+        else:
+            points = [start + x / (num_splits - 1) * length for x in range(num_splits)]
         return points
 
     def _setup(config: RBFAdapterConfig):

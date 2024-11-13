@@ -17,7 +17,6 @@ class SphereConfig(Config):
         self.max_values = [
             np.inf
         ] * self.num_objectives  # There is a tigher bound but does not matter
-        self.min_values = [self._eval(xs)[i] for i, xs in enumerate(self.x_shifts)]
 
 
 class Sphere(ConfigurableObject, StaticProblem):
@@ -25,6 +24,7 @@ class Sphere(ConfigurableObject, StaticProblem):
 
     def __init__(self, config: SphereConfig, inst: int):
         ConfigurableObject.__init__(self, config)
+        self.min_values = [self._eval(xs)[i] for i, xs in enumerate(self.x_shifts)]
         StaticProblem.__init__(
             self, self.dimension, self.num_objectives, self.precision
         )

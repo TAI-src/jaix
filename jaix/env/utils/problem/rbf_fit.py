@@ -1,7 +1,7 @@
 from jaix.env.utils.problem import StaticProblem
 from ttex.config import Config, ConfigurableObject
 from jaix.env.utils.problem.rbf import RBFAdapter, RBFAdapterConfig
-
+import numpy as np
 
 class RBFFitConfig(Config):
     def __init__(
@@ -10,11 +10,19 @@ class RBFFitConfig(Config):
         precision: float,
     ):
         self.rbf_config = rbf_config
-        self.min_values = [0]
-        self.num_objectives = 1
-        # TODO: potentially also kernels with only one value
-        self.dimension = 2 * rbf_config.num_rad
         self.precision = precision
+
+        # TODO: correct dimension depends on kernel
+        # For now just assuming gaussian with eps
+        self.dimension = 2 * rbf_config.num_rad      
+
+        # known info 
+        # TODO: do these make sense?
+        self.num_objectives = 1
+        self.lower_bounds = np.array([-5.0] * self.dimension)
+        self.upper_bounds = np.array([5.0] * self.dimension)
+        self.max_values = [np.inf]
+        self.min_values = [0]
 
 
 class RBFFit(ConfigurableObject, StaticProblem):

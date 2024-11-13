@@ -17,6 +17,7 @@ class ECSuiteConfig(Config):
         num_instances: int = 1,
     ):
         self.func_config = func_config
+        # TODO: should probably allow multiple functions
         self.env_config = env_config
         self.func_class = func_class
         self.num_instances = num_instances
@@ -26,8 +27,8 @@ class ECSuite(ConfigurableObject, Suite):
     config_class = ECSuiteConfig
 
     def get_envs(self):
-        for _ in range(1):
-            func = COF.create(self.func_class, self.func_config)
+        for inst in range(self.num_instances):
+            func = COF.create(self.func_class, self.func_config, inst)
             env = COF.create(ECEnvironment, self.env_config, func)
             yield env
 
