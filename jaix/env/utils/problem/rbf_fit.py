@@ -3,6 +3,7 @@ from ttex.config import Config, ConfigurableObject
 from jaix.env.utils.problem.rbf import RBFAdapter, RBFAdapterConfig
 import numpy as np
 
+
 class RBFFitConfig(Config):
     def __init__(
         self,
@@ -14,9 +15,9 @@ class RBFFitConfig(Config):
 
         # TODO: correct dimension depends on kernel
         # For now just assuming gaussian with eps
-        self.dimension = 2 * rbf_config.num_rad      
+        self.dimension = 2 * rbf_config.num_rad
 
-        # known info 
+        # known info
         # TODO: do these make sense?
         self.num_objectives = 1
         self.lower_bounds = np.array([-5.0] * self.dimension)

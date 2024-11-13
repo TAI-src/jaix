@@ -36,7 +36,7 @@ class RBFAdapter(ConfigurableObject):
         assert length > 0
         assert num_splits > 0
         if num_splits == 1:
-            points = [start + length/2]
+            points = [start + length / 2]
         else:
             points = [start + x / (num_splits - 1) * length for x in range(num_splits)]
         return points
@@ -44,9 +44,13 @@ class RBFAdapter(ConfigurableObject):
     def _setup(config: RBFAdapterConfig):
         x_length = config.x_val_range[1] - config.x_val_range[0]
         const_x_length = x_length * config.const_ratio_x
-        box_start = config.x_val_range[0] + np.random.uniform(low=0, high=x_length * (1 - config.const_ratio_x))
+        box_start = config.x_val_range[0] + np.random.uniform(
+            low=0, high=x_length * (1 - config.const_ratio_x)
+        )
         box_end = box_start + const_x_length
-        target_val = np.random.uniform(low=config.y_val_range[0], high=config.y_val_range[1])
+        target_val = np.random.uniform(
+            low=config.y_val_range[0], high=config.y_val_range[1]
+        )
         measure_points = RBFAdapter._split_range(
             config.x_val_range[0], x_length, config.num_measure_points
         )
@@ -54,12 +58,14 @@ class RBFAdapter(ConfigurableObject):
             (m, target_val if m >= box_start and m <= box_end else 0)
             for m in measure_points
         ]
-        centers = RBFAdapter._split_range(config.x_val_range[0], x_length, config.num_rad)
+        centers = RBFAdapter._split_range(
+            config.x_val_range[0], x_length, config.num_rad
+        )
         return targets, centers
 
     def comp_fit(self, x):
-        w = x[0:self.num_rad]
-        eps = x[self.num_rad:]
+        w = x[0 : self.num_rad]
+        eps = x[self.num_rad :]
         rbf = RBF(self.centers, eps, w, self.kernel)
         d = [rbf.eval(m) - t for (m, t) in self.targets]
         return self.err(d)

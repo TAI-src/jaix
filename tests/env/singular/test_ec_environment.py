@@ -19,7 +19,7 @@ def env():
         y_shifts=[0, 0],
         precision=1e-8,
     )
-    func = COF.create(Sphere, func_config,1)
+    func = COF.create(Sphere, func_config, 1)
 
     config = ECEnvironmentConfig(budget_multiplier=1)
     env = COF.create(ECEnvironment, config, func)

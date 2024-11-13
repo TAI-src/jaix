@@ -21,7 +21,7 @@ def test_evals_left():
         y_shifts=[0, 0],
         precision=1e-8,
     )
-    sphere = COF.create(Sphere, config,1)
+    sphere = COF.create(Sphere, config, 1)
     assert sphere.evalsleft(budget_multiplier=2) == 6
     sphere([0, 0, 0])
     assert sphere.evalsleft(budget_multiplier=2) == 5
