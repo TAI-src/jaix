@@ -7,7 +7,9 @@ from typing import DefaultDict, List, Optional
 
 
 class StaticProblem:
-    def __init__(self, dimension: int, num_objectives: int, precision: Optional[float] = None):
+    def __init__(
+        self, dimension: int, num_objectives: int, precision: Optional[float] = None
+    ):
         self.dimension = dimension
         self.num_objectives = num_objectives
         self.precision = precision
@@ -32,7 +34,9 @@ class StaticProblem:
             else self.max_values
         )  # type: List[float]
         self.evaluations = 0
-        self.recommendations = defaultdict(list)  # type: DefaultDict[int, List[np.ndarray]]
+        self.recommendations = defaultdict(
+            list
+        )  # type: DefaultDict[int, List[np.ndarray]]
         self.last_recommended_at = 0
         self.current_best = self.max_values
 
@@ -41,7 +45,9 @@ class StaticProblem:
 
     def final_target_hit(self):
         if self.precision is None or any(np.isinf(self.min_values)):
-            raise ValueError("Need precision and min values for automatic target detection.") 
+            raise ValueError(
+                "Need precision and min values for automatic target detection."
+            )
         if self.current_best is None:
             return False
         else:
