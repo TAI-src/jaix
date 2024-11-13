@@ -66,10 +66,10 @@ class RBFAdapter(ConfigurableObject):
         if config.num_rad_range[0] == config.num_rad_range[1]:
             num_rad = config.num_rad_range[0]
         else:
-            num_rad = np.random.randint(low=config.num_rad_range[0], high=config.num_rad_range[1])
-        centers = RBFAdapter._split_range(
-            config.x_val_range[0], x_length, num_rad
-        )
+            num_rad = np.random.randint(
+                low=config.num_rad_range[0], high=config.num_rad_range[1]
+            )
+        centers = RBFAdapter._split_range(config.x_val_range[0], x_length, num_rad)
         return targets, centers
 
     def comp_fit(self, x):
