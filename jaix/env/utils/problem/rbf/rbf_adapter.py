@@ -7,14 +7,14 @@ from jaix.env.utils.problem.rbf import RBFKernel, RBF
 class RBFAdapterConfig(Config):
     def __init__(
         self,
-        num_rad: int,
+        num_rad_range: Tuple[int, int],
         const_ratio_x: float,
         num_measure_points: int,
         x_val_range: Tuple[float, float] = (-10, 10),
         y_val_range: Tuple[float, float] = (-30, 30),
         kernel: RBFKernel = RBFKernel.GAUSSIAN,
     ):
-        self.num_rad = num_rad
+        self.num_rad_range = num_rad_range
         self.const_ratio_x = const_ratio_x
         self.num_measure_points = num_measure_points
         self.x_val_range = x_val_range
@@ -22,6 +22,10 @@ class RBFAdapterConfig(Config):
         self.kernel = kernel
         self.err = lambda d: np.mean([x**2 for x in d])
         assert const_ratio_x <= 1
+        # check range assumptions
+        for rng in [num_rad_range, x_val_range, y_val_range]:
+            assert len(rng) == 2
+            assert rng[0] <= rng[1]
 
 
 class RBFAdapter(ConfigurableObject):
@@ -31,6 +35,7 @@ class RBFAdapter(ConfigurableObject):
         ConfigurableObject.__init__(self, config)
         np.random.seed(inst)
         self.targets, self.centers = RBFAdapter._setup(config)
+        self.num_rad = len(self.centers)
 
     def _split_range(start: float, length: float, num_splits: int):
         assert length > 0
@@ -58,8 +63,12 @@ class RBFAdapter(ConfigurableObject):
             (m, target_val if m >= box_start and m <= box_end else 0)
             for m in measure_points
         ]
+        if config.num_rad_range[0] == config.num_rad_range[1]:
+            num_rad = config.num_rad_range[0]
+        else:
+            num_rad = np.random.randint(low=config.num_rad_range[0], high=config.num_rad_range[1])
         centers = RBFAdapter._split_range(
-            config.x_val_range[0], x_length, config.num_rad
+            config.x_val_range[0], x_length, num_rad
         )
         return targets, centers
 

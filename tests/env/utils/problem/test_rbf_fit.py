@@ -5,7 +5,7 @@ from jaix.env.singular import (
     ECEnvironmentConfig,
 )
 from ttex.config import ConfigurableObjectFactory as COF
-
+import pytest
 
 def test_rbf_fit():
     rbf_adapter_config = get_config()
@@ -15,7 +15,7 @@ def test_rbf_fit():
     assert isinstance(rbf._eval(x)[0], float)
     assert not rbf.final_target_hit()
 
-
+# integration test env
 def test_with_env():
     rbf_adapter_config = get_config()
     config = RBFFitConfig(rbf_adapter_config, 1e-8)
@@ -25,3 +25,5 @@ def test_with_env():
 
     info = env._get_info()
     env.step(env.action_space.sample())
+
+

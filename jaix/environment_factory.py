@@ -65,13 +65,10 @@ class EnvironmentFactory:
                 agg_type=comp_config.agg_type, seed=env_config.seed
             ):
                 wrapped_envs = [WEF.wrap(env, env_config.env_wrappers) for env in envs]
-                # TODO: The space definitions need to move out of here, this is an assumption
                 comp_env = COF.create(
                     comp_config.comp_env_class,
                     comp_config.comp_env_config,
                     wrapped_envs,
-                    observation_space=wrapped_envs[0].observation_space,
-                    action_space=wrapped_envs[0].action_space,
                 )
                 wrapped_env = WEF.wrap(comp_env, env_config.env_wrappers)
                 # TODO: reset with seeding here

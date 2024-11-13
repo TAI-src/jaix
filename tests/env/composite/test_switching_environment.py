@@ -13,7 +13,8 @@ import pytest
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-from jaix.env.utils.problem import Sphere, SphereConfig
+from jaix.env.utils.problem import Sphere, SphereConfig, RBFFit, RBFFitConfig
+from ..utils.problem.rbf.test_rbf_adapter import get_config
 from jaix.env.singular import (
     ECEnvironment,
     ECEnvironmentConfig,
@@ -23,24 +24,7 @@ from jaix.env.wrapper import ClosingWrapper
 
 
 @pytest.fixture(scope="function")
-def single_obs_space():
-    single_obs_space = spaces.Box(
-        np.array([-1.2, -0.07], dtype=np.float32),
-        np.array([0.6, 0.07], dtype=np.float32),
-        (2,),
-        dtype=np.float32,
-    )
-    return single_obs_space
-
-
-@pytest.fixture(scope="function")
-def single_act_space():
-    single_act_space = spaces.Discrete(3)
-    return single_act_space
-
-
-@pytest.fixture(scope="function")
-def env(single_obs_space, single_act_space):
+def env():
     sp_config = SeqRegSwitchingPatternConfig(wait_period=3)
 
     env_list = [
@@ -56,8 +40,6 @@ def env(single_obs_space, single_act_space):
         SwitchingEnvironment,
         config,
         env_list,
-        observation_space=single_obs_space,
-        action_space=single_act_space,
     )
     env = ClosingWrapper(env)
 
@@ -67,17 +49,17 @@ def env(single_obs_space, single_act_space):
     assert env.closed
 
 
-def test_init(env, single_act_space, single_obs_space):
+def test_init(env):
     assert env._current_env == 0
     assert len(env.env_list) == 3
     assert env.steps_counter == 0
 
     act = env.action_space.sample()
-    assert single_act_space.contains(act)
+    assert env.env_list[0].action_space.contains(act)
 
     obs = env.observation_space.sample()
     assert spaces.Discrete(3).contains(obs[0])
-    assert single_obs_space.contains(obs[1])
+    assert env.env_list[0].observation_space.contains(obs[1])
 
 
 def test_reset(env):
@@ -100,9 +82,9 @@ def intended_change(old, env, idx):
     return new
 
 
-def test_step(env, single_act_space):
+def test_step(env):
     obs, info = env.reset()
-    act = single_act_space.sample()
+    act = env.action_space.sample()
     base_line_states = [c_env.unwrapped.state for c_env in env.env_list]
 
     obs, _, _, _, info = env.step(act)
@@ -131,10 +113,10 @@ def test_step(env, single_act_space):
     assert info["meta"]["timer"] == 1
 
 
-def test_truncate(env, single_act_space):
+def test_truncate(env):
     env.steps_counter = 0
     obs, info = env.reset()
-    act = single_act_space.sample()
+    act = env.action_space.sample()
 
     trunc = False
     while not trunc:
@@ -167,20 +149,27 @@ def test_decorator_update(env):
     assert trunc
 
 
-@pytest.fixture(scope="function")
-def ec_env():
-    n_envs = 3
-    env_list = [None] * n_envs
-    for i in range(n_envs):
-        func_config = SphereConfig(
+@pytest.fixture(scope="function",
+                params = [Sphere, RBFFit])
+def ec_env(request):
+    if request.param == Sphere:
+         func_config = SphereConfig(
             dimension=3,
             num_objectives=2,
             mult=1,
             x_shifts=[[0, 0, 0], [0, 0, 0]],
-            y_shifts=[i, i],
+            y_shifts=[1, 0],
             precision=1e-8,
         )
-        func = COF.create(Sphere, func_config, 1)
+    elif request.param==RBFFit:
+        func_config = RBFFitConfig(get_config(), 1e-8)
+    else:
+        raise ValueError()
+
+    n_envs = 3
+    env_list = [None] * n_envs
+    for i in range(n_envs):
+        func = COF.create(request.param, func_config, i)
 
         config = ECEnvironmentConfig(budget_multiplier=1)
         env = COF.create(ECEnvironment, config, func)
@@ -195,8 +184,6 @@ def ec_env():
         SwitchingEnvironment,
         config,
         env_list,
-        observation_space=env_list[0].observation_space,
-        action_space=env_list[0].action_space,
     )
     env = ClosingWrapper(env)
     yield env
@@ -204,8 +191,16 @@ def ec_env():
     [os.remove(rec_file) for rec_file in files if rec_file is not None]
     assert env.closed
 
+def test_step_through_stop(ec_env):
+    ec_env.reset(options={"online": True})
+    while not ec_env.stop():
+        act = ec_env.action_space.sample()
+        ec_env.step(act)
+
 
 def test_force_stop_time(ec_env):
+    if not isinstance(ec_env.env_list[0].func, Sphere):
+        pytest.skip("only sphere due to known optimum")
     ec_env.reset(options={"online": True})
     while not ec_env.stop():
         act = [0, 0, 1]  # This will not stop the env
@@ -225,6 +220,9 @@ def test_force_stop_time(ec_env):
 
 
 def test_force_stop_done(ec_env):
+    if not isinstance(ec_env.env_list[0].func, Sphere):
+        pytest.skip("only sphere due to known optimum")
+
     _, info = ec_env.reset(options={"online": True})
     while not ec_env.stop():
         act = [0, 0, 0]  # This is optimal and will stop the env
