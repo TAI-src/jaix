@@ -149,11 +149,10 @@ def test_decorator_update(env):
     assert trunc
 
 
-@pytest.fixture(scope="function",
-                params = [Sphere, RBFFit])
+@pytest.fixture(scope="function", params=[Sphere, RBFFit])
 def ec_env(request):
     if request.param == Sphere:
-         func_config = SphereConfig(
+        func_config = SphereConfig(
             dimension=3,
             num_objectives=2,
             mult=1,
@@ -161,7 +160,7 @@ def ec_env(request):
             y_shifts=[1, 0],
             precision=1e-8,
         )
-    elif request.param==RBFFit:
+    elif request.param == RBFFit:
         func_config = RBFFitConfig(get_config(), 1e-8)
     else:
         raise ValueError()
@@ -190,6 +189,7 @@ def ec_env(request):
     files = env.close()
     [os.remove(rec_file) for rec_file in files if rec_file is not None]
     assert env.closed
+
 
 def test_step_through_stop(ec_env):
     ec_env.reset(options={"online": True})
