@@ -25,7 +25,7 @@ def test_split_range_edge(start, length, num_splits):
 
 def get_config():
     config = RBFAdapterConfig(
-        num_rad=5,
+        num_rad_range=(1, 20),
         const_ratio_x=0.5,
         num_measure_points=20,
     )
@@ -39,7 +39,7 @@ def test_setup(seed):
     targets, centers = RBFAdapter._setup(config)
 
     x_length = config.x_val_range[1] - config.x_val_range[0]
-    assert len(centers) == config.num_rad
+    assert len(centers) in range(config.num_rad_range[0], config.num_rad_range[1])
     assert centers[-1] - centers[0] == x_length
 
     assert len(targets) == config.num_measure_points
@@ -59,7 +59,7 @@ def test_init():
 
 def test_comp_fit():
     config = RBFAdapterConfig(
-        num_rad=1,
+        num_rad_range=(1, 1),
         const_ratio_x=1,
         num_measure_points=1,
     )

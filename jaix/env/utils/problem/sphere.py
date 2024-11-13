@@ -12,8 +12,8 @@ class SphereConfig(Config):
         self.y_shifts = np.array(y_shifts)
         self.precision = precision
         # box constraints
-        self.lower_bounds = np.array([-5.0] * dimension)
-        self.upper_bounds = np.array([5.0] * dimension)
+        self.lower_bounds = [-5.0] * dimension
+        self.upper_bounds = [5.0] * dimension
         self.max_values = [
             np.inf
         ] * self.num_objectives  # There is a tigher bound but does not matter

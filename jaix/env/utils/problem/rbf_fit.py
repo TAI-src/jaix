@@ -13,15 +13,9 @@ class RBFFitConfig(Config):
         self.rbf_config = rbf_config
         self.precision = precision
 
-        # TODO: correct dimension depends on kernel
-        # For now just assuming gaussian with eps
-        self.dimension = 2 * rbf_config.num_rad
-
         # known info
         # TODO: do these make sense?
         self.num_objectives = 1
-        self.lower_bounds = np.array([-5.0] * self.dimension)
-        self.upper_bounds = np.array([5.0] * self.dimension)
         self.max_values = [np.inf]
         self.min_values = [0]
 
@@ -31,10 +25,17 @@ class RBFFit(ConfigurableObject, StaticProblem):
 
     def __init__(self, config: RBFFitConfig, inst: int):
         ConfigurableObject.__init__(self, config)
+        self.rbf_adapter = RBFAdapter(config.rbf_config, inst)
+
+        # TODO: correct dimension depends on kernel
+        # For now just assuming gaussian with eps
+        self.dimension = 2 * self.rbf_adapter.num_rad
+        self.lower_bounds = [-5.0] * self.dimension
+        self.upper_bounds = [5.0] * self.dimension
+
         StaticProblem.__init__(
             self, self.dimension, self.num_objectives, self.precision
         )
-        self.rbf_adapter = RBFAdapter(config.rbf_config, inst)
 
     def _eval(self, x):
         fitness = [self.rbf_adapter.comp_fit(x)]

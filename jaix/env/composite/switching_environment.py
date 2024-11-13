@@ -49,8 +49,6 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         self,
         config: SwitchingEnvironmentConfig,
         env_list: List[gym.Env],
-        observation_space: spaces.Space,
-        action_space: spaces.Space,
     ):
         ConfigurableObject.__init__(self, config)
         wrappers = [
@@ -69,12 +67,15 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
             raise NotImplementedError()
         else:
             self._timer = 0
-        switcher_space = spaces.Discrete(len(self.env_list))
         self.steps_counter = 0
-
-        self.action_space = action_space
-        self.observation_space = spaces.Tuple((switcher_space, observation_space))
         self._stopped = False
+        self._set_spaces()
+
+    def _set_spaces(self):
+        env = self.env_list[self._current_env]
+        self.action_space = env.action_space
+        switcher_space = spaces.Discrete(len(self.env_list))
+        self.observation_space = spaces.Tuple((switcher_space, env.observation_space))
 
     def update_env(func: FuncT):
         @wraps(func)
@@ -151,6 +152,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         # only update env if not invalid (-1)
         self._stopped = True if new_env < 0 else False
         self._current_env = max(0, new_env)
+        self._set_spaces()
 
     def _stop(self):
         stopped_envs = [env.stop() for env in self.env_list]
