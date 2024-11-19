@@ -1,7 +1,7 @@
 from ttex.config import Config, ConfigurableObjectFactory as COF
 from jaix.runner import Runner, Optimiser
 from typing import Type
-from ttex.logging.logging_setup import initiate_logger
+from ttex.log.logging_setup import initiate_logger
 from jaix import EnvironmentConfig
 from jaix import EnvironmentFactory as EF
 
