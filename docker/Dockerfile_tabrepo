@@ -1,0 +1,7 @@
+FROM python:3.12
+
+WORKDIR /tabrepo
+COPY setup.py setup.py
+COPY tabrepo tabrepo
+
+RUN pip install -e .

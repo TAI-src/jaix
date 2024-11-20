@@ -2,6 +2,16 @@
 
 services:
 
+  tabrepo:
+    container_name: tabrepo
+    env_file: .env
+    image: tabrepo
+    build:
+        context: ../deps/tabrepo
+        dockerfile: ../../docker/Dockerfile_tabrepo
+    volumes:
+      - ../deps/tabrepo:/tabrepo
+
   jaix:
     container_name: jaix
     env_file: .env
@@ -12,3 +22,5 @@ services:
     volumes:
       - ../jaix:/jaix
       - ../tests:/tests
+      - ../deps/tabrepo:/tabrepo
+    shm_size: '5gb'

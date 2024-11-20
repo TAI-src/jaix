@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM tabrepo
 
 # Preload python packages required
 RUN pip install pytest black mypy pylint
