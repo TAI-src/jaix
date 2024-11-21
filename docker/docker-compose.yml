@@ -16,6 +16,9 @@ services:
     container_name: jaix
     env_file: .env
     image: jaix
+    depends_on:
+        tabrepo:
+            condition: service_completed_successfully
     build:
         context: ..
         dockerfile: docker/Dockerfile
@@ -23,4 +26,4 @@ services:
       - ../jaix:/jaix
       - ../tests:/tests
       - ../deps/tabrepo:/tabrepo
-    shm_size: '5gb'
+    shm_size: '8gb'

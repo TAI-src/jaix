@@ -1,1 +1,1 @@
-from jaix.env.utils.hpo.config_translator import ModelType, ConfigTranslator
+from jaix.env.utils.hpo.tabrepo_adapter import TaskType, TabrepoAdapter
