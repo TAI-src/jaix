@@ -6,13 +6,12 @@ services:
     container_name: tabrepo
     env_file: .env
     image: taisrc/jaix:tabrepo
-    pull_policy: missing
+    pull_policy: always
     build:
         context: ../deps/tabrepo
         dockerfile: ../../docker/Dockerfile_tabrepo
         shm_size: '4gb'
-    volumes:
-      - ../deps/tabrepo:/tabrepo
+
 
   jaix:
     container_name: jaix
@@ -27,5 +26,4 @@ services:
     volumes:
       - ../jaix:/jaix
       - ../tests:/tests
-      - ../deps/tabrepo:/tabrepo
     shm_size: '8gb'

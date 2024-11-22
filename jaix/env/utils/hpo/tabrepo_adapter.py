@@ -30,11 +30,11 @@ class TabrepoAdapter:
                 f"Tried getting dataset {inst} of {len(datasets)} available"
             )
 
-        # Get all handmade configs for the dataset
+        # Get all handmade configs that are available for all of the datasets
         regex = r"_c\d+_"
         self.configs = [
             config_name
-            for config_name in self.repo.configs(datasets=[self.dataset], union=True)
+            for config_name in self.repo.configs(datasets=[self.dataset], union=False)
             if re.search(regex, config_name) is not None
         ]
         self._set_metadata()
