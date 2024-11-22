@@ -5,17 +5,19 @@ services:
   tabrepo:
     container_name: tabrepo
     env_file: .env
-    image: tabrepo
+    image: taisrc/jaix:tabrepo
+    pull_policy: missing
     build:
         context: ../deps/tabrepo
         dockerfile: ../../docker/Dockerfile_tabrepo
+        shm_size: '4gb'
     volumes:
       - ../deps/tabrepo:/tabrepo
 
   jaix:
     container_name: jaix
     env_file: .env
-    image: jaix
+    image: taisrc/jaix:jaix
     depends_on:
         tabrepo:
             condition: service_completed_successfully

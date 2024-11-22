@@ -1,4 +1,4 @@
-FROM tabrepo
+FROM taisrc/jaix:tabrepo
 
 # Preload python packages required
 RUN pip install pytest black mypy pylint

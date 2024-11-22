@@ -3,5 +3,9 @@ FROM python:3.12
 WORKDIR /tabrepo
 COPY setup.py setup.py
 COPY tabrepo tabrepo
+COPY data/metadata data/metadata
+COPY data/configs data/configs
 
 RUN pip install -e .
+# Load relevant tabrepo data
+RUN python -c "from tabrepo.repository.evaluation_repository import load_repository; load_repository('D244_F3_C1530_3',load_predictions=False, cache=True)"
