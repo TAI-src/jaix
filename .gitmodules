@@ -1,0 +1,3 @@
+[submodule "deps/tabrepo"]
+	path = deps/tabrepo
+	url = https://github.com/autogluon/tabrepo.git
