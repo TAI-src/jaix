@@ -4,7 +4,9 @@ import numpy as np
 from tabrepo.repository.evaluation_repository import EvaluationRepository
 from jaix.env.utils.hpo import TaskType, TabrepoAdapter
 from typing import Optional
+
 # TODO: Introduce ensembles at some point
+
 
 class HPOEnvironmentConfig(Config):
     def __init__(self, training_budget: int):
@@ -14,11 +16,13 @@ class HPOEnvironmentConfig(Config):
 class HPOEnvironment(ConfigurableObject, gym.Env):
     config_class = HPOEnvironmentConfig
 
-    def __init__(self,
-                 config: HPOEnvironmentConfig,
-                 repo: EvaluationRepository, 
-                 task_type: TaskType,
-                 inst: int):
+    def __init__(
+        self,
+        config: HPOEnvironmentConfig,
+        repo: EvaluationRepository,
+        task_type: TaskType,
+        inst: int,
+    ):
         ConfigurableObject.__init__(self, config)
         self.tabrepo_adapter = TabrepoAdapter(repo, task_type, inst)
         # An action is the index of a config
@@ -33,7 +37,6 @@ class HPOEnvironment(ConfigurableObject, gym.Env):
         )
         self.training_time = 0
         self.num_resets = 0
-     
 
     def _get_info(self):
         return {
@@ -86,4 +89,3 @@ class HPOEnvironment(ConfigurableObject, gym.Env):
 
     def __str__(self):
         return f"HPO Environment {str(self.tabrepo_adapter)}"
-
