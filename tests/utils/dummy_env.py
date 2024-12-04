@@ -40,6 +40,9 @@ class DummyEnv(gym.Env):
     def stop(self):
         return self._stop
 
+    def __str__(self):
+        return "DummyEnv"
+
 
 def test_dummy_env():
     check_env(DummyEnv(), skip_render_check=True)
