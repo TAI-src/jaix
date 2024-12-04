@@ -10,3 +10,5 @@ COPY jaix jaix
 RUN pip install -e .
 
 WORKDIR /tests
+
+#ENTRYPOINT ["python", "/jaix/jaix/wandb_test.py"]

@@ -1,5 +1,4 @@
 # docker-compose run ttex bash
-
 services:
 
   tabrepo:
@@ -16,7 +15,8 @@ services:
   jaix:
     container_name: jaix
     env_file: .env
-    image: taisrc/jaix:jaix
+    image: taisrc/jaix
+    privileged: true
     depends_on:
         tabrepo:
             condition: service_completed_successfully
@@ -27,3 +27,4 @@ services:
       - ../jaix:/jaix
       - ../tests:/tests
     shm_size: '8gb'
+    command: "python wandb_test.py"
