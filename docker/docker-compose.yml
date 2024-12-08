@@ -27,3 +27,5 @@ services:
       - ../jaix:/jaix
       - ../tests:/tests
     shm_size: '8gb'
+    ports:
+      - 9112:22
