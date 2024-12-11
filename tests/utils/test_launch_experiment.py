@@ -1,4 +1,8 @@
 from jaix.utils import launch_jaix_experiment
+import os
+from wandb.sdk import launch
+from typing import Dict, Optional
+import shutil
 
 xconfig = {
     "jaix.ExperimentConfig": {
@@ -50,5 +54,28 @@ xconfig = {
 }
 
 
-def test_launch_jaix_experiment():
-    launch_jaix_experiment(xconfig)
+def test_launch_jaix_experiment(config: Optional[Dict] = None):
+    if not config:
+        prev_mode = os.environ.get("WANDB_MODE", "online")
+        os.environ["WANDB_MODE"] = "offline"
+        run_config = xconfig
+    else:
+        run_config = config
+    run = launch_jaix_experiment(run_config=run_config, project="ci-cd")
+    os.environ["WANDB_MODE"] = prev_mode
+
+    # Remove logging files
+    shutil.rmtree(run.dir)
+    print(run.dir)
+
+    if not config:
+        # Iff available, reset the mode
+        os.environ["WANDB_MODE"] = prev_mode
+
+
+if __name__ == "__main__":
+    # This is to test launch from wandb
+    if not os.environ.get("WANDB_CONFIG", None):
+        raise RuntimeError("Needs to be launched from wandb")
+    run_config = launch.load_wandb_config()
+    test_launch_jaix_experiment(run_config)
