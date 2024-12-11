@@ -12,7 +12,6 @@ services:
         dockerfile: ../../docker/Dockerfile_tabrepo
         shm_size: '4gb'
 
-
   jaix:
     container_name: jaix
     env_file: .env
@@ -27,3 +26,19 @@ services:
       - ../jaix:/jaix
       - ../tests:/tests
     shm_size: '8gb'
+    
+  wandb_launcher:
+    container_name: wandb_launcher
+    env_file: .env
+    image: taisrc/wandb:launcher
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      
+  wandb_job:
+    container_name: jaix_wandb_job
+    env_file: .env
+    image: taisrc/jaix:job
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile_job
