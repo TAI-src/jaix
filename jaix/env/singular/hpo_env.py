@@ -4,8 +4,12 @@ import numpy as np
 from tabrepo.repository.evaluation_repository import EvaluationRepository
 from jaix.env.utils.hpo import TaskType, TabrepoAdapter
 from typing import Optional
+from jaix import LOGGER_NAME
 
 # TODO: Introduce ensembles at some point
+import logging
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class HPOEnvironmentConfig(Config):
