@@ -12,8 +12,9 @@ from jaix.env.wrapper import (
     WrappedEnvFactory as WEF,
     PassthroughWrapper,
 )
+from jaix import LOGGER_NAME
 
-logger = logging.getLogger("DefaultLogger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class ATRunnerConfig(Config):

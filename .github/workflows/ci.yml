@@ -35,4 +35,3 @@ jobs:
       docker-service: jaix
       lint-src: jaix
     secrets: inherit
-

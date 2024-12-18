@@ -4,6 +4,10 @@ from jaix.suite import Suite, AggType
 from jaix.env.composite import CompositeEnvironment
 from jaix.env.wrapper import WrappedEnvFactory as WEF, ClosingWrapper, OnlineWrapper
 import gymnasium as gym
+import logging
+from jaix import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class CompositeEnvironmentConfig(Config):
@@ -52,10 +56,13 @@ class EnvironmentFactory:
     def get_envs(env_config: EnvironmentConfig):
         # TODO: potentially add batching here later
         suite = COF.create(env_config.suite_class, env_config.suite_config)
+        logger.debug(f"Suite {suite} created")
         if env_config.comp_config is None:
             # No composite environments
             for env in suite.get_envs():
+                logger.debug(f"Environment from suite {env}")
                 wrapped_env = WEF.wrap(env, env_config.env_wrappers)
+                logger.debug(f"Wrapped env {env}")
                 # TODO: reset with seeding here
                 yield wrapped_env
                 assert wrapped_env.closed

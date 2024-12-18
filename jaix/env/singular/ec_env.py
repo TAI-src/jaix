@@ -8,8 +8,9 @@ import logging
 from ttex.config import ConfigurableObject, Config
 from jaix.env.utils.problem import StaticProblem
 from typing import Optional
+from jaix import LOGGER_NAME
 
-logger = logging.getLogger("DefaultLogger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class ECEnvironmentConfig(Config):
