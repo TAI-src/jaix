@@ -15,7 +15,7 @@ services:
   jaix:
     container_name: jaix
     env_file: .env
-    image: taisrc/jaix:jaix
+    image: taisrc/jaix
     depends_on:
         tabrepo:
             condition: service_completed_successfully
@@ -42,3 +42,7 @@ services:
     build:
         context: ..
         dockerfile: docker/Dockerfile_job
+    volumes:
+      - ../jaix:/jaix/jaix
+      - ../tests:/jaix/tests
+    entrypoint: bash

@@ -2,7 +2,7 @@ from .test_environment_factory import comp_config, ec_config, env_config
 from .runner.ask_tell.test_at_runner import get_optimiser
 import pytest
 from jaix.runner.ask_tell import ATRunnerConfig, ATRunner, ATOptimiser
-from jaix import ExperimentConfig, Experiment
+from jaix import ExperimentConfig, Experiment, LoggingConfig
 
 
 def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
@@ -18,7 +18,7 @@ def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
         runner_config=runner_config,
         opt_class=ATOptimiser,
         opt_config=opt_config,
-        log_level=10,
+        logging_config=LoggingConfig(log_level=10),
     )
     return config
 

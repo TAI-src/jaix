@@ -15,15 +15,21 @@ class LoggingWrapperConfig(Config):
 
 
 class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
+    config_class = LoggingWrapperConfig
+
     def __init__(self, config: LoggingWrapperConfig, env: gym.Env):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, self.passthrough)
         self.logger = logging.getLogger(self.logger_name)
-        self.steps = 0
+        self.log_resets = 0
+        self.log_env_steps = 0
+        self.log_renv_steps = 0
+        self.dim = len(self.env.action_space.sample())
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
-        self.steps = 0
+        self.log_resets += 1
+        self.log_renv_steps = 0
         return obs, info
 
     def step(self, action):
@@ -34,6 +40,17 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
             trunc,
             info,
         ) = self.env.step(action)
-        self.steps += 1
-        self.logger.info({"env": str(self.env), "step": self.steps, "reward": r.item()})
+        self.log_env_steps += 1
+        self.log_renv_steps += 1
+        # Log per reset
+        self.logger.info(
+            {
+                f"env/r/{self.dim}/{self.env}": r.item(),
+                f"env/resets/{self.env}": self.log_resets,
+                # f"restarts/r/{self.dim}/{self.env}/{self.log_resets}": r.item(),
+                "env/step": self.log_env_steps,
+                # "restarts/step": self.log_renv_steps,
+            }
+        )
+        # TODO: Figure out what info would be helpful from all the sub-wrappers etc
         return obs, r, term, trunc, info

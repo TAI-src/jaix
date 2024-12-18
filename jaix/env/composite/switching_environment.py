@@ -18,8 +18,9 @@ from functools import wraps
 from jaix.env.composite import CompositeEnvironment
 
 import logging
+from jaix import LOGGER_NAME
 
-logger = logging.getLogger("DefaultLogger")
+logger = logging.getLogger(LOGGER_NAME)
 FuncT = TypeVar("FuncT", bound=Callable[..., Any])
 
 

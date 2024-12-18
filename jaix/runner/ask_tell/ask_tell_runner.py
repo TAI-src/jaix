@@ -12,8 +12,9 @@ from jaix.env.wrapper import (
     WrappedEnvFactory as WEF,
     PassthroughWrapper,
 )
+from jaix import LOGGER_NAME
 
-logger = logging.getLogger("DefaultLogger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class ATRunnerConfig(Config):
@@ -34,9 +35,7 @@ class ATRunner(Runner):
         **kwargs,
     ):
         logger.debug("Starting experiment with %s on %s", opt_class, env)
-        wrappers = [
-            (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))
-        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        wrappers = [(MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
 
         wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)

@@ -1,8 +1,8 @@
-from jaix.utils import launch_jaix_experiment
+from jaix.utils import launch_jaix_experiment, wandb_logger, wandb_init
 import os
-from wandb.sdk import launch
-from typing import Dict, Optional
 import shutil
+from ttex.config import ConfigFactory as CF
+from copy import deepcopy
 
 xconfig = {
     "jaix.ExperimentConfig": {
@@ -49,30 +49,46 @@ xconfig = {
                 "stop_after": 10000,
             },
         },
-        "log_level": 20,
+        "logging_config": {
+            "jaix.LoggingConfig": {
+                "log_level": 10,
+            }
+        },
     },
 }
 
 
-def test_launch_jaix_experiment(config: Optional[Dict] = None):
-    if not config:
-        prev_mode = os.environ.get("WANDB_MODE", "online")
-        os.environ["WANDB_MODE"] = "offline"
-        run = launch_jaix_experiment(run_config=xconfig, project="ci-cd")
-    else:
-        run = launch_jaix_experiment(run_config=config)
+def test_wandb_logger():
+    exp_config = CF.from_dict(xconfig)
+    nexp_config = wandb_logger(exp_config, "dummy_run", "dummy_name")
+    assert "dummy_name" in nexp_config.logging_config.dict_config["loggers"]
+    logger_config = nexp_config.logging_config.dict_config["loggers"]["dummy_name"]
+    assert "wandb_handler" in logger_config["handlers"]
+    assert "wandb_handler" in nexp_config.logging_config.dict_config["handlers"]
+    logging_wrapper_tuple = nexp_config.env_config.env_wrappers[-1]
+    assert logging_wrapper_tuple[1].logger_name == "dummy_name"
+
+
+def test_wandb_init():
+    prev_mode = os.environ.get("WANDB_MODE", "online")
+    os.environ["WANDB_MODE"] = "offline"
+    run = wandb_init(run_config=deepcopy(xconfig), project="ci-cd")
+    assert run.mode == "dryrun"
+    shutil.rmtree(run.dir)
+    run.finish()
+
+    os.environ["WANDB_MODE"] = prev_mode
+
+
+def test_launch_jaix_experiment():
+    prev_mode = os.environ.get("WANDB_MODE", "online")
+    os.environ["WANDB_MODE"] = "offline"
+    data_dir, exit_code = launch_jaix_experiment(
+        run_config=deepcopy(xconfig), project="ci-cd"
+    )
 
     # Remove logging files
-    shutil.rmtree(run.dir)
+    shutil.rmtree(data_dir)
+    os.environ["WANDB_MODE"] = prev_mode
 
-    if not config:
-        # Iff available, reset the mode
-        os.environ["WANDB_MODE"] = prev_mode
-
-
-if __name__ == "__main__":
-    # This is to test launch from wandb
-    if not os.environ.get("WANDB_CONFIG", None):
-        raise RuntimeError("Needs to be launched from wandb")
-    run_config = launch.load_wandb_config()
-    test_launch_jaix_experiment(run_config)
+    assert exit_code == 0

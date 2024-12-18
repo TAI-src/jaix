@@ -36,3 +36,10 @@ jobs:
       lint-src: jaix
     secrets: inherit
 
+  release-docker:
+    uses: TAI-src/.github/.github/workflows/release-docker.yml@main
+    permissions:
+        contents: read
+    with:
+        docker-dir: docker
+    secrets: inherit

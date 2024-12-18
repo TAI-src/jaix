@@ -1,0 +1,13 @@
+FROM taisrc/jaix
+#Needs jaix so tabrepo is there
+
+WORKDIR /wandb
+
+# Get job entry python file
+ENV ENTRY_PATH=/jaix/jaix/utils/launch_experiment.py
+
+# Get launcher script from ttex
+RUN curl -LJO https://raw.githubusercontent.com/TAI-src/ttex/refs/heads/main/launch.sh
+RUN chmod +x launch.sh
+
+ENTRYPOINT ["./launch.sh", "-j"]
