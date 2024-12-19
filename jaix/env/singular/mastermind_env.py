@@ -11,10 +11,10 @@ logger = logging.getLogger(LOGGER_NAME)
 class MastermindEnvironmentConfig(Config):
     def __init__(
         self,
-        num_slots_range: Tuple[int, int],
-        num_colours_range: Tuple[int, int],
-        sequential: bool,
-        num_guesses: int = np.inf,
+        num_slots_range: Tuple[int, int] = (10, 20),
+        num_colours_range: Tuple[int, int] = (4, 5),
+        sequential: bool = False,
+        max_guesses: int = np.iinfo(np.int32).max,
     ):
         self.num_slots_range = num_slots_range
         self.num_colours_range = num_colours_range
@@ -23,7 +23,7 @@ class MastermindEnvironmentConfig(Config):
             assert len(rng) == 2
             assert rng[0] <= rng[1]
         self.sequential = sequential
-        self.num_guesses = num_guesses
+        self.max_guesses = max_guesses
 
 
 class MastermindEnvironment(ConfigurableObject, gym.Env):
@@ -33,10 +33,11 @@ class MastermindEnvironment(ConfigurableObject, gym.Env):
         ConfigurableObject.__init__(self, config)
         self._setup(config, inst)
         self.action_space = gym.spaces.MultiDiscrete(
-            [self.num_colours] * self.num_guesses
+            [self.num_colours] * self.num_slots
         )
         self.observation_space = gym.spaces.Discrete(self.num_slots)
-        self.guesses_done = 0
+        self.num_guesses = 0
+        self.num_resets = 0
 
     def _setup(self, config: MastermindEnvironmentConfig, inst: int):
         np.random.seed(inst)
@@ -46,14 +47,16 @@ class MastermindEnvironment(ConfigurableObject, gym.Env):
         self.num_slots = np.random.randint(
             low=config.num_slots_range[0], high=config.num_slots_range[1]
         )
-        self.solution = np.random.randint(self.num_colours, size=self.num_slots)
+        self._solution = np.random.randint(self.num_colours, size=self.num_slots)
 
     def _get_info(self):
-        return {"stop": self.stop(), "guesses_done": self.guesses_done}
+        return {
+            "stop": self.stop(),
+        }
 
     def stop(self):
         # TODO: potentially add fitness reached
-        return self.guesses_done >= self.num_guesses
+        return self.num_guesses >= self.max_guesses
 
     def reset(
         self,
@@ -67,11 +70,9 @@ class MastermindEnvironment(ConfigurableObject, gym.Env):
         Returns the first agent observation for an episode and information,
         i.e. metrics, debug info.
         """
-        if options is None or "online" not in options or not options["online"]:
-            # We only do partial resets for ec, so still "online"
-            raise ValueError("Mastermind environments are always online")
         self.num_resets += 1
-        return None, self._get_info()
+        super().reset(seed=seed)
+        return 0, self._get_info()
 
     def step(self, x):
         """
@@ -81,19 +82,22 @@ class MastermindEnvironment(ConfigurableObject, gym.Env):
         and information from the environment about the step,
         i.e. metrics, debug info.
         """
+        self.num_guesses += 1
         x = np.asarray(x, dtype=self.action_space.dtype)
         # Obs is based on how many exact matches
-        matches = x == self.solution
+        matches = x == self._solution
         if self.sequential:
-            which_match = np.argwhere(matches)
+            which_match = np.argwhere(matches == 0)
             if len(which_match) == 0:
-                obs = 0
+                obs = self.num_slots
             else:
-                obs = np.sum(matches[0 : which_match[0]])
+                obs = np.sum(matches[0 : which_match[0][0]])
         else:
             obs = np.sum(matches)
-        terminated = obs == self.num_slots
-        truncated = self.guesses_done >= self.num_guesses
+        # Minimisation
+        obs = self.num_slots - obs
+        terminated = obs == 0
+        truncated = self.num_guesses >= self.max_guesses
         # observation, reward, terminated, truncated, info
         return obs, obs, terminated, truncated, self._get_info()
 
