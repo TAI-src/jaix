@@ -1,6 +1,7 @@
 """
 A COCO problem from numbbo coco
 """
+
 from cocoex import Problem
 from jaix.env.utils.problem import StaticProblem
 
@@ -44,7 +45,7 @@ class COCOProblem(StaticProblem):
             return self.problem(x)
 
     def __str__(self):
-        return str(self.problem.name)
+        return f"{self.dimension}/{self.problem.name}"
 
     def close(self):
         self.problem.free()

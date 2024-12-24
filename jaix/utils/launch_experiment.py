@@ -10,6 +10,9 @@ import wandb
 from jaix.env.wrapper import LoggingWrapper, LoggingWrapperConfig
 from ttex.log import get_logging_config
 import sys
+import logging
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def wandb_logger(
@@ -74,6 +77,7 @@ def launch_jaix_experiment(run_config: Dict, project: Optional[str] = None):
         run.alert("Experiment ended", text="Experiment ended", level=AlertLevel.INFO)
         run.finish(exit_code=0)
     except Exception as e:
+        logger.error(f"Experiment failed {e}", exc_info=True)
         run.alert(
             "Experiment failed",
             level=AlertLevel.ERROR,

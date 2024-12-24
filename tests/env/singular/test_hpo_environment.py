@@ -1,4 +1,3 @@
-from ..utils.hpo.test_tabrepo_adapter import repo
 from jaix.env.singular import HPOEnvironmentConfig, HPOEnvironment
 from jaix.env.utils.hpo import TaskType
 from ttex.config import ConfigurableObjectFactory as COF
@@ -6,16 +5,23 @@ import pytest
 
 
 @pytest.fixture
-def env(repo):
-    config = HPOEnvironmentConfig(training_budget=10000)
-    env = COF.create(HPOEnvironment, config, repo, TaskType.C1, 0)
+def env():
+    config = HPOEnvironmentConfig(
+        training_budget=10000,
+        task_type=TaskType.C1,
+        repo_name="D244_F3_C1530_3",
+        load_predictions=False,
+        cache=True,
+    )
+    env = COF.create(HPOEnvironment, config, 0)
     return env
 
 
 def test_init(env):
     assert env.training_time == 0
     assert env.training_budget == 10000
-    assert env.action_space.n > 0
+    assert len(env.action_space.nvec) == 1
+    assert env.action_space.nvec[0] > 0
 
 
 def test_step(env):

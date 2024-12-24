@@ -7,6 +7,10 @@ from typing import List, Dict
 from jaix.runner.ask_tell import ATOptimiser, ATOptimiserConfig, ATStrategy
 from jaix.runner.ask_tell.strategy.utils import BanditConfig, Bandit
 from gymnasium import Env
+import logging
+from jaix import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class ATBanditConfig(Config):
@@ -17,13 +21,13 @@ class ATBanditConfig(Config):
     ):
         self.opt_confs = opt_confs
         self.bandit_config = bandit_config
-        self.init_pop_size = opt_confs[0].init_pop_size
+        self.init_pop_size = opt_confs[0].get("init_pop_size")
 
 
 class ATBandit(ConfigurableObject, ATStrategy):
     config_class = ATBanditConfig
 
-    def __init__(self, config: ATBanditConfig, env):
+    def __init__(self, config: ATBanditConfig, env: Env, *args, **kwargs):
         ConfigurableObject.__init__(self, config)
         ATStrategy.__init__(self, None)
         # Initialise bandit
@@ -33,9 +37,24 @@ class ATBandit(ConfigurableObject, ATStrategy):
         # Initialise the first optimiser
         self.opt = COF.create(ATOptimiser, self.opt_confs[0], env)
         self._active_opt = 0
+        self._prev_r = [None]
 
     def initialize(self):
         pass
+
+    def warm_start(self, xstart, env, res_list, **kwargs):
+        if len(res_list) > 0:
+            r = [dic["r"] for dic in res_list]
+        else:
+            r = [None]
+        logger.debug(f"Warm start with {self._prev_r} and {r}")
+        final_r = min([rv for rv in self._prev_r + r if rv is not None])
+        self._prev_r = [None]
+        if final_r:
+            infos = [{"final_r": final_r}]
+        else:
+            infos = []
+        self._update(infos, env)
 
     def _run_bandit(self, rewards):
         for r in rewards:
@@ -51,6 +70,8 @@ class ATBandit(ConfigurableObject, ATStrategy):
         updated = self._run_bandit(final_rewards)
         if updated:
             # Need to init new algorithm
+            logger.debug("Switching to optimiser %s", self._active_opt)
+            logger.debug(f"Action space: {env.action_space}")
             self.opt = COF.create(
                 ATOptimiser,
                 self.opt_confs[self._active_opt],
@@ -63,6 +84,8 @@ class ATBandit(ConfigurableObject, ATStrategy):
             # Algorithm wants to stop, reset the env
             # and update internal bandit
             _, info = env.reset(options={"online": True})
+            if "final_r" not in info:
+                info["final_r"] = self._prev_r
             self._update([info], env)
         # Ask the active optimiser
         return self.opt.ask(env, **optional_kwargs)
@@ -76,6 +99,8 @@ class ATBandit(ConfigurableObject, ATStrategy):
         env: Env,
         **optional_kwargs,
     ):
+        self._prev_r = r
+        logger.debug(f"Received reward {self._prev_r}")
         # Update Q info if any env stopped
         updated = self._update(info, env)
         # Otherwise we would start with tell, not ask
@@ -92,6 +117,3 @@ class ATBandit(ConfigurableObject, ATStrategy):
                 r=r,
                 **optional_kwargs,
             )
-
-    def stop(self):
-        return False

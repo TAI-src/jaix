@@ -1,10 +1,13 @@
 from ttex.config import ConfigurableObject, Config
 import gymnasium as gym
 import numpy as np
-from tabrepo.repository.evaluation_repository import EvaluationRepository
+from tabrepo.repository.evaluation_repository import (
+    load_repository,
+)
 from jaix.env.utils.hpo import TaskType, TabrepoAdapter
 from typing import Optional
 from jaix import LOGGER_NAME
+from jaix.env.singular import SingularEnvironment
 
 # TODO: Introduce ensembles at some point
 import logging
@@ -13,25 +16,38 @@ logger = logging.getLogger(LOGGER_NAME)
 
 
 class HPOEnvironmentConfig(Config):
-    def __init__(self, training_budget: int):
+    def __init__(
+        self,
+        training_budget: int,
+        task_type: TaskType,
+        repo_name: str = "D244_F3_C1530_3",
+        load_predictions: bool = False,
+        cache: bool = True,
+    ):
         self.training_budget = training_budget
+        self.repo = load_repository(
+            repo_name, load_predictions=load_predictions, cache=cache
+        )
+        self.task_type = task_type
 
 
-class HPOEnvironment(ConfigurableObject, gym.Env):
+class HPOEnvironment(ConfigurableObject, SingularEnvironment):
     config_class = HPOEnvironmentConfig
 
     def __init__(
         self,
         config: HPOEnvironmentConfig,
-        repo: EvaluationRepository,
-        task_type: TaskType,
         inst: int,
     ):
         ConfigurableObject.__init__(self, config)
-        self.tabrepo_adapter = TabrepoAdapter(repo, task_type, inst)
+        SingularEnvironment.__init__(self, inst)
+        self.tabrepo_adapter = TabrepoAdapter(self.repo, self.task_type, inst)
         # An action is the index of a config
         # TODO: proper config space with actual hyperparameters
-        self.action_space = gym.spaces.Discrete(len(self.tabrepo_adapter.configs))
+        self.action_space = gym.spaces.MultiDiscrete(
+            [len(self.tabrepo_adapter.configs)]
+        )
+        self.n = self.action_space.nvec[0]
         # Observation is the validation error of the last config
         self.observation_space = gym.spaces.Box(
             low=np.array([self.tabrepo_adapter.metadata["min_error_val"]]),
@@ -68,6 +84,7 @@ class HPOEnvironment(ConfigurableObject, gym.Env):
             # We only do partial resets for ec, so still "online"
             raise ValueError("HPO environments are always online")
         self.num_resets += 1
+        # Return worst observation to start with
         return None, self._get_info()
 
     def step(self, x):
@@ -78,11 +95,17 @@ class HPOEnvironment(ConfigurableObject, gym.Env):
         and information from the environment about the step,
         i.e. metrics, debug info.
         """
-        obs, time_train_s = self.tabrepo_adapter.evaluate(x)
+        # TODO: Figure out action space and how to map to configs
+        act = int(x[0])
+        if act < 0 or act >= self.n:
+            logger.warning(f"Invalid action {act} for action space {self.action_space}")
+            act = min(self.n - 1, max(0, act))
+        obs, time_train_s = self.tabrepo_adapter.evaluate(act)
+        logger.debug(f"Action {act} resulted in obs {obs} with time {time_train_s}")
         self.training_time += time_train_s
         terminated = False
         truncated = self.stop()
-        return [obs], obs, terminated, truncated, self._get_info()
+        return [obs], np.float64(obs), terminated, truncated, self._get_info()
 
     def render(self):
         """

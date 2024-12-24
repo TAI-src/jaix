@@ -77,6 +77,8 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         self.action_space = env.action_space
         switcher_space = spaces.Discrete(len(self.env_list))
         self.observation_space = spaces.Tuple((switcher_space, env.observation_space))
+        logger.debug(f"Action space: {self.action_space}")
+        logger.debug(f"Observation space: {self.observation_space}")
 
     def update_env(func: FuncT):
         @wraps(func)
@@ -152,8 +154,14 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         new_env = self.pattern_switcher.switch(self._timer, valid=valid_envs)
         # only update env if not invalid (-1)
         self._stopped = True if new_env < 0 else False
-        self._current_env = max(0, new_env)
-        self._set_spaces()
+        # TODO: should be able to update only when necessary
+        updated = False
+        new_env = max(0, new_env)
+        if new_env != self._current_env:
+            updated = True
+        self._current_env = new_env
+        if updated:
+            self._set_spaces()
 
     def _stop(self):
         stopped_envs = [env.stop() for env in self.env_list]

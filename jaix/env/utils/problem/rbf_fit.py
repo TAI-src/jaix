@@ -24,6 +24,7 @@ class RBFFit(ConfigurableObject, StaticProblem):
 
     def __init__(self, config: RBFFitConfig, inst: int):
         ConfigurableObject.__init__(self, config)
+        self.inst = inst
         self.rbf_adapter = RBFAdapter(config.rbf_config, inst)
 
         # For now just assuming gaussian with eps
@@ -38,3 +39,6 @@ class RBFFit(ConfigurableObject, StaticProblem):
     def _eval(self, x):
         fitness = [self.rbf_adapter.comp_fit(x)]
         return fitness
+
+    def __str__(self):
+        return f"RBFFit/{self.inst}"

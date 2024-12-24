@@ -2,6 +2,10 @@ from ttex.config import Config, ConfigurableObject
 from typing import Tuple
 import numpy as np
 from jaix.env.utils.problem.rbf import RBFKernel, RBF
+import logging
+from jaix import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class RBFAdapterConfig(Config):
@@ -90,6 +94,9 @@ class RBFAdapter(ConfigurableObject):
         return targets
 
     def comp_fit(self, w):
+        logger.debug(
+            f"Computing fitness for w of length {len(w)} and num_rad {self.num_rad}"
+        )
         assert len(w) == self.num_rad
         eps = [1] * self.num_rad
         rbf = RBF(self.centers, eps, w, self.kernel)

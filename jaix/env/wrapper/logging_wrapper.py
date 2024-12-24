@@ -24,7 +24,6 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         self.log_resets = 0
         self.log_env_steps = 0
         self.log_renv_steps = 0
-        self.dim = len(self.env.action_space.sample())
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
@@ -45,7 +44,7 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         # Log per reset
         self.logger.info(
             {
-                f"env/r/{self.dim}/{self.env}": r.item(),
+                f"env/r/{self.env}": r.item(),
                 f"env/resets/{self.env}": self.log_resets,
                 # f"restarts/r/{self.dim}/{self.env}/{self.log_resets}": r.item(),
                 "env/step": self.log_env_steps,
