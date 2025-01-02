@@ -9,6 +9,7 @@ from jaix.runner.ask_tell.strategy.utils import BanditConfig, Bandit
 from gymnasium import Env
 import logging
 from jaix import LOGGER_NAME
+import numpy as np
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -37,7 +38,7 @@ class ATBandit(ConfigurableObject, ATStrategy):
         # Initialise the first optimiser
         self.opt = COF.create(ATOptimiser, self.opt_confs[0], env)
         self._active_opt = 0
-        self._prev_r = [None]
+        self._prev_r = [np.nan]
 
     def initialize(self):
         pass
@@ -48,8 +49,8 @@ class ATBandit(ConfigurableObject, ATStrategy):
         else:
             r = [None]
         logger.debug(f"Warm start with {self._prev_r} and {r}")
-        final_r = min([rv for rv in self._prev_r + r if rv is not None])
-        self._prev_r = [None]
+        final_r = np.nanmin([rv for rv in self._prev_r + r if rv is not None])
+        self._prev_r = [np.nan]
         if final_r:
             infos = [{"final_r": final_r}]
         else:
@@ -95,7 +96,7 @@ class ATBandit(ConfigurableObject, ATStrategy):
         solutions,
         function_values,
         info: Dict,
-        r: float,
+        r: List[float],
         env: Env,
         **optional_kwargs,
     ):
