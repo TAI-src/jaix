@@ -25,7 +25,7 @@ def test_step_non_sequential(seq):
     config = MastermindEnvironmentConfig(sequential=seq, max_guesses=2)
     env = MastermindEnvironment(config, inst=3)
     obs, r, term, trunc, info = env.step(env._solution)
-    assert obs == r
+    assert obs[0] == r
     assert r == 0
     assert term
     assert not trunc

@@ -102,6 +102,30 @@ def get_config(suite="COCO", comp=False):
                 "seed": None,
             },
         }
+    elif suite == "MMind":
+        xconfig["jaix.ExperimentConfig"]["env_config"] = {
+            "jaix.EnvironmentConfig": {
+                "suite_class": "jaix.suite.Suite",
+                "suite_config": {
+                    "jaix.suite.SuiteConfig": {
+                        "env_class": "jaix.env.singular.MastermindEnvironment",
+                        "env_config": {
+                            "jaix.env.singular.MastermindEnvironmentConfig": {
+                                "num_slots_range": (4, 6),
+                                "num_colours_range": (2, 3),
+                                "sequential": False,
+                                "max_guesses": 10,
+                            },
+                        },
+                        "num_instances": 2,
+                        "num_agg_instances": 3,
+                    },
+                },
+                "env_wrappers": None,
+                "comp_config": None,
+                "seed": None,
+            },
+        }
     if comp:
         xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
             "comp_config"
@@ -122,9 +146,9 @@ def get_config(suite="COCO", comp=False):
                 },
             }
         }
-        xconfig["jaix.ExperimentConfig"][
-            "opt_class"
-        ] = "jaix.runner.ask_tell.ATOptimiser"
+        xconfig["jaix.ExperimentConfig"]["opt_class"] = (
+            "jaix.runner.ask_tell.ATOptimiser"
+        )
         xconfig["jaix.ExperimentConfig"]["opt_config"] = {
             "jaix.runner.ask_tell.ATOptimiserConfig": {
                 "strategy_class": "jaix.runner.ask_tell.strategy.ATBandit",
@@ -169,9 +193,9 @@ def get_config(suite="COCO", comp=False):
             },
         }
     else:
-        xconfig["jaix.ExperimentConfig"][
-            "opt_class"
-        ] = "jaix.runner.ask_tell.ATOptimiser"
+        xconfig["jaix.ExperimentConfig"]["opt_class"] = (
+            "jaix.runner.ask_tell.ATOptimiser"
+        )
         xconfig["jaix.ExperimentConfig"]["opt_config"] = {
             "jaix.runner.ask_tell.ATOptimiserConfig": {
                 "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
@@ -211,7 +235,7 @@ def test_wandb_init():
 
 
 @pytest.mark.parametrize(
-    "suite, comp", itertools.product(["COCO", "RBF", "HPO"], [False, True])
+    "suite, comp", itertools.product(["COCO", "RBF", "HPO", "MMind"], [False, True])
 )
 def test_launch_jaix_experiment(suite, comp):
     prev_mode = os.environ.get("WANDB_MODE", "online")

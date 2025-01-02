@@ -101,7 +101,7 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
         terminated = obs == 0
         truncated = self.num_guesses >= self.max_guesses
         # observation, reward, terminated, truncated, info
-        return obs, obs, terminated, truncated, self._get_info()
+        return [obs], obs, terminated, truncated, self._get_info()
 
     def render(self):
         logger.debug(self._get_info())
