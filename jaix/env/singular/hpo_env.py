@@ -84,7 +84,6 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
             # We only do partial resets for ec, so still "online"
             raise ValueError("HPO environments are always online")
         self.num_resets += 1
-        # Return worst observation to start with
         return None, self._get_info()
 
     def step(self, x):

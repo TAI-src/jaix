@@ -154,7 +154,6 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         new_env = self.pattern_switcher.switch(self._timer, valid=valid_envs)
         # only update env if not invalid (-1)
         self._stopped = True if new_env < 0 else False
-        # TODO: should be able to update only when necessary
         updated = False
         new_env = max(0, new_env)
         if new_env != self._current_env:
