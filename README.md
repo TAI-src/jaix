@@ -9,4 +9,4 @@ git submodule init
 git submodule update
 ```
 
-See 'test_launch_experiment' for example config
+See 'test_launch_experiment' for example configs for different suites.
