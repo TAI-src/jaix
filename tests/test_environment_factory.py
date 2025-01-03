@@ -37,7 +37,9 @@ def ec_config():
         precision=1e-8,
     )
     ec_config = ECEnvironmentConfig(budget_multiplier=1)
-    config = ECSuiteConfig(Sphere, func_config, ec_config)
+    config = ECSuiteConfig(
+        Sphere, func_config, ec_config, num_instances=1, num_agg_instances=1
+    )
     return config
 
 

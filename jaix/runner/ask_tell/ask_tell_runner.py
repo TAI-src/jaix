@@ -43,24 +43,48 @@ class ATRunner(Runner):
         # Independent restarts (runs)
         while not wenv.stop():
             wenv.reset()
+            prev_id = wenv.id
             logger.debug("Resetting optimiser")
             opt = COF.create(opt_class, opt_config, env=wenv)
+            logger.debug("Optimiser created")
             while not opt.stop() and not wenv.stop():
                 X = opt.ask(env=wenv)
                 res_list = []
                 for x in X:
-                    obs, r, term, trunc, info = wenv.step(x)
-                    res_list.append(
-                        {"obs": obs, "r": r, "term": term, "trunc": trunc, "info": info}
+                    logger.debug(f"Optimising {x}")
+                    if wenv.id == prev_id:
+                        # If the environment switches, the optimiser is reset
+                        obs, r, term, trunc, info = wenv.step(x)
+                        res_list.append(
+                            {
+                                "obs": obs,
+                                "r": r,
+                                "term": term,
+                                "trunc": trunc,
+                                "info": info,
+                            }
+                        )
+                    else:
+                        # Continue outer loop so that optimiser is reset to adjust to new action space
+                        logger.debug(
+                            f"Environment changed, warm_start optimiser for action_space {wenv.action_space} and env {wenv.id}"
+                        )
+                        prev_id = wenv.id
+                        opt.warm_start(env=wenv, xstart=x, res_list=res_list)
+                        break
+                else:
+                    # Reformat observations to dictlist
+                    # And pass as additional kwargs
+                    logger.debug(res_list)
+                    res_dict = {k: [dic[k] for dic in res_list] for k in res_list[0]}
+                    opt.tell(
+                        env=wenv,
+                        solutions=X,
+                        function_values=res_dict["obs"],
+                        **res_dict,
                     )
-                # Reformat observations to dictlist
-                # And pass as additional kwargs
-                res_dict = {k: [dic[k] for dic in res_list] for k in res_list[0]}
-                opt.tell(
-                    env=wenv, solutions=X, function_values=res_dict["obs"], **res_dict
-                )
-                opt.disp(self.disp_interval)
-                logger.debug(res_dict)
+                    opt.disp(self.disp_interval)
+                    logger.debug(res_dict)
 
             info["opt_stop"] = opt.stop()
             info["env_stop"] = wenv.stop()

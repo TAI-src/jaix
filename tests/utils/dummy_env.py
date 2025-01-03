@@ -2,17 +2,34 @@ import gymnasium as gym
 from gymnasium import spaces
 from typing import Optional
 from gymnasium.utils.env_checker import check_env
+from ttex.config import ConfigurableObject, Config
 
 
-class DummyEnv(gym.Env):
-    def __init__(self, dimension=3, num_objectives=1):
-        self.action_space = spaces.Box(low=-5, high=5, shape=(dimension,))
-        self.observation_space = spaces.Box(low=0, high=100, shape=(num_objectives,))
+class DummyEnvConfig(Config):
+    def __init__(
+        self,
+        dimension: int = 3,
+        num_objectives: int = 1,
+    ):
+        self.dimension = dimension
+        self.num_objectives = num_objectives
+
+
+class DummyConfEnv(gym.Env, ConfigurableObject):
+    config_class = DummyEnvConfig
+
+    def __init__(self, config: DummyEnvConfig, inst: int = 1):
+        ConfigurableObject.__init__(self, config)
+        self.action_space = spaces.Box(low=-5, high=5, shape=(self.dimension,))
+        self.observation_space = spaces.Box(
+            low=0, high=100, shape=(self.num_objectives,)
+        )
         self.reward_space = spaces.Box(low=0, high=5)
         self._trunc = False
         self._term = False
         self._stop = False
-        super().__init__()
+        self.inst = inst
+        self.id = 42
 
     def reset(
         self,
@@ -42,6 +59,12 @@ class DummyEnv(gym.Env):
 
     def __str__(self):
         return "DummyEnv"
+
+
+class DummyEnv(DummyConfEnv):
+    def __init__(self, dimension=3, num_objectives=1):
+        config = DummyEnvConfig(dimension=dimension, num_objectives=num_objectives)
+        DummyConfEnv.__init__(self, config)
 
 
 def test_dummy_env():

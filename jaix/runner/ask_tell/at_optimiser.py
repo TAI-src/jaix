@@ -37,7 +37,7 @@ class ATOptimiser(ConfigurableObject, Optimiser):
         # TODO: in the future, algorithm might want to select start itself
         init_pop = [env.action_space.sample() for _ in range(self.init_pop_size)]
         self.strategy = COF.create(
-            self.strategy_class, self.strategy_config, xstart=init_pop
+            self.strategy_class, self.strategy_config, xstart=init_pop, env=env
         )
         self.countiter = 0
 
@@ -59,6 +59,9 @@ class ATOptimiser(ConfigurableObject, Optimiser):
         return self.strategy.tell(
             env=env, solutions=solutions, function_values=function_values, **kwargs
         )
+
+    def warm_start(self, xstart, env, **kwargs):
+        self.strategy.warm_start(xstart, env, **kwargs)
 
     def disp(self, modulo=None):
         # TODO: modify for logging.logger

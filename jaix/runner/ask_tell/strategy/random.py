@@ -11,7 +11,7 @@ class RandomATStratConfig(Config):
 class RandomATStrat(ConfigurableObject, ATStrategy):
     config_class = RandomATStratConfig
 
-    def __init__(self, config: RandomATStratConfig, xstart):
+    def __init__(self, config: RandomATStratConfig, xstart, *args, **kwargs):
         ConfigurableObject.__init__(self, config)
         ATStrategy.__init__(self, xstart)
 

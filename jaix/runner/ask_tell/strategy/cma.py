@@ -3,6 +3,7 @@ from ttex.config import Config, ConfigurableObject
 from jaix.runner.ask_tell import ATStrategy
 import numpy as np
 from typing import Optional
+from jaix.env.composite import CompositeEnvironment
 
 
 class CMAConfig(Config):
@@ -14,11 +15,14 @@ class CMAConfig(Config):
 class CMA(ConfigurableObject, CMAEvolutionStrategy, ATStrategy):
     config_class = CMAConfig
 
-    def __init__(self, config: CMAConfig, xstart):
+    def __init__(self, config: CMAConfig, xstart, *args, **kwargs):
         ConfigurableObject.__init__(self, config)
         # flatten xstart as CMA throws a warning otherwise
-        x0 = np.array(xstart[0])
-        CMAEvolutionStrategy.__init__(self, x0, self.sigma0, self.opts)
+        self.xstart = np.array(xstart[0])
+        self.initialize()
+
+    def initialize(self):
+        CMAEvolutionStrategy.__init__(self, self.xstart, self.sigma0, self.opts)
 
     @property
     def name(self):
@@ -27,10 +31,12 @@ class CMA(ConfigurableObject, CMAEvolutionStrategy, ATStrategy):
     def ask(self, env, **optional_kwargs):
         return super().ask(**optional_kwargs)
 
-    def tell(self, solutions, function_values, **optional_kwargs):
+    def tell(self, env, solutions, function_values, **optional_kwargs):
         # Make sure formatting expectations are fulfilled
         # And only single objective
         assert len(solutions) == len(function_values)
+        if isinstance(env.unwrapped, CompositeEnvironment):
+            function_values = [v for n, v in function_values]
         assert all([len(v) == 1 for v in function_values])
         f_vals = [v[0] for v in function_values]
         return super().tell(solutions, f_vals)

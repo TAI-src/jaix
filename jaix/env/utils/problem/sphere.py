@@ -1,10 +1,19 @@
 import numpy as np
 from jaix.env.utils.problem import StaticProblem
 from ttex.config import Config, ConfigurableObject
+from typing import List
 
 
 class SphereConfig(Config):
-    def __init__(self, dimension, num_objectives, mult, x_shifts, y_shifts, precision):
+    def __init__(
+        self,
+        dimension: int,
+        num_objectives: int,
+        mult: float,
+        x_shifts: List[float],
+        y_shifts: List[float],
+        precision: float,
+    ):
         self.dimension = dimension
         self.num_objectives = num_objectives
         self.mult = mult

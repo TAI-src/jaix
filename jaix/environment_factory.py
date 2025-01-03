@@ -71,13 +71,17 @@ class EnvironmentFactory:
             for envs in suite.get_agg_envs(
                 agg_type=comp_config.agg_type, seed=env_config.seed
             ):
+                logger.debug(f"Got {len(envs)} from suite {suite}")
                 wrapped_envs = [WEF.wrap(env, env_config.env_wrappers) for env in envs]
+                logger.debug("Wrapped all envs")
                 comp_env = COF.create(
                     comp_config.comp_env_class,
                     comp_config.comp_env_config,
                     wrapped_envs,
                 )
+                logger.debug(f"Created composite env {comp_env}")
                 wrapped_env = WEF.wrap(comp_env, env_config.env_wrappers)
+                logger.debug(f"Wrapped composite env {wrapped_env}")
                 # TODO: reset with seeding here
                 yield wrapped_env
                 assert wrapped_env.closed

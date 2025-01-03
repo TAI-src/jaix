@@ -9,6 +9,7 @@ from ttex.config import ConfigurableObject, Config
 from jaix.env.utils.problem import StaticProblem
 from typing import Optional
 from jaix import LOGGER_NAME
+from jaix.env.singular import SingularEnvironment
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -23,7 +24,7 @@ class ECEnvironmentConfig(Config):
         self.budget_multiplier = budget_multiplier
 
 
-class ECEnvironment(ConfigurableObject, gym.Env):
+class ECEnvironment(ConfigurableObject, SingularEnvironment):
     """EC environment to run static problems with EC algorithms"""
 
     metadata = {"render_modes": ["ansi"], "render_fps": 4}
@@ -31,6 +32,7 @@ class ECEnvironment(ConfigurableObject, gym.Env):
 
     def __init__(self, config: ECEnvironmentConfig, func: StaticProblem):
         ConfigurableObject.__init__(self, config)
+        SingularEnvironment.__init__(self, 0)
         self.func = func
         # An action is a point in search space (x)
         self.action_space = spaces.Box(

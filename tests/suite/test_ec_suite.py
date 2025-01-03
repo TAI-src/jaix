@@ -26,7 +26,9 @@ def env_config():
 
 
 def test_init(func_config, env_config):
-    config = ECSuiteConfig(Sphere, func_config, env_config)
+    config = ECSuiteConfig(
+        Sphere, func_config, env_config, num_instances=1, num_agg_instances=1
+    )
     suite = COF.create(ECSuite, config)
 
     assert suite.func_class == Sphere
@@ -34,7 +36,9 @@ def test_init(func_config, env_config):
 
 
 def test_get_envs(func_config, env_config):
-    config = ECSuiteConfig(Sphere, func_config, env_config)
+    config = ECSuiteConfig(
+        Sphere, func_config, env_config, num_instances=1, num_agg_instances=1
+    )
     suite = COF.create(ECSuite, config)
 
     for env in suite.get_envs():
@@ -46,7 +50,9 @@ def test_get_envs(func_config, env_config):
 
 
 def test_get_envs_agg(func_config, env_config):
-    config = ECSuiteConfig(Sphere, func_config, env_config, num_instances=3)
+    config = ECSuiteConfig(
+        Sphere, func_config, env_config, num_instances=1, num_agg_instances=3
+    )
     suite = COF.create(ECSuite, config)
 
     for envs in suite.get_agg_envs(AggType.INST):

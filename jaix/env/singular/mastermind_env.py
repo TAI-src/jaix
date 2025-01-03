@@ -4,6 +4,7 @@ from jaix import LOGGER_NAME
 import numpy as np
 from typing import Tuple, Optional
 import logging
+from jaix.env.singular import SingularEnvironment
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -26,11 +27,12 @@ class MastermindEnvironmentConfig(Config):
         self.max_guesses = max_guesses
 
 
-class MastermindEnvironment(ConfigurableObject, gym.Env):
+class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
     config_class = MastermindEnvironmentConfig
 
     def __init__(self, config: MastermindEnvironmentConfig, inst: int):
         ConfigurableObject.__init__(self, config)
+        SingularEnvironment.__init__(self, inst)
         self._setup(config, inst)
         self.action_space = gym.spaces.MultiDiscrete(
             [self.num_colours] * self.num_slots
@@ -99,7 +101,7 @@ class MastermindEnvironment(ConfigurableObject, gym.Env):
         terminated = obs == 0
         truncated = self.num_guesses >= self.max_guesses
         # observation, reward, terminated, truncated, info
-        return obs, obs, terminated, truncated, self._get_info()
+        return [obs], obs, terminated, truncated, self._get_info()
 
     def render(self):
         logger.debug(self._get_info())

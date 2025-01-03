@@ -14,6 +14,3 @@ class OnlineWrapper(PassthroughWrapper):
             reset_opts.update(options)
 
         return self.env.reset(seed=seed, options=reset_opts)
-
-    def stop(self):
-        return self.env.stop()

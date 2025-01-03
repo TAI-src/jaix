@@ -8,10 +8,31 @@ class ATStrategy(OOOptimizer):
         OOOptimizer.__init__(self, xstart, *args, **kwargs)
 
     def comp_issues(env: gym.Env) -> Dict:
-        # TODO correct way to identify search space size
+        # TODO:  correct way to identify search space size
         # Check https://gymnasium.farama.org/api/spaces/utils/
         return {}
 
     @property
     def name(self):
         raise NotImplementedError()
+
+    def stop(self):
+        """
+        Check if the strategy should stop
+        If so, return dict with reason as key and message as value
+        Otherwise, return an empty dict
+        """
+        return {}
+
+    def reset(self):
+        """
+        Reset the strategy
+        """
+        NotImplementedError()
+
+    def warm_start(self, xstart, env, **kwargs):
+        """
+        Warm start the strategy
+        """
+        self.xstart = xstart
+        self.initialize()

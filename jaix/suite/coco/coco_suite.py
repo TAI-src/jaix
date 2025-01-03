@@ -2,7 +2,7 @@ from jaix.env.singular import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
-from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
+from ttex.config import ConfigurableObjectFactory as COF, Config
 from jaix.suite import Suite, AggType
 from jaix.suite.coco import COCOProblem
 import cocoex as ex
@@ -31,18 +31,17 @@ class COCOSuiteConfig(Config):
         self.output_folder = output_folder
 
 
-class COCOSuite(ConfigurableObject, Suite):
-    config_class = COCOSuiteConfig
+class COCOSuite(Suite):
+    config_class = COCOSuiteConfig  # type: ignore[assignment]
 
     def __init__(self, config: COCOSuiteConfig):
-        ConfigurableObject.__init__(self, config)
+        super().__init__(config)
         if self.num_batches > 1:
             self.output_folder += "_batch%03dof%d" % (
                 self.current_batch,
                 self.num_batches,
             )
 
-        Suite.__init__(self)
         self.suite = ex.Suite(self.suite_name, self.suite_instance, self.suite_options)
 
     def _get_agg_problem_dict(self, agg_type: AggType, seed: Optional[int] = None):
