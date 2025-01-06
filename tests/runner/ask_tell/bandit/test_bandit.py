@@ -6,8 +6,9 @@ from jaix.runner.ask_tell.strategy import (
 )
 from jaix.runner.ask_tell import ATOptimiserConfig
 from jaix.runner.ask_tell.strategy.utils import BanditConfig, BanditExploitStrategy
-from . import DummyEnv
+from . import DummyEnv, loop
 from jaix.env.wrapper import AutoResetWrapper, AutoResetWrapperConfig
+import numpy as np
 
 
 def get_bandit(num_choices: int = 2, stop_after: int = -1):
@@ -182,3 +183,15 @@ def test_ask_update():
     assert bandit_opt.bandit.N[0] == 1
     assert bandit_opt.opt.countiter == 0
     assert env.man_resets == 2
+
+
+def test_warm_start():
+    env = DummyEnv()
+    bandit_opt = get_bandit(num_choices=2, stop_after=2)
+    env = AutoResetWrapper(AutoResetWrapperConfig(), DummyEnv())
+    for _ in range(10):
+        X, Y = loop(2, 1, bandit_opt, env)
+    print(bandit_opt._prev_r)
+    updated = bandit_opt.warm_start(None, env, None)
+    assert bandit_opt._prev_r == [np.nan]
+    assert updated

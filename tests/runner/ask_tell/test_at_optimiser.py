@@ -3,6 +3,7 @@ from jaix.runner.ask_tell.strategy import RandomATStrat, RandomATStratConfig
 from ttex.config import ConfigurableObjectFactory as COF
 from . import DummyEnv, loop
 import pytest
+import numpy as np
 
 
 def create_at_opt(dimension, num_objectives):
@@ -36,3 +37,20 @@ def test_stop():
     for _ in range(at_opt.stop_after):
         X, Y = loop(6, 2, at_opt)
     assert at_opt.stop()["countiter"] == at_opt.stop_after
+
+
+def test_warm_start():
+    dimension = 3
+    num_objectives = 2
+
+    env = DummyEnv(dimension=dimension, num_objectives=1)
+    at_opt = create_at_opt(dimension, num_objectives)
+    xstart = at_opt.strategy.xstart
+    for _ in range(at_opt.stop_after):
+        X, Y = loop(dimension, 1, at_opt, env)
+    # TODO: consistency for np.array vs list
+    assert at_opt.strategy.xstart == xstart
+    env.reset()
+    xlast = X[-1]
+    at_opt.warm_start(xlast, env)
+    assert all(at_opt.strategy.xstart == xlast)

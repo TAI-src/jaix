@@ -7,9 +7,15 @@ from jaix.env.composite import CompositeEnvironment
 
 
 class CMAConfig(Config):
-    def __init__(self, sigma0: int, opts: Optional[dict] = None):
+    def __init__(
+        self,
+        sigma0: int,
+        opts: Optional[dict] = None,
+        warm_start_best: bool = True,
+    ):
         self.sigma0 = sigma0
         self.opts = CMAOptions(opts)
+        self.warm_start_best = warm_start_best
 
 
 class CMA(ConfigurableObject, CMAEvolutionStrategy, ATStrategy):
@@ -21,7 +27,9 @@ class CMA(ConfigurableObject, CMAEvolutionStrategy, ATStrategy):
         self.xstart = np.array(xstart[0])
         self.initialize()
 
-    def initialize(self):
+    def initialize(self, seed=None):
+        if seed is not None:
+            self.opts.update({"seed": seed})
         CMAEvolutionStrategy.__init__(self, self.xstart, self.sigma0, self.opts)
 
     @property
@@ -40,3 +48,13 @@ class CMA(ConfigurableObject, CMAEvolutionStrategy, ATStrategy):
         assert all([len(v) == 1 for v in function_values])
         f_vals = [v[0] for v in function_values]
         return super().tell(solutions, f_vals)
+
+    def warm_start(self, xlast, env, **kwargs):
+        """
+        Warm start the strategy
+        """
+        if self.warm_start_best:
+            self.xstart = self.result.xfavorite
+        else:
+            self.xstart = xlast
+        self.initialize(seed=np.random.randint(0, 1e7))

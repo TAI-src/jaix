@@ -44,7 +44,7 @@ class ATBandit(ConfigurableObject, ATStrategy):
         pass
 
     def warm_start(self, xstart, env, res_list, **kwargs):
-        if len(res_list) > 0:
+        if res_list and len(res_list) > 0:
             r = [dic["r"] for dic in res_list]
         else:
             r = [None]
@@ -55,7 +55,7 @@ class ATBandit(ConfigurableObject, ATStrategy):
             infos = [{"final_r": final_r}]
         else:
             infos = []
-        self._update(infos, env)
+        return self._update(infos, env)
 
     def _run_bandit(self, rewards):
         for r in rewards:

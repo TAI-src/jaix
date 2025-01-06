@@ -30,9 +30,9 @@ class ATStrategy(OOOptimizer):
         """
         NotImplementedError()
 
-    def warm_start(self, xstart, env, **kwargs):
+    def warm_start(self, xlast, env, **kwargs):
         """
         Warm start the strategy
         """
-        self.xstart = xstart
+        self.xstart = xlast
         self.initialize()
