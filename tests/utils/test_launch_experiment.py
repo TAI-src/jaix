@@ -234,18 +234,25 @@ def test_wandb_init():
     os.environ["WANDB_MODE"] = prev_mode
 
 
-@pytest.mark.parametrize(
-    "suite, comp", itertools.product(["COCO", "RBF", "HPO", "MMind"], [False, True])
-)
-def test_launch_jaix_experiment(suite, comp):
+def test_launch_jaix_experiment_wandb():
     prev_mode = os.environ.get("WANDB_MODE", "online")
     os.environ["WANDB_MODE"] = "offline"
     data_dir, exit_code = launch_jaix_experiment(
-        run_config=deepcopy(get_config(suite, comp)), project="ci-cd"
+        run_config=deepcopy(get_config()), project="ci-cd", wandb=True
     )
-
     # Remove logging files
     shutil.rmtree(data_dir)
     os.environ["WANDB_MODE"] = prev_mode
 
+    assert exit_code == 0
+
+
+@pytest.mark.parametrize(
+    "suite, comp", itertools.product(["COCO", "RBF", "HPO", "MMind"], [False, True])
+)
+def test_launch_jaix_experiment(suite, comp):
+    data_dir, exit_code = launch_jaix_experiment(
+        run_config=deepcopy(get_config(suite, comp)), wandb=False
+    )
+    assert data_dir is None
     assert exit_code == 0
