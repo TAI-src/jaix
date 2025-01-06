@@ -146,9 +146,9 @@ def get_config(suite="COCO", comp=False):
                 },
             }
         }
-        xconfig["jaix.ExperimentConfig"]["opt_class"] = (
-            "jaix.runner.ask_tell.ATOptimiser"
-        )
+        xconfig["jaix.ExperimentConfig"][
+            "opt_class"
+        ] = "jaix.runner.ask_tell.ATOptimiser"
         xconfig["jaix.ExperimentConfig"]["opt_config"] = {
             "jaix.runner.ask_tell.ATOptimiserConfig": {
                 "strategy_class": "jaix.runner.ask_tell.strategy.ATBandit",
@@ -193,9 +193,9 @@ def get_config(suite="COCO", comp=False):
             },
         }
     else:
-        xconfig["jaix.ExperimentConfig"]["opt_class"] = (
-            "jaix.runner.ask_tell.ATOptimiser"
-        )
+        xconfig["jaix.ExperimentConfig"][
+            "opt_class"
+        ] = "jaix.runner.ask_tell.ATOptimiser"
         xconfig["jaix.ExperimentConfig"]["opt_config"] = {
             "jaix.runner.ask_tell.ATOptimiserConfig": {
                 "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
