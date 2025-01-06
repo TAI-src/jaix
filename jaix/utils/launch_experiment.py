@@ -20,6 +20,15 @@ def wandb_logger(
     run: wandb.sdk.wandb_run.Run,
     wandb_logger_name: str = "jaix_wandb",
 ):
+    """
+    Add wandb logging to the experiment configuration
+    Args:
+        exp_config (ExperimentConfig): Experiment configuration
+        run (wandb.sdk.wandb_run.Run): Wandb run
+        wandb_logger_name (str, optional): Logger name for wandb. Defaults to "jaix_wandb".
+    Returns:
+        ExperimentConfig: Experiment configuration with wandb logging
+    """
     # Adapt LoggingConfig
     if exp_config.logging_config.dict_config:
         logging_config = exp_config.logging_config.dict_config
@@ -53,6 +62,14 @@ def wandb_logger(
 
 
 def wandb_init(run_config: Dict, project: Optional[str] = None):
+    """
+    Initialize wandb run
+    Args:
+        run_config (Dict): Run configuration
+        project (Optional[str], optional): Wandb project. Defaults to None.
+    Returns:
+        wandb.sdk.wandb_run.Run: Wandb run
+    """
     # Config to log
     jaix_version = version("tai_jaix")
     config_override = {"repo": "jaix", "version": jaix_version}
@@ -65,34 +82,61 @@ def wandb_init(run_config: Dict, project: Optional[str] = None):
     return run
 
 
-def launch_jaix_experiment(run_config: Dict, project: Optional[str] = None):
+def launch_jaix_experiment(
+    run_config: Dict, project: Optional[str] = None, wandb: bool = True
+):
+    """
+    Launch a jaix experiment from a run_config dictionary
+    Args:
+        run_config (Dict): Dictionary with the run configuration
+        project (Optional[str], optional): Wandb project. Defaults to None.
+        wandb (bool, optional): If True, will log to wandb. Defaults to True.
+    Returns:
+        data_dir (str): Path to the data directory
+        exit_code (int): Exit code of the experiment
+    """
     exp_config = CF.from_dict(run_config)
-    run = wandb_init(run_config, project)
-    data_dir = run.dir
-    exp_config = wandb_logger(exp_config, run)
+    if wandb:
+        run = wandb_init(run_config, project)
+        data_dir = run.dir
+        exp_config = wandb_logger(exp_config, run)
+        run.alert(
+            "Experiment started", text="Experiment started", level=AlertLevel.INFO
+        )
+    else:
+        data_dir = None
 
-    run.alert("Experiment started", text="Experiment started", level=AlertLevel.INFO)
     try:
         Experiment.run(exp_config)
-        run.alert("Experiment ended", text="Experiment ended", level=AlertLevel.INFO)
-        run.finish(exit_code=0)
+        exit_code = 0
     except Exception as e:
         logger.error(f"Experiment failed {e}", exc_info=True)
-        run.alert(
-            "Experiment failed",
-            level=AlertLevel.ERROR,
-            text=str(e),
-        )
-        run.finish(exit_code=1)
-        return data_dir, 1
-    return data_dir, 0
+        exit_code = 1
+
+    if wandb:
+        if exit_code == 0:
+            run.alert(
+                "Experiment ended", text="Experiment ended", level=AlertLevel.INFO
+            )
+        else:
+            run.alert(
+                "Experiment failed",
+                level=AlertLevel.ERROR,
+                text="Experiment failed",
+            )
+        run.finish(exit_code=exit_code)
+
+    return data_dir, exit_code
 
 
 if __name__ == "__main__":
+    """
+    This script is used to launch a jaix experiment from a wandb configuration
+    """
     # This is to test launch from wandb
     if not os.environ.get("WANDB_CONFIG", None):
         # TODO: coudl do parseargs in the future
         raise RuntimeError("Needs to be launched from wandb")
     run_config = launch.load_wandb_config().as_dict()
-    _, exit_code = launch_jaix_experiment(run_config)
+    _, exit_code = launch_jaix_experiment(run_config, wandb=True)
     sys.exit(exit_code)
