@@ -10,9 +10,15 @@ class DummyEnvConfig(Config):
         self,
         dimension: int = 3,
         num_objectives: int = 1,
+        action_space=None,
+        observation_space=None,
+        reward_space=None,
     ):
         self.dimension = dimension
         self.num_objectives = num_objectives
+        self.action_space = action_space
+        self.observation_space = observation_space
+        self.reward_space = reward_space
 
 
 class DummyConfEnv(gym.Env, ConfigurableObject):
@@ -20,11 +26,14 @@ class DummyConfEnv(gym.Env, ConfigurableObject):
 
     def __init__(self, config: DummyEnvConfig, inst: int = 1):
         ConfigurableObject.__init__(self, config)
-        self.action_space = spaces.Box(low=-5, high=5, shape=(self.dimension,))
-        self.observation_space = spaces.Box(
-            low=0, high=100, shape=(self.num_objectives,)
-        )
-        self.reward_space = spaces.Box(low=0, high=5)
+        if self.action_space is None:
+            self.action_space = spaces.Box(low=-5, high=5, shape=(self.dimension,))
+        if self.observation_space is None:
+            self.observation_space = spaces.Box(
+                low=0, high=100, shape=(self.num_objectives,)
+            )
+        if self.reward_space is None:
+            self.reward_space = spaces.Box(low=0, high=5)
         self._trunc = False
         self._term = False
         self._stop = False
@@ -62,8 +71,21 @@ class DummyConfEnv(gym.Env, ConfigurableObject):
 
 
 class DummyEnv(DummyConfEnv):
-    def __init__(self, dimension=3, num_objectives=1):
-        config = DummyEnvConfig(dimension=dimension, num_objectives=num_objectives)
+    def __init__(
+        self,
+        dimension=3,
+        num_objectives=1,
+        action_space=None,
+        observation_space=None,
+        reward_space=None,
+    ):
+        config = DummyEnvConfig(
+            dimension=dimension,
+            num_objectives=num_objectives,
+            action_space=action_space,
+            observation_space=observation_space,
+            reward_space=reward_space,
+        )
         DummyConfEnv.__init__(self, config)
 
 

@@ -194,18 +194,40 @@ def get_config(suite="COCO", comp=False):
         xconfig["jaix.ExperimentConfig"]["opt_class"] = (
             "jaix.runner.ask_tell.ATOptimiser"
         )
-        xconfig["jaix.ExperimentConfig"]["opt_config"] = {
-            "jaix.runner.ask_tell.ATOptimiserConfig": {
-                "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
-                "strategy_config": {
-                    "jaix.runner.ask_tell.strategy.CMAConfig": {
-                        "sigma0": 2,
+        if suite == "COCO" or suite == "RBF":
+            # Continuous optimisation, use CMA-ES
+            xconfig["jaix.ExperimentConfig"]["opt_config"] = {
+                "jaix.runner.ask_tell.ATOptimiserConfig": {
+                    "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+                    "strategy_config": {
+                        "jaix.runner.ask_tell.strategy.CMAConfig": {
+                            "sigma0": 2,
+                        },
                     },
+                    "init_pop_size": 1,
+                    "stop_after": 400,
                 },
-                "init_pop_size": 1,
-                "stop_after": 400,
-            },
-        }
+            }
+        elif suite == "HPO":
+            pytest.skip("HPO not implemented")
+        else:
+            # Discrete optimisation, use BasicEA
+            xconfig["jaix.ExperimentConfig"]["opt_config"] = {
+                "jaix.runner.ask_tell.ATOptimiserConfig": {
+                    "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                    "strategy_config": {
+                        "jaix.runner.ask_tell.strategy.BasicEAConfig": {
+                            "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
+                            "mu": 1,
+                            "lam": 1,
+                            "mutation_op": "jaix.runner.ask_tell.strategy.basic_ea.MutationOp.FLIP",
+                            "crossover_op": None,
+                        },
+                    },
+                    "init_pop_size": 1,
+                    "stop_after": 400,
+                },
+            }
     return xconfig
 
 

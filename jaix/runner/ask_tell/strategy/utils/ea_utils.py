@@ -3,6 +3,7 @@ from typing import List
 
 
 def global_flip(parent, p=None, low=0, high=1):
+    # TODO: Should allow high to be a list of values
     x = parent.copy()
     if p is None:
         p = 1 / len(x)
@@ -37,10 +38,14 @@ def uniform_crossover(x1, x2, mask=None):
 
 
 class Individual:
-    def __init__(self, x, fitness):
+    def __init__(self, x, fitness, generation: int):
         self.x = x
         self.fitness = fitness
+        self.generation = generation
+
+    def __repr__(self):
+        return f"Individual(x={self.x}, fitness={self.fitness}, generation={self.generation})"
 
 
-def select(population: List[Individual], mu: int):
+def select(population: List[Individual], mu: int, reverse=False):
     return sorted(population, key=lambda x: x.fitness)[:mu]
