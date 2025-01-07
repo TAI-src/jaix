@@ -37,7 +37,7 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
         self.action_space = gym.spaces.MultiDiscrete(
             [self.num_colours] * self.num_slots
         )
-        self.observation_space = gym.spaces.Discrete(self.num_slots)
+        self.observation_space = gym.spaces.MultiDiscrete([self.num_slots + 1])
         self.num_guesses = 0
         self.num_resets = 0
 
@@ -74,7 +74,7 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
         """
         self.num_resets += 1
         super().reset(seed=seed)
-        return 0, self._get_info()
+        return [self.num_slots], self._get_info()
 
     def step(self, x):
         """

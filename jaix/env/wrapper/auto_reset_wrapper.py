@@ -48,20 +48,28 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
         ) = self.env.step(action)
         if term or trunc:
             # from https://gymnasium.farama.org/_modules/gymnasium/wrappers/autoreset/
-            new_obs, new_info = self.env.reset(options={"online": True})
+            _, reset_info = self.env.reset(options={"online": True})
             assert (
-                "final_observation" not in new_info
+                "final_observation" not in reset_info
             ), 'info dict cannot contain key "final_observation" '
             assert (
-                "final_info" not in new_info
+                "final_info" not in reset_info
             ), 'info dict cannot contain key "final_info" '
-            assert "final_r" not in new_info, 'info dict cannot contain key "final_r" '
+            assert (
+                "final_r" not in reset_info
+            ), 'info dict cannot contain key "final_r" '
 
-            new_info["final_observation"] = obs
-            new_info["final_info"] = info
+            info_updates = {"final_observation": obs, "final_info": info}
 
-            obs = new_obs
-            info = new_info
+            (
+                obs,
+                r,
+                term,
+                trunc,
+                info,
+            ) = self.env.step(action)
+
+            info.update(info_updates)
 
             if self.steps == 0:
                 # This means we reset previously and on the first step

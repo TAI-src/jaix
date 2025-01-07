@@ -75,7 +75,7 @@ class ATRunner(Runner):
                 else:
                     # Reformat observations to dictlist
                     # And pass as additional kwargs
-                    logger.debug(res_list)
+                    logger.debug(f"Res list {res_list}")
                     res_dict = {k: [dic[k] for dic in res_list] for k in res_list[0]}
                     opt.tell(
                         env=wenv,
