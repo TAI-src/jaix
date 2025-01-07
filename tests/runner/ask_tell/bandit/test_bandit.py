@@ -191,7 +191,6 @@ def test_warm_start():
     env = AutoResetWrapper(AutoResetWrapperConfig(), DummyEnv())
     for _ in range(10):
         X, Y = loop(2, 1, bandit_opt, env)
-    print(bandit_opt._prev_r)
     updated = bandit_opt.warm_start(None, env, None)
     assert bandit_opt._prev_r == [np.nan]
     assert updated
