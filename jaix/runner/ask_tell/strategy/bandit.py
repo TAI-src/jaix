@@ -51,7 +51,7 @@ class ATBandit(ConfigurableObject, ATStrategy):
         logger.debug(f"Warm start with {self._prev_r} and {r}")
         final_r = np.nanmin([rv for rv in self._prev_r + r if rv is not None])
         self._prev_r = [np.nan]
-        if final_r:
+        if final_r is not None:
             infos = [{"final_r": final_r}]
         else:
             infos = []

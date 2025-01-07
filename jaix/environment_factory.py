@@ -46,7 +46,7 @@ class EnvironmentConfig(Config):
 
         # Append default default_wrappers
         tmp_wrappers = [] if env_wrappers is None else env_wrappers
-        self.env_wrappers = EnvironmentConfig.default_wrappers + tmp_wrappers
+        self.env_wrappers = tmp_wrappers + EnvironmentConfig.default_wrappers
 
         self.seed = EnvironmentConfig.default_seed if seed is None else seed
 

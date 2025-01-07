@@ -116,10 +116,7 @@ def get_config(suite="COCO", comp=False):
         }
     xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
         "env_wrappers"
-    ] = None
-    # xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-    #    "env_wrappers"
-    # ] = [("jaix.env.wrapper.AnyFitWrapper", {})]
+    ] = [("jaix.env.wrapper.AnyFitWrapper", {})]
     xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
         "seed"
     ] = None
