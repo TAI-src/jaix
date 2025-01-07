@@ -35,9 +35,7 @@ class ATRunner(Runner):
         **kwargs,
     ):
         logger.debug("Starting experiment with %s on %s", opt_class, env)
-        wrappers = [
-            (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))
-        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        wrappers = [(MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
 
         wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)
@@ -75,7 +73,7 @@ class ATRunner(Runner):
                 else:
                     # Reformat observations to dictlist
                     # And pass as additional kwargs
-                    logger.debug(res_list)
+                    logger.debug(f"Res list {res_list}")
                     res_dict = {k: [dic[k] for dic in res_list] for k in res_list[0]}
                     opt.tell(
                         env=wenv,

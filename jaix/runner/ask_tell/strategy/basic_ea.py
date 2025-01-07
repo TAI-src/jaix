@@ -15,13 +15,15 @@ from gymnasium import Env, spaces
 
 EAStrategy = Enum("EAStrategy", [("Comma", 0), ("Plus", 1)])
 
+# Doing function strings instead of directly to ensure being able to configure via dict
+
 
 class MutationOp(Enum):
     """
     Enum for mutation operators
     """
 
-    FLIP = global_flip
+    FLIP = "global_flip"
 
 
 class CrossoverOp(Enum):
@@ -29,8 +31,8 @@ class CrossoverOp(Enum):
     Enum for crossover operators
     """
 
-    ONEPOINT = onepoint_crossover
-    UNIFORM = uniform_crossover
+    ONEPOINT = "onepoint_crossover"
+    UNIFORM = "uniform_crossover"
 
 
 class BasicEAConfig(Config):
@@ -67,6 +69,7 @@ class BasicEAConfig(Config):
 
 
 class BasicEA(ConfigurableObject, ATStrategy):
+    config_class = BasicEAConfig
     """
     Basic Evolutionary Algorithm
     """
@@ -85,6 +88,17 @@ class BasicEA(ConfigurableObject, ATStrategy):
             raise NotImplementedError(
                 f"Action space {env.unwrapped.action_space} not supported"
             )
+        self.mutate = (
+            globals().get(self.mutation_op.value)
+            if self.mutation_op is not None
+            else None
+        )
+        self.crossover = (
+            globals().get(self.crossover_op.value)
+            if self.crossover_op is not None
+            else None
+        )
+
         ATStrategy.__init__(self, self.xstart)
         self.initialize()
 
@@ -116,7 +130,7 @@ class BasicEA(ConfigurableObject, ATStrategy):
                 parents_idx = np.random.choice(
                     list(range(self.mu)), size=2, replace=False
                 )
-                child_x = self.crossover_op(
+                child_x = self.crossover(
                     self.pop[parents_idx[0]].x,
                     self.pop[parents_idx[1]].x,
                     **self.crossover_opts,
@@ -124,7 +138,7 @@ class BasicEA(ConfigurableObject, ATStrategy):
             else:
                 child_x = self.pop[i].x
             if self.mutation_op is not None:
-                child_x = self.mutation_op(child_x, **self.mutation_opts)
+                child_x = self.mutate(child_x, **self.mutation_opts)
             offspring[i] = child_x
         return offspring
 
@@ -133,8 +147,10 @@ class BasicEA(ConfigurableObject, ATStrategy):
         Update the EA with the new solutions and function values
         """
         assert len(solutions) == len(function_values)
+        print(function_values)
         if isinstance(env.unwrapped, CompositeEnvironment):
             function_values = [v for n, v in function_values]
+        print(function_values)
         # TODO: currently only doing single-objective
         # TODO: make this setup common to avoid code duplication
         assert all([len(v) == 1 for v in function_values])

@@ -159,37 +159,92 @@ def get_config(suite="COCO", comp=False):
                                 "exploit_strategy": "jaix.runner.ask_tell.strategy.utils.BanditExploitStrategy.MAX",
                             },
                         },
-                        "opt_confs": [
-                            {
-                                "jaix.runner.ask_tell.ATOptimiserConfig": {
-                                    "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
-                                    "strategy_config": {
-                                        "jaix.runner.ask_tell.strategy.CMAConfig": {
-                                            "sigma0": 2,
-                                        },
-                                    },
-                                    "init_pop_size": 1,
-                                    "stop_after": 400,
-                                }
-                            },
-                            {
-                                "jaix.runner.ask_tell.ATOptimiserConfig": {
-                                    "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
-                                    "strategy_config": {
-                                        "jaix.runner.ask_tell.strategy.CMAConfig": {
-                                            "sigma0": 2,
-                                        },
-                                    },
-                                    "init_pop_size": 1,
-                                    "stop_after": 400,
-                                }
-                            },
-                        ],
                     },
                 },
                 "init_pop_size": 1,
             },
         }
+
+        if suite == "COCO" or suite == "RBF":
+            xconfig["jaix.ExperimentConfig"]["opt_config"][
+                "jaix.runner.ask_tell.ATOptimiserConfig"
+            ]["strategy_config"]["jaix.runner.ask_tell.strategy.ATBanditConfig"][
+                "opt_confs"
+            ] = [
+                {
+                    "jaix.runner.ask_tell.ATOptimiserConfig": {
+                        "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+                        "strategy_config": {
+                            "jaix.runner.ask_tell.strategy.CMAConfig": {
+                                "sigma0": 2,
+                            },
+                        },
+                        "init_pop_size": 1,
+                        "stop_after": 400,
+                    }
+                },
+                {
+                    "jaix.runner.ask_tell.ATOptimiserConfig": {
+                        "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+                        "strategy_config": {
+                            "jaix.runner.ask_tell.strategy.CMAConfig": {
+                                "sigma0": 2,
+                            },
+                        },
+                        "init_pop_size": 1,
+                        "stop_after": 400,
+                    }
+                },
+            ]
+        elif suite == "HPO":
+            pytest.skip("HPO not fully implemented")
+        else:
+            # Discrete optimisation, use Basic EA
+            xconfig["jaix.ExperimentConfig"]["opt_config"][
+                "jaix.runner.ask_tell.ATOptimiserConfig"
+            ]["strategy_config"]["jaix.runner.ask_tell.strategy.ATBanditConfig"][
+                "opt_confs"
+            ] = [
+                {
+                    "jaix.runner.ask_tell.ATOptimiserConfig": {
+                        "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                        "strategy_config": {
+                            "jaix.runner.ask_tell.strategy.BasicEAConfig": {
+                                "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                                "mu": 1,
+                                "lam": 1,
+                                "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                                "crossover_op": None,
+                                "mutation_opts": {},
+                                "crossover_opts": {},
+                                "warm_start_best": True,
+                            },
+                        },
+                        "init_pop_size": 1,
+                        "stop_after": 400,
+                    }
+                },
+                {
+                    "jaix.runner.ask_tell.ATOptimiserConfig": {
+                        "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                        "strategy_config": {
+                            "jaix.runner.ask_tell.strategy.BasicEAConfig": {
+                                "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                                "mu": 2,
+                                "lam": 5,
+                                "mutation_op": None,
+                                "crossover_op": "jaix.runner.ask_tell.strategy.CrossoverOp.UNIFORM",
+                                "mutation_opts": {},
+                                "crossover_opts": {},
+                                "warm_start_best": True,
+                            },
+                        },
+                        "init_pop_size": 1,
+                        "stop_after": 400,
+                    }
+                },
+            ]
+
     else:
         xconfig["jaix.ExperimentConfig"]["opt_class"] = (
             "jaix.runner.ask_tell.ATOptimiser"
@@ -217,11 +272,14 @@ def get_config(suite="COCO", comp=False):
                     "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
                     "strategy_config": {
                         "jaix.runner.ask_tell.strategy.BasicEAConfig": {
-                            "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
+                            "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
                             "mu": 1,
                             "lam": 1,
-                            "mutation_op": "jaix.runner.ask_tell.strategy.basic_ea.MutationOp.FLIP",
+                            "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
                             "crossover_op": None,
+                            "mutation_opts": {},
+                            "crossover_opts": {},
+                            "warm_start_best": True,
                         },
                     },
                     "init_pop_size": 1,
@@ -247,7 +305,7 @@ def test_wandb_init():
     os.environ["WANDB_MODE"] = "offline"
     run = wandb_init(run_config=deepcopy(get_config()), project="ci-cd")
     assert run.mode == "dryrun"
-    shutil.rmtree(run.dir)
+    shutil.rmtree(run.dir, ignore_errors=True)
     run.finish()
 
     os.environ["WANDB_MODE"] = prev_mode
@@ -260,7 +318,7 @@ def test_launch_jaix_experiment_wandb():
         run_config=deepcopy(get_config()), project="ci-cd", wandb=True
     )
     # Remove logging files
-    shutil.rmtree(data_dir)
+    shutil.rmtree(data_dir, ignore_errors=True)
     os.environ["WANDB_MODE"] = prev_mode
 
     assert exit_code == 0

@@ -94,7 +94,11 @@ def test_uniform_crossover():
 
 def test_select():
     # test deterministic
-    pop = [Individual([1, 2, 3], 1), Individual([4, 5, 6], 2), Individual([7, 8, 9], 3)]
+    pop = [
+        Individual([1, 2, 3], 1, 0),
+        Individual([4, 5, 6], 2, 0),
+        Individual([7, 8, 9], 3, 0),
+    ]
     pop.reverse()
     mu = 2
     selected = select(pop, mu)
