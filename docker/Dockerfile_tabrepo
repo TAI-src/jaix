@@ -1,4 +1,6 @@
-FROM python:3.12
+FROM rayproject/ray:latest-py312-cpu
+USER root
+RUN sudo apt-get update && sudo apt-get install -y g++
 
 WORKDIR /tabrepo
 COPY setup.py setup.py

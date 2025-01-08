@@ -5,8 +5,24 @@ import pytest
 
 @pytest.fixture(scope="session")
 def repo():
-    repo = load_repository("D244_F3_C1530_3", load_predictions=False, cache=True)
+    repo = load_repository("D244_F3_C1530_30", load_predictions=True, cache=True)
     return repo
+
+
+def test_tabrepo_ö(repo):
+    print(
+        repo.metrics(
+            datasets=["Australian"],
+            configs=["CatBoost_r22_BAG_L1", "RandomForest_r12_BAG_L1"],
+        )
+    )
+    print(
+        repo.evaluate_ensemble(
+            datasets=["Australian"],
+            configs=["CatBoost_r22_BAG_L1", "RandomForest_r12_BAG_L1"],
+            backend="native",
+        )
+    )
 
 
 @pytest.mark.parametrize(
@@ -16,10 +32,10 @@ def test_init(repo, task_type, inst):
     datasets = repo.datasets(union=True, problem_type=task_type.value)
     if inst >= len(datasets):
         with pytest.raises(ValueError):
-            adapter = TabrepoAdapter(repo=repo, task_type=task_type, inst=inst)
+            adapter = TabrepoAdapter(repo=repo, task_type=task_type, dataset_idx=inst)
         pytest.xfail("Instance does not exist")
     # Continue only if instance exists
-    adapter = TabrepoAdapter(repo=repo, task_type=task_type, inst=inst)
+    adapter = TabrepoAdapter(repo=repo, task_type=task_type, dataset_idx=inst)
     assert adapter.metadata["problem_type"] == task_type.value
     assert adapter.dataset == datasets[inst]
 
@@ -37,3 +53,8 @@ def test_init(repo, task_type, inst):
     assert max(metrics["metric_error_val"]) >= metric_error_val
     assert min(metrics["time_train_s"]) <= time_train_s
     assert max(metrics["time_train_s"]) >= time_train_s
+
+    # TODO: test single fold
+    #
+    # Test evaluate ensemble
+    adapter.evaluate_ensemble(config_ids=[0, 1, 2])
