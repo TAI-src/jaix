@@ -277,7 +277,7 @@ def get_config(suite="COCO", comp=False):
                             "lam": 1,
                             "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
                             "crossover_op": None,
-                            "mutation_opts": {"p": 1},
+                            "mutation_opts": {"p": 0.2},
                             "crossover_opts": {},
                             "warm_start_best": True,
                         },
