@@ -3,14 +3,17 @@ from typing import List
 
 
 def global_flip(parent, p=None, low=0, high=1):
-    # TODO: Should allow high to be a list of values
     x = parent.copy()
     if p is None:
         p = 1 / len(x)
+    if np.issubdtype(type(low), int):
+        low = [low] * len(x)
+    if np.issubdtype(type(high), int):
+        high = [high] * len(x)
     assert p >= 0 and p <= 1
     for i in range(len(x)):
         if np.random.rand() < p:
-            options = list(range(low, high + 1))
+            options = list(range(low[i], high[i] + 1))
             options.remove(x[i])
             x[i] = np.random.choice(options)
     return x

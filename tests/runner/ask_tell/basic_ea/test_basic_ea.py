@@ -7,7 +7,7 @@ from gymnasium import spaces
 
 
 @pytest.mark.parametrize(
-    "strategy,mu,lam,mutation_op,crossover_op,mutation_opts,crossover_opts",
+    "strategy,mu,lam,mutation_op,crossover_op,mutation_opts,crossover_opts,low,high",
     [
         (
             EAStrategy.Comma,
@@ -15,11 +15,13 @@ from gymnasium import spaces
             4,
             MutationOp.FLIP,
             CrossoverOp.ONEPOINT,
-            {"p": 0.5, "low": 0, "high": 5},
+            {"p": 0.5},
             {"k": 0},
+            2,
+            5,
         ),
-        (EAStrategy.Plus, 1, 1, MutationOp.FLIP, None, {}, {}),
-        (EAStrategy.Plus, 10, 5, None, CrossoverOp.UNIFORM, {}, {}),
+        (EAStrategy.Plus, 1, 1, MutationOp.FLIP, None, {}, {}, 2, 2),
+        (EAStrategy.Plus, 10, 5, None, CrossoverOp.UNIFORM, {}, {}, 2, 2),
     ],
 )
 def test_basic(
@@ -30,6 +32,8 @@ def test_basic(
     crossover_op,
     mutation_opts,
     crossover_opts,
+    low,
+    high,
 ):
     config = BasicEAConfig(
         strategy=strategy,
@@ -40,16 +44,13 @@ def test_basic(
         mutation_opts=mutation_opts,
         crossover_opts=crossover_opts,
     )
-    if "low" in mutation_opts:
-        low = mutation_opts["low"]
-    else:
-        low = 0
-    if "high" in mutation_opts:
-        high = mutation_opts["high"]
-    else:
-        high = 1
     dimension = 3
-    action_space = spaces.MultiDiscrete([high - low + 1] * dimension)
+    num_acts = np.random.randint(
+        low=low,
+        high=high + 1,
+        size=dimension,
+    )
+    action_space = spaces.MultiDiscrete(num_acts)
     env = DummyEnv(num_objectives=1, action_space=action_space, dimension=dimension)
     ea = BasicEA(config, env)
     for _ in range(10):
