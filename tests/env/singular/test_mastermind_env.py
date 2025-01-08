@@ -9,9 +9,11 @@ def test_init():
     env = MastermindEnvironment(config, inst=1)
     assert env.num_slots <= config.num_slots_range[1]
     assert env.num_slots >= config.num_colours_range[0]
-    assert env.num_colours <= config.num_colours_range[1]
-    assert env.num_colours >= config.num_colours_range[0]
+    assert all(env.num_colours <= config.num_colours_range[1])
+    assert all(env.num_colours >= config.num_colours_range[0])
     assert env.action_space.contains(env._solution)
+    assert env.action_space.contains(env.num_colours - 1)
+    assert not all(env.num_colours == env.num_colours[0])
 
 
 def test_basic():

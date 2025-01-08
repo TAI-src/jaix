@@ -78,15 +78,16 @@ class BasicEA(ConfigurableObject, ATStrategy):
         ConfigurableObject.__init__(self, config)
         self.xstart = [env.unwrapped.action_space.sample() for _ in range(self.mu)]
         # TODO: for now only MultiBinary or MultiDiscrete
+        self.mutation_opts["low"] = [0] * len(self.xstart[0])
         if isinstance(env.unwrapped.action_space, spaces.MultiBinary):
-            self.mutation_opts["low"] = 0
-            self.mutation_opts["high"] = 1
+            self.mutation_opts["high"] = [1] * len(self.xstart[0])
         elif isinstance(env.unwrapped.action_space, spaces.MultiDiscrete):
-            self.mutation_opts["low"] = 0
-            self.mutation_opts["high"] = env.unwrapped.action_space.nvec[0] - 1
+            # An nvec of 1 means only 1 option, so an empty dimension
+            assert all(env.unwrapped.action_space.nvec > 1)
+            self.mutation_opts["high"] = env.unwrapped.action_space.nvec - 1
         else:
             raise NotImplementedError(
-                f"Action space {env.unwrapped.action_space} not supported"
+                f"Action space {env.unwrapped.action_space} not supported yet"
             )
         self.mutate = (
             globals().get(self.mutation_op.value)
@@ -147,10 +148,8 @@ class BasicEA(ConfigurableObject, ATStrategy):
         Update the EA with the new solutions and function values
         """
         assert len(solutions) == len(function_values)
-        print(function_values)
         if isinstance(env.unwrapped, CompositeEnvironment):
             function_values = [v for n, v in function_values]
-        print(function_values)
         # TODO: currently only doing single-objective
         # TODO: make this setup common to avoid code duplication
         assert all([len(v) == 1 for v in function_values])

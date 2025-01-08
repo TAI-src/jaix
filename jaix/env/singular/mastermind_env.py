@@ -13,7 +13,7 @@ class MastermindEnvironmentConfig(Config):
     def __init__(
         self,
         num_slots_range: Tuple[int, int] = (10, 20),
-        num_colours_range: Tuple[int, int] = (4, 5),
+        num_colours_range: Tuple[int, int] = (3, 5),
         sequential: bool = False,
         max_guesses: int = np.iinfo(np.int32).max,
     ):
@@ -34,22 +34,23 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
         ConfigurableObject.__init__(self, config)
         SingularEnvironment.__init__(self, inst)
         self._setup(config, inst)
-        self.action_space = gym.spaces.MultiDiscrete(
-            [self.num_colours] * self.num_slots
-        )
-        self.observation_space = gym.spaces.MultiDiscrete([self.num_slots + 1])
         self.num_guesses = 0
         self.num_resets = 0
 
     def _setup(self, config: MastermindEnvironmentConfig, inst: int):
         np.random.seed(inst)
-        self.num_colours = np.random.randint(
-            low=config.num_colours_range[0], high=config.num_colours_range[1]
-        )
         self.num_slots = np.random.randint(
-            low=config.num_slots_range[0], high=config.num_slots_range[1]
+            low=config.num_slots_range[0], high=config.num_slots_range[1] + 1
         )
-        self._solution = np.random.randint(self.num_colours, size=self.num_slots)
+        self.num_colours = np.random.randint(
+            low=config.num_colours_range[0],
+            high=config.num_colours_range[1] + 1,
+            size=self.num_slots,
+        )
+        self.action_space = gym.spaces.MultiDiscrete(self.num_colours)
+        self.observation_space = gym.spaces.MultiDiscrete([self.num_slots + 1])
+
+        self._solution = self.action_space.sample()
 
     def _get_info(self):
         return {
@@ -107,7 +108,7 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
         logger.debug(self._get_info())
 
     def __str__(self):
-        return f"MastermindEnvironment with {self.num_slots} slot, {self.num_colours} colours"
+        return f"MastermindEnvironment with {self.num_slots} slot, {self.num_colours} colours, solution {self._solution}"
 
     def close(self):
         pass

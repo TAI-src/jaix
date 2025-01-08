@@ -41,6 +41,21 @@ def test_global_flip_stochastic(p, low, high):
     assert diffs > (p - 0.05) * reps * len(x)
 
 
+def test_global_flip_diff_values():
+    # deterministic
+    x = [5, 4, 3, 2, 1]
+    low = [4, 3, 2, 1, 0]
+    high = [5, 4, 3, 2, 1]
+    p = 1
+    xn = global_flip(x, p, low=low, high=high)
+    assert all([vx != vn for vx, vn in zip(x, xn)])
+    assert all(np.array(xn) == low)
+
+    xn = global_flip(x, p, low=low, high=5)
+    assert xn[0] == 4
+    assert not all(xn == xn[0])
+
+
 def test_onepoint_crossover():
     # test deterministic
     x1 = [1, 2, 3, 4, 5]
