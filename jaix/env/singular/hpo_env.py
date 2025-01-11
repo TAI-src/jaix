@@ -20,7 +20,7 @@ class HPOEnvironmentConfig(Config):
         self,
         training_budget: int,
         task_type: TaskType,
-        repo_name: str = "D244_F3_C1530_3",
+        repo_name: str = "D244_F3_C1530_30",
         load_predictions: bool = False,
         cache: bool = True,
     ):
@@ -34,24 +34,34 @@ class HPOEnvironmentConfig(Config):
 class HPOEnvironment(ConfigurableObject, SingularEnvironment):
     config_class = HPOEnvironmentConfig
 
+    @staticmethod
+    def info(config: HPOEnvironmentConfig):
+        datasets = TabrepoAdapter.get_dataset_names(config.repo, config.task_type)
+        num_funcs = len(datasets)
+        num_insts = 3  # TODO: This is an assumption
+        return {"funcs": list(range(num_funcs)), "insts": list(range(num_insts))}
+
     def __init__(
         self,
         config: HPOEnvironmentConfig,
+        func: int,
         inst: int,
     ):
         ConfigurableObject.__init__(self, config)
         SingularEnvironment.__init__(self, inst)
-        self.tabrepo_adapter = TabrepoAdapter(self.repo, self.task_type, inst)
-        # An action is the index of a config
-        # TODO: proper config space with actual hyperparameters
-        self.action_space = gym.spaces.MultiDiscrete(
-            [len(self.tabrepo_adapter.configs)]
+        self.tabrepo_adapter = TabrepoAdapter(
+            self.repo, self.task_type, dataset_idx=func, fold=inst
         )
-        self.n = self.action_space.nvec[0]
+        # An action is the index of a config
+        # which is basically the type of model chosen
+        # for the ensemble
+        # TODO: proper config space with actual hyperparameters
+        self.n = len(self.tabrepo_adapter.configs)
+        self.action_space = gym.spaces.MultiBinary(self.n)
         # Observation is the validation error of the last config
         self.observation_space = gym.spaces.Box(
-            low=np.array([self.tabrepo_adapter.metadata["min_error_val"]]),
-            high=np.array([self.tabrepo_adapter.metadata["max_error_val"]]),
+            low=0,
+            high=self.tabrepo_adapter.max_rank,
             shape=(1,),
             dtype=np.float64,
         )
@@ -94,17 +104,23 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         and information from the environment about the step,
         i.e. metrics, debug info.
         """
-        # TODO: Figure out action space and how to map to configs
-        act = int(x[0])
-        if act < 0 or act >= self.n:
-            logger.warning(f"Invalid action {act} for action space {self.action_space}")
-            act = min(self.n - 1, max(0, act))
-        obs, time_train_s = self.tabrepo_adapter.evaluate(act)
-        logger.debug(f"Action {act} resulted in obs {obs} with time {time_train_s}")
+        config_ids = np.where(x)[0]
+        print("config_ids")
+        print(config_ids)
+        obs, time_train_s = self.tabrepo_adapter.evaluate_ensemble(config_ids)
+        logger.debug(
+            f"Action {config_ids} resulted in obs {obs} with time {time_train_s}"
+        )
+        # TODO: Add non-value for going over training time budget
+        # basically as a constraint
         self.training_time += time_train_s
         terminated = False
         truncated = self.stop()
-        return [obs], np.float64(obs), terminated, truncated, self._get_info()
+        if truncated:
+            r = np.float64(self.tabrepo_adapter.max_rank)
+        else:
+            r = np.float64(obs)
+        return [obs], r, terminated, truncated, self._get_info()
 
     def render(self):
         """
