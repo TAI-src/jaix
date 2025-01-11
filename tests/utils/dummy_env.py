@@ -24,7 +24,14 @@ class DummyEnvConfig(Config):
 class DummyConfEnv(gym.Env, ConfigurableObject):
     config_class = DummyEnvConfig
 
-    def __init__(self, config: DummyEnvConfig, inst: int = 1):
+    @staticmethod
+    def info(*args, **kwargs):
+        return {
+            "funcs": [0, 1],
+            "insts": list(range(15)),
+        }
+
+    def __init__(self, config: DummyEnvConfig, func: int = 0, inst: int = 1):
         ConfigurableObject.__init__(self, config)
         if self.action_space is None:
             self.action_space = spaces.Box(low=-5, high=5, shape=(self.dimension,))
@@ -38,6 +45,7 @@ class DummyConfEnv(gym.Env, ConfigurableObject):
         self._term = False
         self._stop = False
         self.inst = inst
+        self.func = func
         self.id = 42
 
     def reset(

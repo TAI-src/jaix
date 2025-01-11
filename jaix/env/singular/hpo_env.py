@@ -21,13 +21,10 @@ class HPOEnvironmentConfig(Config):
         training_budget: int,
         task_type: TaskType,
         repo_name: str = "D244_F3_C1530_30",
-        load_predictions: bool = False,
         cache: bool = True,
     ):
         self.training_budget = training_budget
-        self.repo = load_repository(
-            repo_name, load_predictions=load_predictions, cache=cache
-        )
+        self.repo = load_repository(repo_name, load_predictions=True, cache=cache)
         self.task_type = task_type
 
 
@@ -48,7 +45,7 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         inst: int,
     ):
         ConfigurableObject.__init__(self, config)
-        SingularEnvironment.__init__(self, inst)
+        SingularEnvironment.__init__(self, func, inst)
         self.tabrepo_adapter = TabrepoAdapter(
             self.repo, self.task_type, dataset_idx=func, fold=inst
         )

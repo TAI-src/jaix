@@ -51,21 +51,23 @@ def get_config(suite="COCO", comp=False):
                 "suite_class": "jaix.suite.ECSuite",
                 "suite_config": {
                     "jaix.suite.ECSuiteConfig": {
-                        "func_class": "jaix.env.utils.problem.RBFFit",
-                        "func_config": {
-                            "jaix.env.utils.problem.RBFFitConfig": {
-                                "rbf_config": {
-                                    "jaix.env.utils.problem.rbf.RBFAdapterConfig": {},
+                        "func_classes": ["jaix.env.utils.problem.RBFFit"],
+                        "func_configs": [
+                            {
+                                "jaix.env.utils.problem.RBFFitConfig": {
+                                    "rbf_config": {
+                                        "jaix.env.utils.problem.rbf.RBFAdapterConfig": {},
+                                    },
+                                    "precision": 1e-3,
                                 },
-                                "precision": 1e-8,
-                            },
-                        },
+                            }
+                        ],
                         "env_config": {
                             "jaix.env.singular.ECEnvironmentConfig": {
-                                "budget_multiplier": 2,
+                                "budget_multiplier": 0.02,
                             },
                         },
-                        "num_instances": 5,
+                        "instances": list(range(2)),
                         "num_agg_instances": 2,
                     },
                 },
@@ -82,13 +84,12 @@ def get_config(suite="COCO", comp=False):
                             "jaix.env.singular.HPOEnvironmentConfig": {
                                 "training_budget": 100,
                                 "task_type": "jaix.env.utils.hpo.TaskType.C1",
-                                "repo_name": "D244_F3_C1530_3",
-                                "load_predictions": False,
+                                "repo_name": "D244_F3_C1530_30",
                                 "cache": True,
                             },
                         },
-                        "num_instances": 2,
-                        "num_agg_instances": 3,
+                        "functions": [0],
+                        "num_agg_instances": 2,
                     },
                 },
             },
@@ -104,12 +105,11 @@ def get_config(suite="COCO", comp=False):
                             "jaix.env.singular.MastermindEnvironmentConfig": {
                                 "num_slots_range": (4, 6),
                                 "num_colours_range": (2, 3),
-                                "sequential": False,
                                 "max_guesses": 10,
                             },
                         },
-                        "num_instances": 2,
-                        "num_agg_instances": 3,
+                        "instances": list(range(2)),
+                        "num_agg_instances": 2,
                     },
                 },
             },
@@ -136,7 +136,7 @@ def get_config(suite="COCO", comp=False):
                         "switching_pattern_class": "jaix.env.utils.switching_pattern.SeqRegSwitchingPattern",
                         "switching_pattern_config": {
                             "jaix.env.utils.switching_pattern.SeqRegSwitchingPatternConfig": {
-                                "wait_period": 100,
+                                "wait_period": 20,
                             },
                         },
                         "real_time": False,
@@ -155,7 +155,7 @@ def get_config(suite="COCO", comp=False):
                         "bandit_config": {
                             "jaix.runner.ask_tell.strategy.utils.BanditConfig": {
                                 "epsilon": 0.1,
-                                "min_tries": 10,
+                                "min_tries": 4,
                                 "exploit_strategy": "jaix.runner.ask_tell.strategy.utils.BanditExploitStrategy.MAX",
                             },
                         },
@@ -196,8 +196,6 @@ def get_config(suite="COCO", comp=False):
                     }
                 },
             ]
-        elif suite == "HPO":
-            pytest.skip("HPO not fully implemented")
         else:
             # Discrete optimisation, use Basic EA
             xconfig["jaix.ExperimentConfig"]["opt_config"][
@@ -263,8 +261,6 @@ def get_config(suite="COCO", comp=False):
                     "stop_after": 400,
                 },
             }
-        elif suite == "HPO":
-            pytest.skip("HPO not implemented")
         else:
             # Discrete optimisation, use BasicEA
             xconfig["jaix.ExperimentConfig"]["opt_config"] = {

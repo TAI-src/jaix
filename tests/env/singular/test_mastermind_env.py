@@ -6,7 +6,7 @@ import copy
 
 def test_init():
     config = MastermindEnvironmentConfig()
-    env = MastermindEnvironment(config, inst=1)
+    env = MastermindEnvironment(config, func=0, inst=1)
     assert env.num_slots <= config.num_slots_range[1]
     assert env.num_slots >= config.num_colours_range[0]
     assert all(env.num_colours <= config.num_colours_range[1])
@@ -18,14 +18,14 @@ def test_init():
 
 def test_basic():
     config = MastermindEnvironmentConfig()
-    env = MastermindEnvironment(config, inst=21)
+    env = MastermindEnvironment(config, func=1, inst=21)
     check_env(env)
 
 
 @pytest.mark.parametrize("seq", [True, False])
 def test_step_non_sequential(seq):
-    config = MastermindEnvironmentConfig(sequential=seq, max_guesses=2)
-    env = MastermindEnvironment(config, inst=3)
+    config = MastermindEnvironmentConfig(max_guesses=2)
+    env = MastermindEnvironment(config, func=seq, inst=3)
     obs, r, term, trunc, info = env.step(env._solution)
     assert obs[0] == r
     assert r == 0

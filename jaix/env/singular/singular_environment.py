@@ -3,6 +3,11 @@ import uuid
 
 
 class SingularEnvironment(gym.Env):
-    def __init__(self, inst: int):
+    @staticmethod
+    def info(config):
+        return {}
+
+    def __init__(self, func: int, inst: int):
         self.id = uuid.uuid4()
+        self.funct = func
         self.inst = inst

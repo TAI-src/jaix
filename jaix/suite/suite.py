@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import Optional, Type
+from typing import Optional, Type, List
 from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
 import gymnasium as gym
 import random as rnd
 import logging
 from jaix import LOGGER_NAME
+import itertools
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -19,37 +20,47 @@ class SuiteConfig(Config):
         self,
         env_class: Type[gym.Env],
         env_config: Config,
-        num_instances: int,
-        num_agg_instances: int,
+        functions: Optional[List[int]] = None,
+        instances: Optional[List[int]] = None,
+        num_agg_instances: Optional[int] = None,
     ):
         self.env_class = env_class
         self.env_config = env_config
-        self.num_instances = num_instances
-        self.num_agg_instances = num_agg_instances
+        env_info = {}
+        if hasattr(env_class, "info"):
+            env_info = env_class.info(env_config)
+        # TODO: Better error messages if no functions / instances passed
+        # and info does not exist
+        self.functions = env_info["funcs"] if functions is None else functions
+        self.instances = env_info["insts"] if instances is None else instances
+        instance_permutations = list(itertools.permutations(self.instances))
+        num_agg_instances = (
+            len(instance_permutations)
+            if num_agg_instances is None
+            else num_agg_instances
+        )
+        assert num_agg_instances <= len(instance_permutations)
+        self.agg_instances = instance_permutations[:num_agg_instances]
 
 
 class Suite(ConfigurableObject):
     config_class = SuiteConfig
 
-    def _get_env(self, inst):
-        return COF.create(self.env_class, self.env_config, inst)
+    def _get_env(self, func, inst):
+        return COF.create(self.env_class, self.env_config, func, inst)
 
     def get_envs(self):
-        for inst in range(self.num_instances):
-            env = self._get_env(inst)
-            yield env
+        for func in self.functions:
+            for inst in self.instances:
+                env = self._get_env(func, inst)
+                yield env
 
     def get_agg_envs(self, agg_type: AggType, seed: Optional[int] = None):
         logger.debug(f"Getting environments with seed {seed}")
-        seeds = rnd.Random(seed).sample(range(100, 999999), self.num_instances)
-        for i_seed in seeds:
-            logger.debug(f"Shuffle seed is {i_seed}")
-            def_envs = [self._get_env(inst) for inst in range(self.num_agg_instances)]
-            logger.debug(f"Initialised {len(def_envs)} sub-environments")
-            # shuffle instance ids
-            inst_ids = rnd.Random(i_seed).sample(
-                range(self.num_agg_instances), self.num_agg_instances
-            )
-            envs = [def_envs[i] for i in inst_ids]
-            logger.debug(f"Returning {envs}")
-            yield envs
+        if agg_type != AggType.INST:
+            raise NotImplementedError("Only INST aggregation is supported")
+        for func in self.functions:
+            for agg_inst in self.agg_instances:
+                envs = [self._get_env(func, inst) for inst in agg_inst]
+                logger.debug(f"Returning {envs}")
+                yield envs

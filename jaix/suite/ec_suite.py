@@ -4,30 +4,37 @@ from jaix.env.singular import (
 )
 from jaix.env.utils.problem import StaticProblem
 from ttex.config import ConfigurableObjectFactory as COF, Config
-from typing import Type, Optional
-from jaix.suite import Suite, AggType
+from typing import Type, Optional, List
+from jaix.suite import Suite, SuiteConfig
 
 
-class ECSuiteConfig(Config):
+class ECSuiteConfig(SuiteConfig):
     def __init__(
         self,
-        func_class: Type[StaticProblem],
-        func_config: Config,
+        func_classes: List[Type[StaticProblem]],
+        func_configs: List[Config],
         env_config: ECEnvironmentConfig,
-        num_instances: int,
-        num_agg_instances: int,
+        instances: Optional[List[int]] = None,
+        num_agg_instances: Optional[int] = None,
     ):
-        self.func_config = func_config
-        # TODO: should probably allow multiple functions
-        self.env_config = env_config
-        self.func_class = func_class
-        self.num_instances = num_instances
-        self.num_agg_instances = num_agg_instances
+        self.func_configs = func_configs
+        self.func_classes = func_classes
+        assert len(func_classes) == len(func_configs)
+        functions = list(range(len(func_classes)))
+        instances = list(range(15)) if instances is None else instances
+
+        super().__init__(
+            env_class=ECEnvironment,
+            env_config=env_config,
+            functions=functions,
+            instances=instances,
+            num_agg_instances=num_agg_instances,
+        )
 
 
 class ECSuite(Suite):
     config_class = ECSuiteConfig  # type: ignore[assignment]
 
-    def _get_env(self, inst):
-        func = COF.create(self.func_class, self.func_config, inst)
+    def _get_env(self, func, inst):
+        func = COF.create(self.func_classes[func], self.func_configs[func], inst)
         return COF.create(ECEnvironment, self.env_config, func)

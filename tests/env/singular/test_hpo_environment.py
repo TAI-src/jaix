@@ -10,7 +10,6 @@ def env():
         training_budget=500,
         task_type=TaskType.C1,
         repo_name="D244_F3_C1530_30",
-        load_predictions=False,
         cache=True,
     )
     env = COF.create(HPOEnvironment, config, func=0, inst=0)
