@@ -4,7 +4,7 @@ import uuid
 
 class SingularEnvironment(gym.Env):
     @staticmethod
-    def info(*args, **kwargs):
+    def info(config):
         return {}
 
     def __init__(self, func: int, inst: int):

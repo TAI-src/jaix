@@ -29,7 +29,7 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
     config_class = MastermindEnvironmentConfig
 
     @staticmethod
-    def info(*args, **kwargs):
+    def info(config: MastermindEnvironmentConfig):
         return {
             "funcs": [0, 1],
             "insts": list(range(15)),

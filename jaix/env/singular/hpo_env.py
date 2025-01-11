@@ -32,7 +32,7 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
     config_class = HPOEnvironmentConfig
 
     @staticmethod
-    def info(config: HPOEnvironmentConfig, *args, **kwargs):
+    def info(config: HPOEnvironmentConfig):
         datasets = TabrepoAdapter.get_dataset_names(config.repo, config.task_type)
         num_funcs = len(datasets)
         num_insts = 3  # TODO: This is an assumption
