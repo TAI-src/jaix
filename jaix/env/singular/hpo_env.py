@@ -105,8 +105,6 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         i.e. metrics, debug info.
         """
         config_ids = np.where(x)[0]
-        print("config_ids")
-        print(config_ids)
         obs, time_train_s = self.tabrepo_adapter.evaluate_ensemble(config_ids)
         logger.debug(
             f"Action {config_ids} resulted in obs {obs} with time {time_train_s}"

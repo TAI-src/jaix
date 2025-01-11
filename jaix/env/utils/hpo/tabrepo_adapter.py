@@ -6,9 +6,9 @@ from typing import Optional, List, Union, Tuple
 import pandas as pd
 import numpy as np
 
-model_types = list(MODEL_TYPE_DICT.values())
-model_tuples = [(mt, mt) for mt in model_types]
-ModelType = Enum("ModelType", model_types)
+# model_types = list(MODEL_TYPE_DICT.values())
+# model_tuples = [(mt, mt) for mt in model_types]
+# ModelType = Enum("ModelType", model_types)
 TaskType = Enum(
     "TaskType", [("C1", "binary"), ("R", "regression"), ("CM", "multiclass")]
 )
@@ -36,15 +36,21 @@ class TabrepoAdapter:
         datasets: Optional[Union[List[int], List[str]]] = None,
     ) -> Tuple[List[str], List[str]]:
         if datasets is None or isinstance(datasets[0], int):
-            datasets = TabrepoAdapter.get_dataset_names(repo, task_type, datasets)
+            dataset_names: List[str] = TabrepoAdapter.get_dataset_names(
+                repo,
+                task_type,
+                datasets,  # type: ignore
+            )
+        else:
+            dataset_names: List[str] = datasets  # type: ignore
         # Get one config per type
         regex = r"_c1_"  # For all handmade: r"_c\d+_"
         configs = [
             config_name
-            for config_name in repo.configs(datasets=datasets, union=False)
+            for config_name in repo.configs(datasets=dataset_names, union=False)
             if re.search(regex, config_name) is not None
         ]
-        return configs, datasets
+        return configs, dataset_names
 
     @staticmethod
     def get_metadata(repo: EvaluationRepository, dataset: str, configs: List[str]):

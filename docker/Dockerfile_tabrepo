@@ -1,5 +1,4 @@
 FROM rayproject/ray:latest-py312-cpu
-USER root
 RUN sudo apt-get update && sudo apt-get install -y g++
 
 WORKDIR /tabrepo
@@ -8,6 +7,7 @@ COPY tabrepo tabrepo
 COPY data/metadata data/metadata
 COPY data/configs data/configs
 
+USER root
 RUN pip install -e .
 # Load relevant tabrepo data
 RUN python -c "from tabrepo.repository.evaluation_repository import load_repository; load_repository('D244_F3_C1530_30',load_predictions=True, cache=True)"

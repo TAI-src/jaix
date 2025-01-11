@@ -71,7 +71,8 @@ def wandb_init(run_config: Dict, project: Optional[str] = None):
         wandb.sdk.wandb_run.Run: Wandb run
     """
     # Config to log
-    jaix_version = version("tai_jaix")
+    # jaix_version = version("tai_jaix")
+    jaix_version = "0.1.0"  # TODO: Fix this
     config_override = {"repo": "jaix", "version": jaix_version}
 
     run_config.update(config_override)
