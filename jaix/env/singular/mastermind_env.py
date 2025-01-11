@@ -14,7 +14,6 @@ class MastermindEnvironmentConfig(Config):
         self,
         num_slots_range: Tuple[int, int] = (10, 20),
         num_colours_range: Tuple[int, int] = (3, 5),
-        sequential: bool = False,
         max_guesses: int = np.iinfo(np.int32).max,
     ):
         self.num_slots_range = num_slots_range
@@ -23,16 +22,23 @@ class MastermindEnvironmentConfig(Config):
         for rng in [num_colours_range, num_colours_range]:
             assert len(rng) == 2
             assert rng[0] <= rng[1]
-        self.sequential = sequential
         self.max_guesses = max_guesses
 
 
 class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
     config_class = MastermindEnvironmentConfig
 
-    def __init__(self, config: MastermindEnvironmentConfig, inst: int):
+    @staticmethod
+    def info(*args, **kwargs):
+        return {
+            "funcs": [0, 1],
+            "insts": list(range(15)),
+        }
+
+    def __init__(self, config: MastermindEnvironmentConfig, func: int, inst: int):
         ConfigurableObject.__init__(self, config)
-        SingularEnvironment.__init__(self, inst)
+        SingularEnvironment.__init__(self, func, inst)
+        self.sequential = bool(func)
         self._setup(config, inst)
         self.num_guesses = 0
         self.num_resets = 0
@@ -55,6 +61,7 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
     def _get_info(self):
         return {
             "stop": self.stop(),
+            "sequential": self.sequential,
         }
 
     def stop(self):

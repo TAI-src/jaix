@@ -32,7 +32,8 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
 
     def __init__(self, config: ECEnvironmentConfig, func: StaticProblem):
         ConfigurableObject.__init__(self, config)
-        SingularEnvironment.__init__(self, 0)
+        # TODO: get proper fun and inst id
+        SingularEnvironment.__init__(self, 0, 0)
         self.func = func
         # An action is a point in search space (x)
         self.action_space = spaces.Box(
