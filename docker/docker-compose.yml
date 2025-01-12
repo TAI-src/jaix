@@ -25,6 +25,7 @@ services:
     volumes:
       - ../jaix:/jaix
       - ../tests:/tests
+      - ../experiments:/experiments
     shm_size: '8gb'
     
   wandb_launcher:
