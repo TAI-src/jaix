@@ -116,9 +116,6 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         """
         logger.debug(self._get_info())
 
-    def __str__(self):
-        return f"EC Environment {str(self.func)}"
-
     def close(self):
         """
         Closes the environment, important when external software is used,

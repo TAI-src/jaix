@@ -9,5 +9,8 @@ class SingularEnvironment(gym.Env):
 
     def __init__(self, func: int, inst: int):
         self.id = uuid.uuid4()
-        self.funct = func
+        self.func = func
         self.inst = inst
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}{self.func}/{self.inst}/{self.id}"

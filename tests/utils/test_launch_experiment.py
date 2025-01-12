@@ -117,9 +117,9 @@ def get_config(suite="COCO", comp=False):
     xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
         "env_wrappers"
     ] = [("jaix.env.wrapper.AnyFitWrapper", {})]
-    xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-        "seed"
-    ] = None
+    xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"]["seed"] = (
+        None
+    )
     xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
         "comp_config"
     ] = None
@@ -144,9 +144,9 @@ def get_config(suite="COCO", comp=False):
                 },
             }
         }
-        xconfig["jaix.ExperimentConfig"][
-            "opt_class"
-        ] = "jaix.runner.ask_tell.ATOptimiser"
+        xconfig["jaix.ExperimentConfig"]["opt_class"] = (
+            "jaix.runner.ask_tell.ATOptimiser"
+        )
         xconfig["jaix.ExperimentConfig"]["opt_config"] = {
             "jaix.runner.ask_tell.ATOptimiserConfig": {
                 "strategy_class": "jaix.runner.ask_tell.strategy.ATBandit",
@@ -244,9 +244,9 @@ def get_config(suite="COCO", comp=False):
             ]
 
     else:
-        xconfig["jaix.ExperimentConfig"][
-            "opt_class"
-        ] = "jaix.runner.ask_tell.ATOptimiser"
+        xconfig["jaix.ExperimentConfig"]["opt_class"] = (
+            "jaix.runner.ask_tell.ATOptimiser"
+        )
         if suite == "COCO" or suite == "RBF":
             # Continuous optimisation, use CMA-ES
             xconfig["jaix.ExperimentConfig"]["opt_config"] = {

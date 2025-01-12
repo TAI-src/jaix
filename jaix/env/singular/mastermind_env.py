@@ -114,8 +114,5 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
     def render(self):
         logger.debug(self._get_info())
 
-    def __str__(self):
-        return f"MastermindEnvironment with {self.num_slots} slot, {self.num_colours} colours, solution {self._solution}"
-
     def close(self):
         pass
