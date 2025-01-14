@@ -333,8 +333,8 @@ def test_launch_jaix_experiment(suite, comp):
     assert exit_code == 0
 
 
-def test_launch_final():
-    config_file = "/experiments/rbf/single_default.json"
+@pytest.mark.parametrize("config_file", ["/experiments/rbf/single_default.json"])
+def test_launch_final(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
     # modify the config for test (shorter, logging)
@@ -344,8 +344,6 @@ def test_launch_final():
     config["jaix.ExperimentConfig"]["logging_config"]["jaix.LoggingConfig"][
         "log_level"
     ] = 10
-
-    print(config)
 
     data_dir, exit_code = launch_jaix_experiment(run_config=config, wandb=False)
     assert data_dir is None

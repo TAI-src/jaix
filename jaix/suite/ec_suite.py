@@ -36,5 +36,5 @@ class ECSuite(Suite):
     config_class = ECSuiteConfig  # type: ignore[assignment]
 
     def _get_env(self, func, inst):
-        func = COF.create(self.func_classes[func], self.func_configs[func], inst)
-        return COF.create(ECEnvironment, self.env_config, func)
+        func_obj = COF.create(self.func_classes[func], self.func_configs[func], inst)
+        return COF.create(ECEnvironment, self.env_config, func_obj, func, inst)

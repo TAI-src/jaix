@@ -3,6 +3,7 @@ from gymnasium import spaces
 from typing import Optional
 from gymnasium.utils.env_checker import check_env
 from ttex.config import ConfigurableObject, Config
+from jaix.env.singular import SingularEnvironment
 
 
 class DummyEnvConfig(Config):
@@ -21,7 +22,7 @@ class DummyEnvConfig(Config):
         self.reward_space = reward_space
 
 
-class DummyConfEnv(gym.Env, ConfigurableObject):
+class DummyConfEnv(ConfigurableObject, SingularEnvironment):
     config_class = DummyEnvConfig
 
     @staticmethod
@@ -33,6 +34,7 @@ class DummyConfEnv(gym.Env, ConfigurableObject):
 
     def __init__(self, config: DummyEnvConfig, func: int = 0, inst: int = 1):
         ConfigurableObject.__init__(self, config)
+        SingularEnvironment.__init__(self, func, inst)
         if self.action_space is None:
             self.action_space = spaces.Box(low=-5, high=5, shape=(self.dimension,))
         if self.observation_space is None:
@@ -73,9 +75,6 @@ class DummyConfEnv(gym.Env, ConfigurableObject):
 
     def stop(self):
         return self._stop
-
-    def __str__(self):
-        return "DummyEnv"
 
 
 class DummyEnv(DummyConfEnv):

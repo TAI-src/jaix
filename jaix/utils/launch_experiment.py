@@ -11,6 +11,8 @@ from jaix.env.wrapper import LoggingWrapper, LoggingWrapperConfig
 from ttex.log import get_logging_config
 import sys
 import logging
+import argparse
+import json
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -39,7 +41,7 @@ def wandb_logger(
         )
     logging_config["loggers"][wandb_logger_name] = {
         "level": "INFO",
-        "handlers": ["console", "wandb_handler"],
+        "handlers": ["wandb_handler"],
     }
     logging_config["handlers"]["wandb_handler"] = {
         "()": WandbHandler,
@@ -130,14 +132,39 @@ def launch_jaix_experiment(
     return data_dir, exit_code
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Launch a jaix experiment")
+    parser.add_argument(
+        "--project",
+        type=str,
+        default=None,
+        help="Wandb project to log to. If not provided, will not log to wandb",
+    )
+    parser.add_argument(
+        "--config_file", type=str, help="Path to the configuration file"
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
     """
     This script is used to launch a jaix experiment from a wandb configuration
     """
-    # This is to test launch from wandb
-    if not os.environ.get("WANDB_CONFIG", None):
-        # TODO: coudl do parseargs in the future
-        raise RuntimeError("Needs to be launched from wandb")
-    run_config = launch.load_wandb_config().as_dict()
-    _, exit_code = launch_jaix_experiment(run_config, wandb=True)
+    launch_arguments = {}
+    if os.environ.get("WANDB_CONFIG", None):
+        run_config = launch.load_wandb_config().as_dict()
+        launch_arguments["run_config"] = run_config
+        launch_arguments["wandb"] = True
+    else:
+        args = parse_args()
+        # run_config = CF.from_file(args.config_file).as_dict()
+        with open(args.config_file, "r") as f:
+            run_config = json.load(f)
+        launch_arguments["run_config"] = run_config
+        if args.project:
+            launch_arguments["project"] = args.project
+            launch_arguments["wandb"] = True
+        else:
+            launch_arguments["wandb"] = False
+    _, exit_code = launch_jaix_experiment(**launch_arguments)
     sys.exit(exit_code)

@@ -44,8 +44,8 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         # Log per reset
         self.logger.info(
             {
-                f"env/r/{self.env}": r.item(),
-                f"env/resets/{self.env}": self.log_resets,
+                f"env/r/{str(self.env.unwrapped)}": r.item(),
+                f"env/resets/{self.env.unwrapped}": self.log_resets,
                 # f"restarts/r/{self.dim}/{self.env}/{self.log_resets}": r.item(),
                 "env/step": self.log_env_steps,
                 # "restarts/step": self.log_renv_steps,

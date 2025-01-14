@@ -30,10 +30,16 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
     metadata = {"render_modes": ["ansi"], "render_fps": 4}
     config_class = ECEnvironmentConfig
 
-    def __init__(self, config: ECEnvironmentConfig, func: StaticProblem):
+    def __init__(
+        self,
+        config: ECEnvironmentConfig,
+        func: StaticProblem,
+        func_id: int = 0,  # This is just for string representation in SingularEnvironment
+        inst: int = 0,  # This is just for string representation in SingularEnvironment
+    ):
         ConfigurableObject.__init__(self, config)
         # TODO: get proper fun and inst id
-        SingularEnvironment.__init__(self, 0, 0)
+        SingularEnvironment.__init__(self, func_id, inst)
         self.func = func
         # An action is a point in search space (x)
         self.action_space = spaces.Box(
@@ -122,3 +128,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         i.e. pygame for rendering, databases
         """
         return self.func.close()
+
+    @property
+    def name(self):
+        return f"ECEnvironment/{self.func.__class__.__name__}"
