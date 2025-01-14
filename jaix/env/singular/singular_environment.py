@@ -14,4 +14,4 @@ class SingularEnvironment(gym.Env):
 
     def __str__(self):
         env_name = self.name if hasattr(self, "name") else self.__class__.__name__
-        return f"{env_name}/{self.func_id}/{self.inst}/{self.id}"
+        return f"{env_name}/{self.func_id}/{self.inst}"
