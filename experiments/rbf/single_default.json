@@ -42,7 +42,7 @@
                         1,
                         4
                       ],
-                      "noisy": true
+                      "noisy": false
                     }
                   },
                   "precision": 1e-8

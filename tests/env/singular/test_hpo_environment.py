@@ -48,3 +48,23 @@ def test_stop(env):
         _, r, _, _, _ = env.step(env.action_space.sample())
     assert env.training_budget <= env.training_time
     assert r == env.tabrepo_adapter.max_rank
+
+
+def test_instance_seeding():
+    config = HPOEnvironmentConfig(
+        training_budget=500,
+        task_type=TaskType.C1,
+        repo_name="D244_F3_C1530_30",
+        cache=True,
+    )
+    env1 = COF.create(HPOEnvironment, config, func=0, inst=0)
+    env2 = COF.create(HPOEnvironment, config, func=0, inst=0)
+    env3 = COF.create(HPOEnvironment, config, func=0, inst=1)
+
+    act = env1.action_space.sample()
+    obs1, _, _, _, _ = env1.step(act)
+    obs2, _, _, _, _ = env2.step(act)
+    obs3, _, _, _, _ = env3.step(act)
+
+    assert obs1 == obs2
+    assert obs1 != obs3

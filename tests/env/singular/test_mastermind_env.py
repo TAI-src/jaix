@@ -50,3 +50,22 @@ def test_step_non_sequential(seq):
             assert r == 1
         assert not term
         assert trunc
+
+
+def test_inst_seeding():
+    config = MastermindEnvironmentConfig()
+    env1 = MastermindEnvironment(config, func=0, inst=1)
+    env2 = MastermindEnvironment(config, func=0, inst=1)
+    env3 = MastermindEnvironment(config, func=0, inst=2)
+
+    assert env1.num_slots == env2.num_slots
+    assert all(env2.num_colours == env2.num_colours)
+    assert all(env1._solution == env2._solution)
+
+    act = env1.action_space.sample()
+    obs1, _, _, _, _ = env1.step(act)
+    obs2, _, _, _, _ = env2.step(act)
+    assert obs1 == obs2
+    if env3.action_space.contains(act):
+        obs3, _, _, _, _ = env3.step(act)
+        assert obs1 != obs3

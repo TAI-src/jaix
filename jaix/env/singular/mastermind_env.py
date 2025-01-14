@@ -53,10 +53,12 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
             high=config.num_colours_range[1] + 1,
             size=self.num_slots,
         )
-        self.action_space = gym.spaces.MultiDiscrete(self.num_colours)
-        self.observation_space = gym.spaces.MultiDiscrete([self.num_slots + 1])
+        # Solution is a random sample from seeded action space
+        solution_space = gym.spaces.MultiDiscrete(self.num_colours, seed=inst)
+        self._solution = solution_space.sample()
 
-        self._solution = self.action_space.sample()
+        self.observation_space = gym.spaces.MultiDiscrete([self.num_slots + 1])
+        self.action_space = gym.spaces.MultiDiscrete(self.num_colours)
 
     def _get_info(self):
         return {
