@@ -9,7 +9,7 @@
     },
     "logging_config": {
       "jaix.LoggingConfig": {
-        "log_level": 30
+        "log_level": 40
       }
     },
     "env_config": {

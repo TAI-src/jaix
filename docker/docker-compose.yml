@@ -46,7 +46,7 @@ services:
         context: ..
         dockerfile: docker/Dockerfile_job
     volumes:
-      #- ../jaix:/jaix/jaix
+      - ../jaix:/jaix/jaix
       - ../tests:/jaix/tests
       - ../experiments:/experiments
     entrypoint: bash
