@@ -5,6 +5,7 @@ from ttex.config import ConfigFactory as CF
 from copy import deepcopy
 import pytest
 import itertools
+import json
 
 
 def get_config(suite="COCO", comp=False):
@@ -324,8 +325,26 @@ def test_launch_jaix_experiment_wandb():
     "suite, comp", itertools.product(["COCO", "RBF", "HPO", "MMind"], [False, True])
 )
 def test_launch_jaix_experiment(suite, comp):
+    config = get_config(suite, comp)
     data_dir, exit_code = launch_jaix_experiment(
-        run_config=deepcopy(get_config(suite, comp)), wandb=False
+        run_config=deepcopy(config), wandb=False
     )
+    assert data_dir is None
+    assert exit_code == 0
+
+
+@pytest.mark.parametrize("config_file", ["/experiments/rbf/single_default.json"])
+def test_launch_final(config_file):
+    with open(config_file, "r") as f:
+        config = json.load(f)
+    # modify the config for test (shorter, logging)
+    config["jaix.ExperimentConfig"]["runner_config"][
+        "jaix.runner.ask_tell.ATRunnerConfig"
+    ]["max_evals"] = 10
+    config["jaix.ExperimentConfig"]["logging_config"]["jaix.LoggingConfig"][
+        "log_level"
+    ] = 10
+
+    data_dir, exit_code = launch_jaix_experiment(run_config=config, wandb=False)
     assert data_dir is None
     assert exit_code == 0

@@ -52,6 +52,9 @@ class Suite(ConfigurableObject):
     def get_envs(self):
         for func in self.functions:
             for inst in self.instances:
+                logger.warning(
+                    f"Getting environment for function {func} and instance {inst}"
+                )
                 env = self._get_env(func, inst)
                 yield env
 

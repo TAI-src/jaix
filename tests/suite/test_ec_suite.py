@@ -30,7 +30,7 @@ def test_init(func_config, env_config):
         [Sphere],
         [func_config],
         env_config,
-        instances=list(range(1)),
+        instances=list(range(2)),
         num_agg_instances=1,
     )
     suite = COF.create(ECSuite, config)
@@ -49,12 +49,15 @@ def test_get_envs(func_config, env_config):
     )
     suite = COF.create(ECSuite, config)
 
+    inst = 0
     for env in suite.get_envs():
         assert isinstance(env.unwrapped.func, Sphere)
         assert not env.stop()
         rec_file = env.close()
+        assert f"ECEnvironment/Sphere/0/{inst}" in str(env)
         if rec_file is not None:
             os.remove(rec_file)
+        inst += 1
 
 
 def test_get_envs_agg(func_config, env_config):

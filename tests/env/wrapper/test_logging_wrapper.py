@@ -24,9 +24,9 @@ def test_basic(wef):
     check_env(wrapped_env, skip_render_check=True)
 
     msg = ast.literal_eval(test_handler.last_record.getMessage())
-    assert "env/r/DummyEnv" in msg
+    assert "env/r/DummyEnv/0/1/42" in msg
     steps = msg["env/step"]
-    resets = msg["env/resets/DummyEnv"]
+    resets = msg["env/resets/DummyEnv/0/1/42"]
 
     wrapped_env.step(wrapped_env.action_space.sample())
     msg = ast.literal_eval(test_handler.last_record.getMessage())
@@ -35,4 +35,4 @@ def test_basic(wef):
     wrapped_env.reset()
     wrapped_env.step(wrapped_env.action_space.sample())
     msg = ast.literal_eval(test_handler.last_record.getMessage())
-    assert msg["env/resets/DummyEnv"] == resets + 1
+    assert msg["env/resets/DummyEnv/0/1/42"] == resets + 1

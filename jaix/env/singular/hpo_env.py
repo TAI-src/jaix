@@ -123,6 +123,3 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         examples modes are “human”, “rgb_array”, “ansi” for text.
         """
         logger.debug(self._get_info())
-
-    def __str__(self):
-        return f"HPO Environment {str(self.tabrepo_adapter)}"

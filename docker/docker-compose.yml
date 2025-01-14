@@ -6,7 +6,6 @@ services:
     container_name: tabrepo
     env_file: .env
     image: taisrc/jaix:tabrepo
-    pull_policy: always
     build:
         context: ../deps/tabrepo
         dockerfile: ../../docker/Dockerfile_tabrepo
@@ -25,6 +24,7 @@ services:
     volumes:
       - ../jaix:/jaix
       - ../tests:/tests
+      - ../experiments:/experiments
     shm_size: '8gb'
     
   wandb_launcher:
@@ -38,6 +38,9 @@ services:
   wandb_job:
     container_name: jaix_wandb_job
     env_file: .env
+    depends_on:
+        tabrepo:
+            condition: service_completed_successfully
     image: taisrc/jaix:job
     build:
         context: ..
@@ -45,4 +48,5 @@ services:
     volumes:
       - ../jaix:/jaix/jaix
       - ../tests:/jaix/tests
+      - ../experiments:/experiments
     entrypoint: bash

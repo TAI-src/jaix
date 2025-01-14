@@ -1,0 +1,85 @@
+{
+  "jaix.ExperimentConfig": {
+    "runner_class": "jaix.runner.ask_tell.ATRunner",
+    "runner_config": {
+      "jaix.runner.ask_tell.ATRunnerConfig": {
+        "max_evals": 30000,
+        "disp_interval": 5000
+      }
+    },
+    "logging_config": {
+      "jaix.LoggingConfig": {
+        "log_level": 40
+      }
+    },
+    "env_config": {
+      "jaix.EnvironmentConfig": {
+        "suite_class": "jaix.suite.ECSuite",
+        "suite_config": {
+          "jaix.suite.ECSuiteConfig": {
+            "func_classes": [
+              "jaix.env.utils.problem.RBFFit"
+            ],
+            "func_configs": [
+              {
+                "jaix.env.utils.problem.RBFFitConfig": {
+                  "rbf_config": {
+                    "jaix.env.utils.problem.rbf.RBFAdapterConfig": {
+                      "num_rad_range": [
+                        15,
+                        25
+                      ],
+                      "ratio_x_range": [
+                        0.25,
+                        0.5
+                      ],
+                      "num_measure_points": 2000,
+                      "x_val_range": [
+                        -10,
+                        10
+                      ],
+                      "y_val_range": [
+                        1,
+                        4
+                      ],
+                      "noisy": true
+                    }
+                  },
+                  "precision": 1e-8
+                }
+              }
+            ],
+            "env_config": {
+              "jaix.env.singular.ECEnvironmentConfig": {
+                "budget_multiplier": 1000
+              }
+            },
+            "num_agg_instances": 1
+          }
+        },
+        "env_wrappers": [
+          [
+            "jaix.env.wrapper.AnyFitWrapper",
+            {}
+          ]
+        ]
+      }
+    },
+    "opt_class": "jaix.runner.ask_tell.ATOptimiser",
+    "opt_config": {
+      "jaix.runner.ask_tell.ATOptimiserConfig": {
+        "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+        "strategy_config": {
+          "jaix.runner.ask_tell.strategy.CMAConfig": {
+            "sigma0": 2,
+            "opts": {
+              "popsize_factor": 1
+            },
+            "warm_start_best": true
+          }
+        },
+        "init_pop_size": 1
+      }
+    }
+  }
+}

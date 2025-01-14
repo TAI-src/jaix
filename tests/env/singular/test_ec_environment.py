@@ -22,7 +22,7 @@ def env():
     func = COF.create(Sphere, func_config, 1)
 
     config = ECEnvironmentConfig(budget_multiplier=1)
-    env = COF.create(ECEnvironment, config, func)
+    env = COF.create(ECEnvironment, config, func, 0, 1)
     return env
 
 
@@ -33,6 +33,7 @@ def test_init(env):
     info = env._get_info()
     assert info["num_resets"] == 0
     assert info["evals_left"] == 3
+    assert "ECEnvironment/Sphere/0/1" in str(env)
 
 
 def test_reset(env):
