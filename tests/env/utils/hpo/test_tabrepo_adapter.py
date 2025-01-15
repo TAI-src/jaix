@@ -27,6 +27,24 @@ def test_tabrepo_calls(repo):
     )
 
 
+def get_stats(repo):
+    # Convenience function to get stats for setting config
+    configs, datasets = TabrepoAdapter.get_config_names(repo, task_type=TaskType.C1)
+    print("num configs", len(configs), "num functions", len(datasets))
+    times = []
+    for ds in datasets:
+        _, metrics = TabrepoAdapter.get_metadata(repo, ds, configs)
+        times.extend(metrics["time_train_s"])
+        print(ds, "min time", min(metrics["time_train_s"]))
+        print(ds, "max time", max(metrics["time_train_s"]))
+        print(
+            ds, "mean time", sum(metrics["time_train_s"]) / len(metrics["time_train_s"])
+        )
+    print("min time", min(times))
+    print("max time", max(times))
+    print("mean time", sum(times) / len(times))
+
+
 def test_get_dataset_names(repo):
     datasets = TabrepoAdapter.get_dataset_names(repo, task_type=TaskType.C1)
     assert len(datasets) > 0

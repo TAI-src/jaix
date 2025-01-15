@@ -7,7 +7,7 @@ import pytest
 @pytest.fixture
 def env():
     config = HPOEnvironmentConfig(
-        training_budget=500,
+        training_budget_factor=50,
         task_type=TaskType.C1,
         repo_name="D244_F3_C1530_30",
         cache=True,
@@ -18,8 +18,9 @@ def env():
 
 def test_init(env):
     assert env.training_time == 0
-    assert env.training_budget == 500
+    assert env.training_budget_factor == 50
     assert env.action_space.n == len(env.tabrepo_adapter.configs)
+    assert env.training_budget >= 0
 
 
 def test_step(env):
@@ -52,7 +53,7 @@ def test_stop(env):
 
 def test_instance_seeding():
     config = HPOEnvironmentConfig(
-        training_budget=500,
+        training_budget_factor=500,
         task_type=TaskType.C1,
         repo_name="D244_F3_C1530_30",
         cache=True,

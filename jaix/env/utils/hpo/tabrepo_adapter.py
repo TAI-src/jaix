@@ -63,6 +63,9 @@ class TabrepoAdapter:
         ]
         metadata["max_error_val"] = max(metrics["metric_error_val"])
         metadata["min_error_val"] = min(metrics["metric_error_val"])
+        metadata["mean_training_time"] = sum(results["time_train_s"]) / len(
+            results["time_train_s"]
+        )
 
         num_folds = len(results.index)
         metadata["num_folds"] = num_folds

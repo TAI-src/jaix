@@ -18,12 +18,12 @@ logger = logging.getLogger(LOGGER_NAME)
 class HPOEnvironmentConfig(Config):
     def __init__(
         self,
-        training_budget: int,
+        training_budget_factor: float,
         task_type: TaskType,
         repo_name: str = "D244_F3_C1530_30",
         cache: bool = True,
     ):
-        self.training_budget = training_budget
+        self.training_budget_factor = training_budget_factor
         self.repo = load_repository(repo_name, load_predictions=True, cache=cache)
         self.task_type = task_type
 
@@ -61,6 +61,10 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
             high=self.tabrepo_adapter.max_rank,
             shape=(1,),
             dtype=np.float64,
+        )
+        self.training_budget = (
+            self.tabrepo_adapter.metadata["mean_training_time"]
+            * self.training_budget_factor
         )
         self.training_time = 0
         self.num_resets = 0
