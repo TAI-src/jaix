@@ -8,6 +8,7 @@ from jaix.runner.ask_tell.strategy.utils.ea_utils import (
     uniform_crossover,
     Individual,
     select,
+    ddl_update,
 )
 from jaix.env.composite import CompositeEnvironment
 from typing import Optional
@@ -35,6 +36,14 @@ class CrossoverOp(Enum):
     UNIFORM = "uniform_crossover"
 
 
+class UpdateStrategy(Enum):
+    """
+    Enum for update strategies
+    """
+
+    DDL = "ddl_update"
+
+
 class BasicEAConfig(Config):
     """
     Configuration class for BasicEA
@@ -50,6 +59,8 @@ class BasicEAConfig(Config):
         mutation_opts={},  # mutation operator options
         crossover_opts={},  # crossover operator options
         warm_start_best: bool = True,  # warm start with best individual, otherwise last
+        update_strategy: Optional[UpdateStrategy] = None,  # update strategy
+        update_opts={},  # update strategy options
     ):
         self.strategy = strategy
         self.mu = mu
@@ -66,6 +77,8 @@ class BasicEAConfig(Config):
         else:
             assert self.mu >= 2
         assert self.mutation_op is not None or self.crossover_op is not None
+        self.update_strategy = update_strategy
+        self.update_opts = update_opts
 
 
 class BasicEA(ConfigurableObject, ATStrategy):
@@ -97,6 +110,11 @@ class BasicEA(ConfigurableObject, ATStrategy):
         self.crossover = (
             globals().get(self.crossover_op.value)
             if self.crossover_op is not None
+            else None
+        )
+        self.update = (
+            globals().get(self.update_strategy.value)
+            if self.update_strategy is not None
             else None
         )
 
@@ -157,6 +175,17 @@ class BasicEA(ConfigurableObject, ATStrategy):
         new_pop = [
             Individual(x, f[0], self.gen) for x, f in zip(solutions, function_values)
         ]
+
+        # Update parameters
+        if self.update is not None:
+            self.mutation_opts, self.crossover_opts = self.update(
+                self.pop,
+                new_pop,
+                self.mutation_opts,
+                self.crossover_opts,
+                self.update_opts,
+            )
+
         # Survival selection
         if self.strategy == EAStrategy.Comma:
             self.pop = select(new_pop, self.mu)
