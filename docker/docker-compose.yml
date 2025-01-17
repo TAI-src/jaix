@@ -25,7 +25,7 @@ services:
       - ../jaix:/jaix
       - ../tests:/tests
       - ../experiments:/experiments
-    shm_size: '8gb'
+    shm_size: '16gb'
     
   wandb_launcher:
     container_name: wandb_launcher

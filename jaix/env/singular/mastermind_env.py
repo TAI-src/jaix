@@ -32,7 +32,7 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
     def info(config: MastermindEnvironmentConfig):
         return {
             "funcs": [0, 1],
-            "insts": list(range(15)),
+            "insts": list(range(5)),
         }
 
     def __init__(self, config: MastermindEnvironmentConfig, func: int, inst: int):

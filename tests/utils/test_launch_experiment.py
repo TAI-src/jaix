@@ -335,7 +335,12 @@ def test_launch_jaix_experiment(suite, comp):
 
 @pytest.mark.parametrize(
     "config_file",
-    ["/experiments/rbf/single_default.json", "/experiments/coco/single_default.json"],
+    [
+        "/experiments/rbf/brachy.json",
+        "/experiments/coco/single_default.json",
+        "/experiments/mmind/mmind.json",
+        "/experiments/mmind/telltale.json",
+    ],
 )
 def test_launch_final(config_file):
     with open(config_file, "r") as f:

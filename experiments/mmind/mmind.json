@@ -31,6 +31,9 @@
                 "max_guesses": 1296
               }
             },
+            "functions": [
+              0
+            ],
             "num_agg_instances": 1
           }
         },
@@ -58,7 +61,8 @@
             "warm_start_best": true,
             "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
             "update_opts": {
-              "s": 4
+              "s": 4,
+              "F": 1.2
             }
           }
         },

@@ -7,6 +7,7 @@ import logging
 from jaix import LOGGER_NAME
 import itertools
 
+
 logger = logging.getLogger(LOGGER_NAME)
 
 
