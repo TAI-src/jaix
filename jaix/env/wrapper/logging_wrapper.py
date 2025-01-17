@@ -41,15 +41,19 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         ) = self.env.step(action)
         self.log_env_steps += 1
         self.log_renv_steps += 1
+        env_step = info["env_step"] if "env_step" in info else self.log_env_steps
         # Log per reset
-        self.logger.info(
-            {
-                f"env/r/{str(self.env.unwrapped)}": r.item(),
-                f"env/resets/{self.env.unwrapped}": self.log_resets,
-                # f"restarts/r/{self.dim}/{self.env}/{self.log_resets}": r.item(),
-                "env/step": self.log_env_steps,
-                # "restarts/step": self.log_renv_steps,
-            }
-        )
+        info_dict = {
+            f"env/r/{str(self.env.unwrapped)}": r.item(),
+            f"env/resets/{self.env.unwrapped}": self.log_resets,
+            # f"restarts/r/{self.dim}/{self.env}/{self.log_resets}": r.item(),
+            "env/step": env_step,
+            "env/log_step": self.log_env_steps,
+            # "restarts/step": self.log_renv_steps,
+        }
+        if "raw_r" in info:
+            info_dict["env/raw_r"] = info["raw_r"]
+
+        self.logger.info(info_dict)
         # TODO: Figure out what info would be helpful from all the sub-wrappers etc
         return obs, r, term, trunc, info
