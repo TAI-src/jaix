@@ -1,5 +1,10 @@
 from jaix.runner.ask_tell.strategy import BasicEA, BasicEAConfig
-from jaix.runner.ask_tell.strategy.basic_ea import EAStrategy, MutationOp, CrossoverOp
+from jaix.runner.ask_tell.strategy.basic_ea import (
+    EAStrategy,
+    MutationOp,
+    CrossoverOp,
+    UpdateStrategy,
+)
 import pytest
 from .. import DummyEnv, loop
 import numpy as np
@@ -187,3 +192,27 @@ def test_warm_start(warm_start_best):
     r2 = min(ind.fitness for ind in ea.pop)
     if warm_start_best:
         assert r2 <= r1
+
+
+def test_update():
+    config = BasicEAConfig(
+        strategy=EAStrategy.Plus,
+        mu=1,
+        lam=1,
+        mutation_op=MutationOp.FLIP,
+        crossover_op=None,
+        mutation_opts={},
+        crossover_opts={},
+        warm_start_best=True,
+        update_strategy=UpdateStrategy.DDL,
+        update_opts={"F": 1, "s": 1},
+    )
+    dimension = 5
+    action_space = spaces.MultiBinary(dimension)
+    env = DummyEnv(dimension=dimension, action_space=action_space, num_objectives=1)
+    ea = BasicEA(config, env)
+    assert "p" not in ea.mutation_opts
+    for _ in range(10):
+        loop(3, 1, ea, env)
+    assert "p" in ea.mutation_opts
+    assert ea.mutation_opts["p"] == 1 / dimension

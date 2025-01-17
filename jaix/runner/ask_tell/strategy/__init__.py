@@ -7,4 +7,5 @@ from jaix.runner.ask_tell.strategy.basic_ea import (
     MutationOp,
     EAStrategy,
     CrossoverOp,
+    UpdateStrategy,
 )

@@ -1,5 +1,6 @@
 import numpy as np
 from typing import List
+from uuid import uuid4
 
 
 def global_flip(parent, p=None, low=0, high=1):
@@ -45,10 +46,39 @@ class Individual:
         self.x = x
         self.fitness = fitness
         self.generation = generation
+        self.id = uuid4()
 
     def __repr__(self):
         return f"Individual(x={self.x}, fitness={self.fitness}, generation={self.generation})"
 
 
 def select(population: List[Individual], mu: int, reverse=False):
-    return sorted(population, key=lambda x: x.fitness)[:mu]
+    # TODO: test new sorting
+    return sorted(
+        population, key=lambda x: (x.fitness, -x.generation), reverse=reverse
+    )[:mu]
+
+
+def ddl_update(old_pop, new_pop, mutation_opts, crossover_opts, update_opts):
+    # expecting pmin, pmax, F and s
+    pmin = (
+        1 / pow(len(new_pop[0].x), 2)
+        if "pmin" not in update_opts
+        else update_opts["pmin"]
+    )  # 1/n^2
+    pmax = 1 / 2 if "pmax" not in update_opts else update_opts["pmax"]
+    F = 1 + 0.2 if "F" not in update_opts else update_opts["F"]  # or 1 + 0.1
+    s = np.exp(-1) if "s" not in update_opts else update_opts["s"]  # 1/e
+    mutation_opts["p"] = (
+        1 / len(new_pop[0].x) if "p" not in mutation_opts else mutation_opts["p"]
+    )  # 1/n is default p0
+    # https://arxiv.org/pdf/1902.02588
+    # Only for 1+1 EA
+    assert len(old_pop) == len(new_pop)
+    assert len(old_pop) == 1
+    if new_pop[0].fitness <= old_pop[0].fitness:
+        mutation_opts["p"] = min(pow(F, s) * mutation_opts["p"], pmax)
+    else:
+        mutation_opts["p"] = max(mutation_opts["p"] / F, pmin)
+
+    return mutation_opts, crossover_opts

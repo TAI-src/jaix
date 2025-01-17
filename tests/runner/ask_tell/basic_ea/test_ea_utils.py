@@ -4,6 +4,7 @@ from jaix.runner.ask_tell.strategy.utils.ea_utils import (
     uniform_crossover,
     Individual,
     select,
+    ddl_update,
 )
 import pytest
 import numpy as np
@@ -122,3 +123,38 @@ def test_select():
     assert selected[1].fitness == 2
     assert selected[0].x == [1, 2, 3]
     assert selected[1].x == [4, 5, 6]
+
+
+def test_select_gen():
+    # test deterministic
+    pop = [
+        Individual([1, 2, 3], 1, 0),
+        Individual([4, 5, 6], 2, 0),
+        Individual([7, 8, 9], 2, 1),
+    ]
+    mu = 2
+    selected = select(pop, mu)
+    assert len(selected) == mu
+    # If same fitness, take newer Individual
+    assert selected[0].id == pop[0].id
+    assert selected[1].id == pop[2].id
+
+
+def test_ddl_update():
+    old_pop = [Individual([1, 2, 3], 1, 0)]
+    new_pop = [Individual([4, 5, 6], 2, 0)]
+    mutation_opts, _ = ddl_update(old_pop, new_pop, {}, {}, {})
+
+    assert mutation_opts["p"] == 1 / (3 * 1.2)  # 1/n / F
+
+    # Try update given p. No update if F is 1
+    mutation_opts, _ = ddl_update(old_pop, new_pop, {}, {}, {"F": 1})
+    assert mutation_opts["p"] == 1 / 3  # 1/n / F
+
+    mutation_opts, _ = ddl_update(new_pop, old_pop, {}, {}, {"F": 2, "s": 2})
+    assert mutation_opts["p"] == 1 / 2  # pmax
+    mutation_opts, _ = ddl_update(new_pop, old_pop, {}, {}, {"F": 2, "s": 2, "pmax": 5})
+    assert mutation_opts["p"] == 4 / 3  # 1/n * 2^2 = 1/n * F^s
+
+    mutation_opts, _ = ddl_update(old_pop, new_pop, {}, {}, {"F": 10, "s": 2})
+    assert mutation_opts["p"] == 1 / 9  # 1/n^2 = pmin
