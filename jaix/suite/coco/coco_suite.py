@@ -88,7 +88,13 @@ class COCOSuite(Suite):
                 continue
             func = COCOProblem(coco_func)
             func.observe_with(observer)
-            env = COF.create(ECEnvironment, self.env_config, func)
+            env = COF.create(
+                ECEnvironment,
+                self.env_config,
+                func=func,
+                func_id=func.problem.id_function,
+                inst=func.problem.id_instance,
+            )
             yield env
 
     def get_agg_envs(

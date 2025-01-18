@@ -1,0 +1,58 @@
+{
+  "jaix.ExperimentConfig": {
+    "runner_class": "jaix.runner.ask_tell.ATRunner",
+    "runner_config": {
+      "jaix.runner.ask_tell.ATRunnerConfig": {
+        "max_evals": 40000,
+        "disp_interval": 500
+      }
+    },
+    "logging_config": {
+      "jaix.LoggingConfig": {
+        "log_level": 40
+      }
+    },
+    "env_config": {
+      "jaix.EnvironmentConfig": {
+        "suite_class": "jaix.suite.coco.COCOSuite",
+        "suite_config": {
+          "jaix.suite.coco.COCOSuiteConfig": {
+            "env_config": {
+              "jaix.env.singular.ECEnvironmentConfig": {
+                "budget_multiplier": 1000
+              }
+            },
+            "suite_name": "bbob",
+            "suite_instance": "",
+            "suite_options": "dimensions: 5",
+            "num_batches": 1,
+            "current_batch": 0,
+            "output_folder": "test_run"
+          }
+        },
+        "env_wrappers": [
+          [
+            "jaix.env.wrapper.AnyFitWrapper",
+            {}
+          ]
+        ]
+      }
+    },
+    "opt_class": "jaix.runner.ask_tell.ATOptimiser",
+    "opt_config": {
+      "jaix.runner.ask_tell.ATOptimiserConfig": {
+        "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+        "strategy_config": {
+          "jaix.runner.ask_tell.strategy.CMAConfig": {
+            "sigma0": 2,
+            "opts": {
+              "popsize_factor": 1
+            },
+            "warm_start_best": true
+          }
+        },
+        "init_pop_size": 1
+      }
+    }
+  }
+}

@@ -333,7 +333,16 @@ def test_launch_jaix_experiment(suite, comp):
     assert exit_code == 0
 
 
-@pytest.mark.parametrize("config_file", ["/experiments/rbf/single_default.json"])
+@pytest.mark.parametrize(
+    "config_file",
+    [
+        "/experiments/rbf/brachy.json",
+        "/experiments/coco/single_default.json",
+        "/experiments/mmind/mmind.json",
+        "/experiments/mmind/telltale.json",
+        "/experiments/hpo/binary.json",
+    ],
+)
 def test_launch_final(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
@@ -344,6 +353,18 @@ def test_launch_final(config_file):
     config["jaix.ExperimentConfig"]["logging_config"]["jaix.LoggingConfig"][
         "log_level"
     ] = 10
+    if (
+        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
+            "suite_class"
+        ]
+        == "jaix.suite.Suite"
+    ):
+        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
+            "suite_config"
+        ]["jaix.suite.SuiteConfig"]["functions"] = [0]
+        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
+            "suite_config"
+        ]["jaix.suite.SuiteConfig"]["instances"] = [0]
 
     data_dir, exit_code = launch_jaix_experiment(run_config=config, wandb=False)
     assert data_dir is None

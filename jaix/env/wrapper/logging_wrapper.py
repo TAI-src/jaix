@@ -52,7 +52,7 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
             # "restarts/step": self.log_renv_steps,
         }
         if "raw_r" in info:
-            info_dict["env/raw_r"] = info["raw_r"]
+            info_dict[f"env/raw_r/{str(self.env.unwrapped)}"] = info["raw_r"]
 
         self.logger.info(info_dict)
         # TODO: Figure out what info would be helpful from all the sub-wrappers etc

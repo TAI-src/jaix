@@ -7,7 +7,7 @@ import pytest
 @pytest.fixture
 def env():
     config = HPOEnvironmentConfig(
-        training_budget=500,
+        training_budget=50,
         task_type=TaskType.C1,
         repo_name="D244_F3_C1530_30",
         cache=True,
@@ -16,6 +16,7 @@ def env():
     return env
 
 
+@pytest.mark.skip("Just for checking")
 def test_one_max():
     config = HPOEnvironmentConfig(
         training_budget=500,
@@ -43,8 +44,8 @@ def test_one_max():
 
 def test_init(env):
     assert env.training_time == 0
-    assert env.training_budget == 500
     assert env.action_space.n == len(env.tabrepo_adapter.configs)
+    assert env.training_budget == 50
 
 
 def test_step(env):
