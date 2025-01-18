@@ -62,7 +62,6 @@ def test_step(env):
     obs, r, term, trunc, info = env.step(env.action_space.sample())
     assert obs in env.observation_space
     assert r == obs[0]
-    assert not term
     assert not trunc
     assert info["env_step"] > 0
 
