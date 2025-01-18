@@ -83,7 +83,7 @@ def get_config(suite="COCO", comp=False):
                         "env_class": "jaix.env.singular.HPOEnvironment",
                         "env_config": {
                             "jaix.env.singular.HPOEnvironmentConfig": {
-                                "training_budget": 100,
+                                "training_budget": 10,
                                 "task_type": "jaix.env.utils.hpo.TaskType.C1",
                                 "repo_name": "D244_F3_C1530_30",
                                 "cache": True,

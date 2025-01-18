@@ -38,6 +38,8 @@ def test_step_non_sequential(seq):
     assert not term
     assert trunc
 
+    env._order = list(range(env.num_slots))
+
     for i in range(env.num_slots):
         one_wrong = copy.deepcopy(env._solution)
         one_wrong[i] += 3
@@ -50,6 +52,20 @@ def test_step_non_sequential(seq):
             assert r == 1
         assert not term
         assert trunc
+
+
+def test_order():
+    config = MastermindEnvironmentConfig(max_guesses=2)
+    env = MastermindEnvironment(config, func=True, inst=3)
+
+    act = copy.deepcopy(env._solution)
+    act[0] += 1
+
+    env._order = list(range(env.num_slots))
+    env._order.reverse()
+
+    _, r, _, _, _ = env.step(act)
+    assert r == 1  # Because of reverse order
 
 
 def test_inst_seeding():
