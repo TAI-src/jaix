@@ -1,7 +1,7 @@
 from distutils.core import setup
 from setuptools import find_packages
 
-__version__ = "0.0.0.58"
+__version__ = "0.0.0.60"
 
 setup(
     name="tai_jaix",
