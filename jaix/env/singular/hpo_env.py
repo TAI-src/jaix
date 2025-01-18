@@ -18,14 +18,16 @@ logger = logging.getLogger(LOGGER_NAME)
 class HPOEnvironmentConfig(Config):
     def __init__(
         self,
-        training_budget: int,
         task_type: TaskType,
+        training_budget: int = np.iinfo(np.int32).max,
         repo_name: str = "D244_F3_C1530_30",
         cache: bool = True,
+        target_rank: int = 1,
     ):
         self.training_budget = training_budget
         self.repo = load_repository(repo_name, load_predictions=True, cache=cache)
         self.task_type = task_type
+        self.target_rank = target_rank
 
 
 class HPOEnvironment(ConfigurableObject, SingularEnvironment):
@@ -68,8 +70,8 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
     def _get_info(self):
         return {
             "dataset": self.tabrepo_adapter.metadata,
-            "training_time": self.training_time,
             "stop": self.stop(),
+            "env_step": self.training_time,
         }
 
     def stop(self):
@@ -106,10 +108,8 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         logger.debug(
             f"Action {config_ids} resulted in obs {obs} with time {time_train_s}"
         )
-        # TODO: Add non-value for going over training time budget
-        # basically as a constraint
         self.training_time += time_train_s
-        terminated = False
+        terminated = obs < self.target_rank
         truncated = self.stop()
         if truncated:
             r = np.float64(self.tabrepo_adapter.max_rank)
