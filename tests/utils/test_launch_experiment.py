@@ -83,7 +83,7 @@ def get_config(suite="COCO", comp=False):
                         "env_class": "jaix.env.singular.HPOEnvironment",
                         "env_config": {
                             "jaix.env.singular.HPOEnvironmentConfig": {
-                                "training_budget_factor": 10,
+                                "training_budget": 10,
                                 "task_type": "jaix.env.utils.hpo.TaskType.C1",
                                 "repo_name": "D244_F3_C1530_30",
                                 "cache": True,
@@ -340,6 +340,7 @@ def test_launch_jaix_experiment(suite, comp):
         "/experiments/coco/single_default.json",
         "/experiments/mmind/mmind.json",
         "/experiments/mmind/telltale.json",
+        "/experiments/hpo/binary.json",
     ],
 )
 def test_launch_final(config_file):
@@ -352,6 +353,18 @@ def test_launch_final(config_file):
     config["jaix.ExperimentConfig"]["logging_config"]["jaix.LoggingConfig"][
         "log_level"
     ] = 10
+    if (
+        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
+            "suite_class"
+        ]
+        == "jaix.suite.Suite"
+    ):
+        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
+            "suite_config"
+        ]["jaix.suite.SuiteConfig"]["functions"] = [0]
+        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
+            "suite_config"
+        ]["jaix.suite.SuiteConfig"]["instances"] = [0]
 
     data_dir, exit_code = launch_jaix_experiment(run_config=config, wandb=False)
     assert data_dir is None

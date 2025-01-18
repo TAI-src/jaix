@@ -7,7 +7,7 @@ import pytest
 @pytest.fixture
 def env():
     config = HPOEnvironmentConfig(
-        training_budget_factor=50,
+        training_budget=50,
         task_type=TaskType.C1,
         repo_name="D244_F3_C1530_30",
         cache=True,
@@ -16,11 +16,36 @@ def env():
     return env
 
 
+@pytest.mark.skip("Just for checking")
+def test_one_max():
+    config = HPOEnvironmentConfig(
+        training_budget=500,
+        task_type=TaskType.C1,
+        repo_name="D244_F3_C1530_30",
+        cache=True,
+    )
+    worse = 0
+    for f in HPOEnvironment.info(config)["funcs"]:
+        for i in range(3):
+            env = COF.create(HPOEnvironment, config, func=f, inst=i)
+            env.reset(options={"online": True})
+
+            act = env.action_space.sample()
+            one_max = [1] * len(act)
+
+            obs_act, _, _, _, _ = env.step(act)
+            obs_one_max, _, _, _, _ = env.step(one_max)
+
+            if obs_one_max[0] >= obs_act[0]:
+                worse += 1
+                return  # To shorten the test
+    assert worse >= 0
+
+
 def test_init(env):
     assert env.training_time == 0
-    assert env.training_budget_factor == 50
     assert env.action_space.n == len(env.tabrepo_adapter.configs)
-    assert env.training_budget >= 0
+    assert env.training_budget == 50
 
 
 def test_step(env):
@@ -32,14 +57,14 @@ def test_step(env):
     assert r == env.tabrepo_adapter.max_rank
     assert not term
     assert not trunc
-    assert info["training_time"] == 0
+    assert info["env_step"] == 0
 
     obs, r, term, trunc, info = env.step(env.action_space.sample())
     assert obs in env.observation_space
     assert r == obs[0]
     assert not term
     assert not trunc
-    assert info["training_time"] > 0
+    assert info["env_step"] > 0
 
 
 def test_stop(env):
@@ -53,7 +78,7 @@ def test_stop(env):
 
 def test_instance_seeding():
     config = HPOEnvironmentConfig(
-        training_budget_factor=500,
+        training_budget=500,
         task_type=TaskType.C1,
         repo_name="D244_F3_C1530_30",
         cache=True,
