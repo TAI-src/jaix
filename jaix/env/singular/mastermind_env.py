@@ -60,6 +60,9 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
         self.observation_space = gym.spaces.MultiDiscrete([self.num_slots + 1])
         self.action_space = gym.spaces.MultiDiscrete(self.num_colours)
 
+        if self.sequential:
+            self._order = np.random.permutation(self.num_slots)
+
     def _get_info(self):
         return {
             "stop": self.stop(),
@@ -99,6 +102,8 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
         # Obs is based on how many exact matches
         matches = x == self._solution
         if self.sequential:
+            matches_tuple = sorted(zip(self._order, matches), key=lambda x: x[0])
+            matches = np.array([x[1] for x in matches_tuple])
             which_match = np.argwhere(matches == 0)
             if len(which_match) == 0:
                 obs = self.num_slots
