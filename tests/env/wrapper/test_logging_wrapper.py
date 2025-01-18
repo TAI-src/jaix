@@ -50,4 +50,4 @@ def test_additions():
 
     msg = ast.literal_eval(test_handler.last_record.getMessage())
     assert msg["env/step"] == msg["env/log_step"] + 1
-    assert "env/raw_r" in msg
+    assert "env/raw_r/DummyEnv/0/1" in msg
