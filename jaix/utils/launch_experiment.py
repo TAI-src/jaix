@@ -14,6 +14,7 @@ import logging
 import argparse
 import json
 from jaix.utils.dict_tools import nested_set
+from copy import deepcopy
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -64,12 +65,15 @@ def wandb_logger(
     return exp_config
 
 
-def wandb_init(run_config: Dict, project: Optional[str] = None):
+def wandb_init(
+    run_config: Dict, project: Optional[str] = None, group: Optional[str] = None
+):
     """
     Initialize wandb run
     Args:
         run_config (Dict): Run configuration
         project (Optional[str], optional): Wandb project. Defaults to None.
+        group (Optional[str], optional): Wandb group. Defaults to None.
     Returns:
         wandb.sdk.wandb_run.Run: Wandb run
     """
@@ -80,9 +84,9 @@ def wandb_init(run_config: Dict, project: Optional[str] = None):
 
     run_config.update(config_override)
     if not project:
-        run = wandb.init(config=run_config)
+        run = wandb.init(config=run_config, group=group)
     else:
-        run = wandb.init(config=run_config, project=project)
+        run = wandb.init(config=run_config, project=project, group=group)
     return run
 
 
@@ -98,15 +102,16 @@ def run_experiment(
         run_config (Dict): Dictionary with the run configuration
         project (Optional[str], optional): Wandb project. Defaults to None.
         wandb (bool, optional): If True, will log to wandb. Defaults to True.
+        group_name (Optional[str], optional): Wandb group name. Defaults to None.
     Returns:
         data_dir (str): Path to the data directory
         exit_code (int): Exit code of the experiment
     """
-
+    run_config = run_config.copy()
     exp_config = CF.from_dict(run_config)
     run = None
     if wandb:
-        run = wandb_init(run_config, project)
+        run = wandb_init(run_config, project=project, group=group_name)
         data_dir = run.dir
         exp_config = wandb_logger(exp_config, run)
         run.alert(
@@ -138,9 +143,6 @@ def run_experiment(
                 text="Experiment failed",
             )
         run.finish(exit_code=exit_code)
-        if group_name is not None:
-            run.group = group_name
-            run.update()
 
     return data_dir, exit_code
 
@@ -167,9 +169,9 @@ def launch_jaix_experiment(
     if sweep is not None:
         sweep_keys, sweep_values = sweep
         for sweep_value in sweep_values:
-            config = run_config.copy()
+            config = deepcopy(run_config)
             nested_set(config, sweep_keys, sweep_value)
-            run_configs.append(config)
+            run_configs.append(deepcopy(config))
             group_names.append(f"{sweep_keys[-1]} {sweep_value}")
     else:
         run_configs.append(run_config)
@@ -205,7 +207,7 @@ def parse_args():
     parser.add_argument(
         "--sweep_keys", nargs="+", type=str, help="Keys to sweep value in config"
     )
-    parser.add_argument("--sweep_values", nargs="+", help="Values to sweep")
+    parser.add_argument("--sweep_values", nargs="+", type=float, help="Values to sweep")
     return parser.parse_args()
 
 
