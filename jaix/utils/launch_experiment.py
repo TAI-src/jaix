@@ -4,7 +4,7 @@ from ttex.config import ConfigFactory as CF
 from ttex.log.handler import WandbHandler
 from wandb.sdk import launch, AlertLevel
 from importlib.metadata import version
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Any, Tuple
 import os
 import wandb
 from jaix.env.wrapper import LoggingWrapper, LoggingWrapperConfig
@@ -13,6 +13,7 @@ import sys
 import logging
 import argparse
 import json
+from jaix.utils.dict_tools import nested_set
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -85,11 +86,14 @@ def wandb_init(run_config: Dict, project: Optional[str] = None):
     return run
 
 
-def launch_jaix_experiment(
-    run_config: Dict, project: Optional[str] = None, wandb: bool = True
+def run_experiment(
+    run_config: Dict,
+    project: Optional[str] = None,
+    wandb: bool = True,
+    group_name: Optional[str] = None,
 ):
     """
-    Launch a jaix experiment from a run_config dictionary
+    Run an experiment
     Args:
         run_config (Dict): Dictionary with the run configuration
         project (Optional[str], optional): Wandb project. Defaults to None.
@@ -98,13 +102,17 @@ def launch_jaix_experiment(
         data_dir (str): Path to the data directory
         exit_code (int): Exit code of the experiment
     """
+
     exp_config = CF.from_dict(run_config)
+    run = None
     if wandb:
         run = wandb_init(run_config, project)
         data_dir = run.dir
         exp_config = wandb_logger(exp_config, run)
         run.alert(
-            "Experiment started", text="Experiment started", level=AlertLevel.INFO
+            "Experiment started",
+            text="Experiment started",
+            level=AlertLevel.INFO,
         )
     else:
         data_dir = None
@@ -116,10 +124,12 @@ def launch_jaix_experiment(
         logger.error(f"Experiment failed {e}", exc_info=True)
         exit_code = 1
 
-    if wandb:
+    if run is not None:
         if exit_code == 0:
             run.alert(
-                "Experiment ended", text="Experiment ended", level=AlertLevel.INFO
+                "Experiment ended",
+                text="Experiment ended",
+                level=AlertLevel.INFO,
             )
         else:
             run.alert(
@@ -128,8 +138,56 @@ def launch_jaix_experiment(
                 text="Experiment failed",
             )
         run.finish(exit_code=exit_code)
+        if group_name is not None:
+            run.group = group_name
+            run.update()
 
     return data_dir, exit_code
+
+
+def launch_jaix_experiment(
+    run_config: Dict,
+    project: Optional[str] = None,
+    wandb: bool = True,
+    repeat: int = 1,
+    sweep: Optional[Tuple[List[str], List[Any]]] = None,
+):
+    """
+    Launch a jaix experiment from a run_config dictionary
+    Args:
+        run_config (Dict): Dictionary with the run configuration
+        project (Optional[str], optional): Wandb project. Defaults to None.
+        wandb (bool, optional): If True, will log to wandb. Defaults to True.
+    Returns:
+        data_dir (str): Path to the data directory
+        exit_code (int): Exit code of the experiment
+    """
+    run_configs = []
+    group_names = []  # type: List[Optional[str]]
+    if sweep is not None:
+        sweep_keys, sweep_values = sweep
+        for sweep_value in sweep_values:
+            config = run_config.copy()
+            nested_set(config, sweep_keys, sweep_value)
+            run_configs.append(config)
+            group_names.append(f"{sweep_keys[-1]} {sweep_value}")
+    else:
+        run_configs.append(run_config)
+        group_names.append(None)
+
+    results = {}
+
+    for run_config, group_name in zip(run_configs, group_names):
+        results[group_name] = {
+            "run_config": run_config,
+            "data_dirs": [],
+            "exit_codes": [],
+        }
+        for _ in range(repeat):
+            data_dir, exit_code = run_experiment(run_config, project, wandb, group_name)
+            results[group_name]["data_dirs"].append(data_dir)  # type: ignore
+            results[group_name]["exit_codes"].append(exit_code)  # type: ignore
+    return results
 
 
 def parse_args():
@@ -143,6 +201,11 @@ def parse_args():
     parser.add_argument(
         "--config_file", type=str, help="Path to the configuration file"
     )
+    parser.add_argument("--repeat", type=int, default=1, help="Number of repetitions")
+    parser.add_argument(
+        "--sweep_keys", nargs="+", type=str, help="Keys to sweep value in config"
+    )
+    parser.add_argument("--sweep_values", nargs="+", help="Values to sweep")
     return parser.parse_args()
 
 
@@ -153,8 +216,12 @@ if __name__ == "__main__":
     launch_arguments = {}
     if os.environ.get("WANDB_CONFIG", None):
         run_config = launch.load_wandb_config().as_dict()
-        launch_arguments["run_config"] = run_config
         launch_arguments["wandb"] = True
+        if "repeat" in run_config:
+            launch_arguments["repeat"] = run_config.pop("repeat")
+        if "sweep" in run_config:
+            launch_arguments["sweep"] = run_config.pop("sweep")
+        launch_arguments["run_config"] = run_config
     else:
         args = parse_args()
         # run_config = CF.from_file(args.config_file).as_dict()
@@ -166,5 +233,13 @@ if __name__ == "__main__":
             launch_arguments["wandb"] = True
         else:
             launch_arguments["wandb"] = False
-    _, exit_code = launch_jaix_experiment(**launch_arguments)
-    sys.exit(exit_code)
+        launch_arguments["repeat"] = args.repeat
+        if args.sweep_keys and args.sweep_values:
+            sweep_keys = args.sweep_keys  # type: List[str]
+            sweep_values = args.sweep_values  # type: List[Any]
+            launch_arguments["sweep"] = (sweep_keys, sweep_values)  # type: ignore
+        # TODO: better validation of arguments
+    results = launch_jaix_experiment(**launch_arguments)  # type: ignore
+    # Aggregate exit codes. If any experiment failed, the script will return something different than 0
+    exit_codes = [max(result["exit_codes"]) for result in results.values()]
+    sys.exit(max(exit_codes))

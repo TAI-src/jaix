@@ -311,9 +311,11 @@ def test_wandb_init():
 def test_launch_jaix_experiment_wandb():
     prev_mode = os.environ.get("WANDB_MODE", "online")
     os.environ["WANDB_MODE"] = "offline"
-    data_dir, exit_code = launch_jaix_experiment(
+    results = launch_jaix_experiment(
         run_config=deepcopy(get_config()), project="ci-cd", wandb=True
     )
+    exit_code = [result["exit_codes"][0] for result in results.values()][0]
+    data_dir = [result["data_dirs"][0] for result in results.values()][0]
     # Remove logging files
     shutil.rmtree(data_dir, ignore_errors=True)
     os.environ["WANDB_MODE"] = prev_mode
@@ -326,11 +328,44 @@ def test_launch_jaix_experiment_wandb():
 )
 def test_launch_jaix_experiment(suite, comp):
     config = get_config(suite, comp)
-    data_dir, exit_code = launch_jaix_experiment(
-        run_config=deepcopy(config), wandb=False
-    )
+    results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False)
+    exit_code = [result["exit_codes"][0] for result in results.values()][0]
+    data_dir = [result["data_dirs"][0] for result in results.values()][0]
     assert data_dir is None
     assert exit_code == 0
+
+
+def test_repeat():
+    config = get_config("COCO", False)
+    results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False, repeat=2)
+    exit_codes = [result["exit_codes"] for result in results.values()]
+    data_dirs = [result["data_dirs"] for result in results.values()]
+    assert all([len(exit_code) == 2 for exit_code in exit_codes])
+    assert all([len(data_dir) == 2 for data_dir in data_dirs])
+    assert all([exit_code == 0 for exit_code in exit_codes[0]])
+    assert len(exit_codes) == 1
+
+
+def test_sweep():
+    config = get_config("COCO", False)
+    keys = [
+        "jaix.ExperimentConfig",
+        "opt_config",
+        "jaix.runner.ask_tell.ATOptimiserConfig",
+        "strategy_config",
+        "jaix.runner.ask_tell.strategy.CMAConfig",
+        "opts",
+        "popsize_factor",
+    ]
+    results = launch_jaix_experiment(
+        run_config=deepcopy(config),
+        wandb=False,
+        sweep=(keys, [1, 2]),
+    )
+    exit_codes = [result["exit_codes"][0] for result in results.values()]
+    assert all([exit_code == 0 for exit_code in exit_codes])
+    assert len(exit_codes) == 2
+    assert list(results.keys()) == ["popsize_factor 1", "popsize_factor 2"]
 
 
 @pytest.mark.parametrize(
@@ -366,6 +401,8 @@ def test_launch_final(config_file):
             "suite_config"
         ]["jaix.suite.SuiteConfig"]["instances"] = [0]
 
-    data_dir, exit_code = launch_jaix_experiment(run_config=config, wandb=False)
+    results = launch_jaix_experiment(run_config=config, wandb=False)
+    exit_code = [result["exit_codes"][0] for result in results.values()][0]
+    data_dir = [result["data_dirs"][0] for result in results.values()][0]
     assert data_dir is None
     assert exit_code == 0

@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List
 from uuid import uuid4
+import math
 
 
 def global_flip(parent, p=None, low=0, high=1):
@@ -68,7 +69,7 @@ def ddl_update(old_pop, new_pop, mutation_opts, crossover_opts, update_opts):
     )  # 1/n^2
     pmax = 1 / 2 if "pmax" not in update_opts else update_opts["pmax"]
     F = 1 + 0.2 if "F" not in update_opts else update_opts["F"]  # or 1 + 0.1
-    s = np.exp(1) - 1 if "s" not in update_opts else update_opts["s"]  # e-1
+    s = math.e - 1 if "s" not in update_opts else update_opts["s"]  # e-1
     mutation_opts["p"] = (
         1 / len(new_pop[0].x) if "p" not in mutation_opts else mutation_opts["p"]
     )  # 1/n is default p0

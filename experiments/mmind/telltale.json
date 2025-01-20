@@ -61,8 +61,8 @@
             "warm_start_best": true,
             "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
             "update_opts": {
-              "s": 4,
-              "F": 1.2
+              "F": 1.2,
+              "s": 1.718281828459045
             }
           }
         },
