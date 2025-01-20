@@ -2,7 +2,7 @@ import wandb
 import numpy as np
 
 api = wandb.Api()
-entity, project = "TAI_track", "rbf"
+entity, project = "TAI_track", "mmind"
 runs = api.runs(entity + "/" + project)
 
 for run in runs:
@@ -24,3 +24,8 @@ for run in runs:
     run.group = str(factor)
     run.update()
     """
+
+run = runs[0]
+# save the metrics for the run to a csv file
+metrics_dataframe = run.history()
+metrics_dataframe.to_csv("metrics.csv")

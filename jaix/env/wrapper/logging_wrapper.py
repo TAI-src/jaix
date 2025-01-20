@@ -24,11 +24,13 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         self.log_resets = 0
         self.log_env_steps = 0
         self.log_renv_steps = 0
+        self.best_raw_r = None
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
         self.log_resets += 1
         self.log_renv_steps = 0
+        self.best_raw_r = None
         return obs, info
 
     def step(self, action):
@@ -53,7 +55,13 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         }
         if "raw_r" in info:
             info_dict[f"env/raw_r/{str(self.env.unwrapped)}"] = info["raw_r"]
-
+            new_r = info["raw_r"]
+        else:
+            new_r = r
+        self.best_raw_r = (
+            new_r if self.best_raw_r is None else min(self.best_raw_r, new_r)
+        )
+        info_dict[f"env/best_raw_r/{str(self.env.unwrapped)}"] = self.best_raw_r
         self.logger.info(info_dict)
         # TODO: Figure out what info would be helpful from all the sub-wrappers etc
         return obs, r, term, trunc, info
