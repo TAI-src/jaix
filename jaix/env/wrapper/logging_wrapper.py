@@ -62,6 +62,9 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
             new_r if self.best_raw_r is None else min(self.best_raw_r, new_r)
         )
         info_dict[f"env/best_raw_r/{str(self.env.unwrapped)}"] = self.best_raw_r
+        if term:
+            info_dict[f"env/term/{str(self.env.unwrapped)}"] = self.log_renv_steps
+
         self.logger.info(info_dict)
         # TODO: Figure out what info would be helpful from all the sub-wrappers etc
         return obs, r, term, trunc, info
