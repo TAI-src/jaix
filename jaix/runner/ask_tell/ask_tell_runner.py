@@ -35,9 +35,7 @@ class ATRunner(Runner):
         **kwargs,
     ):
         logger.debug("Starting experiment with %s on %s", opt_class, env)
-        wrappers = [
-            (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))
-        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        wrappers = [(MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
 
         wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)
@@ -47,7 +45,8 @@ class ATRunner(Runner):
             logger.debug("Resetting optimiser")
             opt = COF.create(opt_class, opt_config, env=wenv)
             logger.debug("Optimiser created")
-            while not opt.stop() and not wenv.stop():
+            wenv_stop = False  # via term or trunc
+            while not opt.stop() and not wenv.stop() and not wenv_stop:
                 X = opt.ask(env=wenv)
                 res_list = []
                 for x in X:
@@ -55,6 +54,8 @@ class ATRunner(Runner):
                     if wenv.id == prev_id:
                         # If the environment switches, the optimiser is reset
                         obs, r, term, trunc, info = wenv.step(x)
+                        if term or trunc:
+                            wenv_stop = True
                         res_list.append(
                             {
                                 "obs": obs,

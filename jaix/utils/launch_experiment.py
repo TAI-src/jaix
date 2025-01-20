@@ -163,7 +163,7 @@ def launch_jaix_experiment(
         exit_code (int): Exit code of the experiment
     """
     run_configs = []
-    group_names = []
+    group_names = []  # type: List[Optional[str]]
     if sweep is not None:
         sweep_keys, sweep_values = sweep
         for sweep_value in sweep_values:
@@ -185,8 +185,8 @@ def launch_jaix_experiment(
         }
         for _ in range(repeat):
             data_dir, exit_code = run_experiment(run_config, project, wandb, group_name)
-            results[group_name]["data_dirs"].append(data_dir)
-            results[group_name]["exit_codes"].append(exit_code)
+            results[group_name]["data_dirs"].append(data_dir)  # type: ignore
+            results[group_name]["exit_codes"].append(exit_code)  # type: ignore
     return results
 
 
@@ -235,9 +235,11 @@ if __name__ == "__main__":
             launch_arguments["wandb"] = False
         launch_arguments["repeat"] = args.repeat
         if args.sweep_keys and args.sweep_values:
-            launch_arguments["sweep"] = (args.sweep_keys, args.sweep_values)
+            sweep_keys = args.sweep_keys  # type: List[str]
+            sweep_values = args.sweep_values  # type: List[Any]
+            launch_arguments["sweep"] = (sweep_keys, sweep_values)  # type: ignore
         # TODO: better validation of arguments
-    results = launch_jaix_experiment(**launch_arguments)
+    results = launch_jaix_experiment(**launch_arguments)  # type: ignore
     # Aggregate exit codes. If any experiment failed, the script will return something different than 0
     exit_codes = [max(result["exit_codes"]) for result in results.values()]
     sys.exit(max(exit_codes))
