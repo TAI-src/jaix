@@ -15,10 +15,12 @@ for run in runs:
     run.group = str(update_opts["s"])
     run.update()
     """
-    factor = run.config["jaix.ExperimentConfig"]["opt_config"][
+    """
+    factortor = run.config["jaix.ExperimentConfig"]["opt_config"][
         "jaix.runner.ask_tell.ATOptimiserConfig"
     ]["strategy_config"]["jaix.runner.ask_tell.strategy.CMAConfig"]["opts"][
         "popsize_factor"
     ]
     run.group = str(factor)
     run.update()
+    """
