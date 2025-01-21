@@ -41,7 +41,8 @@ class ATRunner(Runner):
 
         wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)
-        while not wenv.stop():
+        evals = 0
+        while not wenv.stop() and evals < self.max_evals:
             wenv.reset()
             prev_id = wenv.id
             logger.debug("Resetting optimiser")
@@ -53,6 +54,7 @@ class ATRunner(Runner):
                 res_list = []
                 for x in X:
                     logger.debug(f"Optimising {x}")
+                    evals += 1
                     if wenv.id == prev_id:
                         # If the environment switches, the optimiser is reset
                         obs, r, term, trunc, info = wenv.step(x)
