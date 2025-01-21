@@ -3,13 +3,13 @@
     "runner_class": "jaix.runner.ask_tell.ATRunner",
     "runner_config": {
       "jaix.runner.ask_tell.ATRunnerConfig": {
-        "max_evals": 1296,
+        "max_evals": 6480,
         "disp_interval": 5000
       }
     },
     "logging_config": {
       "jaix.LoggingConfig": {
-        "log_level": 40
+        "log_level": 10
       }
     },
     "env_config": {
@@ -52,7 +52,8 @@
                 "switching_pattern_class": "jaix.env.utils.switching_pattern.SeqRegSwitchingPattern",
                 "switching_pattern_config": {
                   "jaix.env.utils.switching_pattern.SeqRegSwitchingPatternConfig": {
-                    "wait_period": 1296
+                    "wait_period": 1296,
+                    "carry_over": false
                   }
                 },
                 "real_time": false
