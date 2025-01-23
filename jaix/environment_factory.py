@@ -25,7 +25,6 @@ class CompositeEnvironmentConfig(Config):
 class EnvironmentConfig(Config):
     default_wrappers = [
         (ClosingWrapper, {}),
-        (OnlineWrapper, {"online": True}),
     ]
     default_seed = 1337
 

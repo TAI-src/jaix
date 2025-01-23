@@ -3,7 +3,7 @@
     "runner_class": "jaix.runner.ask_tell.ATRunner",
     "runner_config": {
       "jaix.runner.ask_tell.ATRunnerConfig": {
-        "max_evals": 6480,
+        "max_evals": 1296,
         "disp_interval": 5000
       }
     },
@@ -37,12 +37,7 @@
             "num_agg_instances": 1
           }
         },
-        "env_wrappers": [
-          [
-            "jaix.env.wrapper.AnyFitWrapper",
-            {}
-          ]
-        ],
+        "env_wrappers": [],
         "comp_config": {
           "jaix.CompositeEnvironmentConfig": {
             "agg_type": "jaix.suite.AggType.INST",
