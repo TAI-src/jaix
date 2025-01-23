@@ -1,6 +1,7 @@
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 from jaix.env.wrapper import PassthroughWrapper
+from typing import Optional
 
 
 class AutoResetWrapperConfig(Config):
@@ -27,15 +28,36 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
         self.failed_resets = 0
         self.steps = 0
         self.prev_r = None
+        self.trunc = False
+        self.term = False
 
-    def reset(self, **kwargs):
-        obs, info = self.env.reset(**kwargs)
-        if self.steps >= self.min_steps:
-            # Only update final r if it is not a failed reset
-            info["final_r"] = self.prev_r
-        self.man_resets += 1
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict] = None,
+    ):
+        obs, info = self.env.reset(seed=seed, options=options)
+        if options is None or "auto" not in options or not options["auto"]:
+            # Manual reset
+            self.man_resets += 1
+            if self.prev_r is not None:
+                info["final_r"] = self.prev_r
+        else:
+            # Auto reset
+            self.auto_resets += 1
+            if self.steps >= self.min_steps:
+                # Only update final r if it is not a failed reset
+                info["final_r"] = self.prev_r
         self.steps = 0
         self.prev_r = None
+        if options is None or "online" not in options or not options["online"]:
+            # RL reset, full reset of term and trunc
+            self.trunc = False
+            self.term = False
+        else:
+            # Online reset, so only termination (success), not truncation due to time constraints
+            self.term = False
         return obs, info
 
     def step(self, action):
@@ -48,18 +70,16 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
         ) = self.env.step(action)
         if term or trunc:
             # from https://gymnasium.farama.org/_modules/gymnasium/wrappers/autoreset/
-            _, reset_info = self.env.reset(options={"online": True})
+            _, reset_info = self.reset(options={"online": True, "auto": True})
             assert (
                 "final_observation" not in reset_info
             ), 'info dict cannot contain key "final_observation" '
             assert (
                 "final_info" not in reset_info
             ), 'info dict cannot contain key "final_info" '
-            assert (
-                "final_r" not in reset_info
-            ), 'info dict cannot contain key "final_r" '
-
             info_updates = {"final_observation": obs, "final_info": info}
+            if "final_r" in reset_info:
+                info_updates["final_r"] = reset_info["final_r"]
 
             (
                 obs,
@@ -71,22 +91,25 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
 
             info.update(info_updates)
 
-            if self.steps == 0:
+            if "final_r" not in info:
                 # This means we reset previously and on the first step
                 # we are done. That is a fail
                 self.failed_resets += 1
-            elif self.steps >= self.min_steps:
-                # Only update final r if it is not a failed reset
-                info["final_r"] = r
-            self.steps = 0
-            self.auto_resets += 1
-        else:
-            self.steps += 1
+
+        self.steps += 1
         self.prev_r = r
+        if term:
+            self.term = True
+        if trunc:
+            self.trunc = True
         return obs, r, term, trunc, info
 
     def _stop(self):
+        stop_dict = {}
         if self.failed_resets >= self.failed_resets_thresh:
-            return {"failed_resets": self.failed_resets}
-        else:
-            return {}
+            stop_dict["failed_resets"] = self.failed_resets
+        if self.term:
+            stop_dict["term"] = True
+        if self.trunc:
+            stop_dict["trunc"] = True
+        return stop_dict

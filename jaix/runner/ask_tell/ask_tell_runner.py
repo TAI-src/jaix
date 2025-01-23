@@ -1,3 +1,4 @@
+from jaix.env.wrapper.online_wrapper import OnlineWrapper
 from ttex.config import (
     ConfigurableObjectFactory as COF,
     Config,
@@ -10,6 +11,7 @@ from jaix.env.wrapper import (
     MaxEvalWrapper,
     MaxEvalWrapperConfig,
     WrappedEnvFactory as WEF,
+    OnlineWrapper,
     PassthroughWrapper,
 )
 from jaix import LOGGER_NAME
@@ -36,30 +38,27 @@ class ATRunner(Runner):
     ):
         logger.debug("Starting experiment with %s on %s", opt_class, env)
         wrappers = [
-            (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals))
+            (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals)),
+            (OnlineWrapper, {"online": True}),
         ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
 
         wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)
-        evals = 0
-        while not wenv.stop() and evals < self.max_evals:
-            wenv.reset()
+        wenv.reset()
+        while not wenv.stop():
             prev_id = wenv.id
             logger.debug("Resetting optimiser")
             opt = COF.create(opt_class, opt_config, env=wenv)
             logger.debug("Optimiser created")
-            wenv_stop = False  # via term or trunc
-            while not opt.stop() and not wenv.stop() and not wenv_stop:
+            info = {}  # type: Dict
+            while not opt.stop() and not wenv.stop():
                 X = opt.ask(env=wenv)
                 res_list = []
                 for x in X:
                     logger.debug(f"Optimising {x}")
-                    evals += 1
                     if wenv.id == prev_id:
                         # If the environment switches, the optimiser is reset
                         obs, r, term, trunc, info = wenv.step(x)
-                        if term or trunc:
-                            wenv_stop = True
                         res_list.append(
                             {
                                 "obs": obs,
@@ -98,5 +97,6 @@ class ATRunner(Runner):
                 f"Termination by opt {opt.stop()} env {wenv.stop()}"
             )  # TODO determine exact stopping criterion
             logger.debug(f"Result {info}")
+            wenv.reset()
 
         logger.debug("Experiment done")
