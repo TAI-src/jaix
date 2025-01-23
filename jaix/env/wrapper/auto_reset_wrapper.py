@@ -68,7 +68,7 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
             trunc,
             info,
         ) = self.env.step(action)
-        if term or trunc:
+        if term:
             # from https://gymnasium.farama.org/_modules/gymnasium/wrappers/autoreset/
             _, reset_info = self.reset(options={"online": True, "auto": True})
             assert (
@@ -87,7 +87,7 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
                 term,
                 trunc,
                 info,
-            ) = self.env.step(action)
+            ) = self.env.step(self.action_space.sample())
 
             info.update(info_updates)
 
@@ -95,6 +95,10 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
                 # This means we reset previously and on the first step
                 # we are done. That is a fail
                 self.failed_resets += 1
+        elif trunc:
+            info["final_observation"] = obs
+            info["final_info"] = info
+            info["final_r"] = r
 
         self.steps += 1
         self.prev_r = r

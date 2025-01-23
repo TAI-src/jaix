@@ -4,6 +4,7 @@ from jaix.runner.ask_tell.strategy.basic_ea import (
     MutationOp,
     CrossoverOp,
     UpdateStrategy,
+    WarmStartStrategy,
 )
 import pytest
 from .. import DummyEnv, loop
@@ -170,8 +171,11 @@ def test_warm_start(warm_start_best):
         crossover_op=None,
         mutation_opts={},
         crossover_opts={},
-        warm_start_best=warm_start_best,
     )
+    if warm_start_best:
+        config.warm_start_strategy = WarmStartStrategy.BEST
+    else:
+        config.warm_start_strategy = WarmStartStrategy.LAST
     dimension = 14
     action_space = spaces.MultiBinary(dimension)
     env = DummyEnv(dimension=dimension, action_space=action_space, num_objectives=1)
@@ -203,7 +207,6 @@ def test_update():
         crossover_op=None,
         mutation_opts={},
         crossover_opts={},
-        warm_start_best=True,
         update_strategy=UpdateStrategy.DDL,
         update_opts={"F": 1, "s": 1},
     )

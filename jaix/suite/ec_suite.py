@@ -15,7 +15,7 @@ class ECSuiteConfig(SuiteConfig):
         func_configs: List[Config],
         env_config: ECEnvironmentConfig,
         instances: Optional[List[int]] = None,
-        num_agg_instances: Optional[int] = None,
+        agg_instances: Optional[int] = None,
     ):
         self.func_configs = func_configs
         self.func_classes = func_classes
@@ -28,7 +28,7 @@ class ECSuiteConfig(SuiteConfig):
             env_config=env_config,
             functions=functions,
             instances=instances,
-            num_agg_instances=num_agg_instances,
+            agg_instances=agg_instances,
         )
 
 

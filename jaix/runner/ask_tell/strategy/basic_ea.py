@@ -44,6 +44,16 @@ class UpdateStrategy(Enum):
     DDL = "ddl_update"
 
 
+class WarmStartStrategy(Enum):
+    """
+    Enum for warm start strategies
+    """
+
+    BEST = "best"
+    LAST = "last"
+    NONE = None
+
+
 class BasicEAConfig(Config):
     """
     Configuration class for BasicEA
@@ -58,7 +68,7 @@ class BasicEAConfig(Config):
         crossover_op: Optional[CrossoverOp],  # crossover operator
         mutation_opts={},  # mutation operator options
         crossover_opts={},  # crossover operator options
-        warm_start_best: bool = True,  # warm start with best individual, otherwise last
+        warm_start_strategy: WarmStartStrategy = WarmStartStrategy.NONE,  # warm start
         update_strategy: Optional[UpdateStrategy] = None,  # update strategy
         update_opts={},  # update strategy options
     ):
@@ -69,7 +79,7 @@ class BasicEAConfig(Config):
         self.mutation_opts = mutation_opts
         self.crossover_op = crossover_op
         self.crossover_opts = crossover_opts
-        self.warm_start_best = warm_start_best
+        self.warm_start_strategy = warm_start_strategy
         if self.strategy == EAStrategy.Comma:
             assert self.lam >= self.mu
         if self.crossover_op is None:
@@ -198,9 +208,9 @@ class BasicEA(ConfigurableObject, ATStrategy):
         Warm start the strategy
         """
         self.xstart = [env.unwrapped.action_space.sample() for _ in range(self.mu)]
-        if self.config.warm_start_best:
+        if self.warm_start_strategy == WarmStartStrategy.BEST:
             # Add current best individual into starting population
             self.xstart[0] = sorted(self.pop, key=lambda x: x.fitness, reverse=False)[0]
-        else:
+        elif self.warm_start_strategy == WarmStartStrategy.LAST:
             self.xstart[0] = xlast
         self.initialize()

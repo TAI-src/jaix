@@ -111,7 +111,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         info["meta"] = self._get_info()
         logger.debug(info)
 
-        return obs, r, term, trunc or self._stop(), info
+        return obs, r, term, self._stopped, info
 
     def reset(
         self,
@@ -125,6 +125,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
             env_obs, info = self.env_list[self._current_env].reset(
                 seed=seed, options=options
             )
+            logger.debug("Online reset")
         else:
             self._timer = 0
             self._current_env = 0
@@ -134,6 +135,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
                 # Reversed order so return value is of current environment
                 # which is the first one in the list (after reset)
                 env_obs, info = env.reset(seed=seed, options=options)
+            logger.debug("Full reset")
         self._update_current_env()
         obs = (self._current_env, env_obs)
         info["meta"] = self._get_info()
@@ -168,7 +170,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
 
     @update_env
     def stop(self):
-        return self._stop()
+        return self._stopped
 
     def close(self):
         return [env.close() for env in self.env_list]
