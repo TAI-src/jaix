@@ -50,7 +50,7 @@ class ATRunner(Runner):
             logger.debug("Resetting optimiser")
             opt = COF.create(opt_class, opt_config, env=wenv)
             logger.debug("Optimiser created")
-            info = {}
+            info = {}  # type: Dict
             while not opt.stop() and not wenv.stop():
                 X = opt.ask(env=wenv)
                 res_list = []
