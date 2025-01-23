@@ -98,7 +98,5 @@ class ATRunner(Runner):
             )  # TODO determine exact stopping criterion
             logger.debug(f"Result {info}")
             wenv.reset()
-            print("Hello")
-            print(wenv.stop())
 
         logger.debug("Experiment done")
