@@ -40,7 +40,7 @@ class SuiteConfig(Config):
         elif isinstance(agg_instances, int):
             self.agg_instances = instance_permutations[:agg_instances]
         else:
-            self.agg_instances = agg_instances
+            self.agg_instances = agg_instances  # type: ignore
 
 
 class Suite(ConfigurableObject):
