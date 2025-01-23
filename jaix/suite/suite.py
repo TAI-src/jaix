@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Type, List
+from typing import Optional, Type, List, Union, Tuple
 from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
 import gymnasium as gym
 import random as rnd
@@ -23,7 +23,7 @@ class SuiteConfig(Config):
         env_config: Config,
         functions: Optional[List[int]] = None,
         instances: Optional[List[int]] = None,
-        num_agg_instances: Optional[int] = None,
+        agg_instances: Optional[Union[List[Tuple[int]], int]] = None,
     ):
         self.env_class = env_class
         self.env_config = env_config
@@ -35,13 +35,12 @@ class SuiteConfig(Config):
         self.functions = env_info["funcs"] if functions is None else functions
         self.instances = env_info["insts"] if instances is None else instances
         instance_permutations = list(itertools.permutations(self.instances))
-        num_agg_instances = (
-            len(instance_permutations)
-            if num_agg_instances is None
-            else num_agg_instances
-        )
-        assert num_agg_instances <= len(instance_permutations)
-        self.agg_instances = instance_permutations[:num_agg_instances]
+        if agg_instances is None:
+            self.agg_instances = instance_permutations
+        elif isinstance(agg_instances, int):
+            self.agg_instances = instance_permutations[:agg_instances]
+        else:
+            self.agg_instances = agg_instances
 
 
 class Suite(ConfigurableObject):

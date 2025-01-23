@@ -69,7 +69,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "instances": list(range(2)),
-                        "num_agg_instances": 2,
+                        "agg_instances": 2,
                     },
                 },
             },
@@ -90,7 +90,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "functions": [0],
-                        "num_agg_instances": 2,
+                        "agg_instances": 2,
                     },
                 },
             },
@@ -110,7 +110,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "instances": list(range(2)),
-                        "num_agg_instances": 2,
+                        "agg_instances": 2,
                     },
                 },
             },
@@ -118,9 +118,9 @@ def get_config(suite="COCO", comp=False):
     xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
         "env_wrappers"
     ] = [("jaix.env.wrapper.AnyFitWrapper", {})]
-    xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-        "seed"
-    ] = None
+    xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"]["seed"] = (
+        None
+    )
     xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
         "comp_config"
     ] = None
@@ -145,9 +145,9 @@ def get_config(suite="COCO", comp=False):
                 },
             }
         }
-        xconfig["jaix.ExperimentConfig"][
-            "opt_class"
-        ] = "jaix.runner.ask_tell.ATOptimiser"
+        xconfig["jaix.ExperimentConfig"]["opt_class"] = (
+            "jaix.runner.ask_tell.ATOptimiser"
+        )
         xconfig["jaix.ExperimentConfig"]["opt_config"] = {
             "jaix.runner.ask_tell.ATOptimiserConfig": {
                 "strategy_class": "jaix.runner.ask_tell.strategy.ATBandit",
@@ -216,7 +216,6 @@ def get_config(suite="COCO", comp=False):
                                 "crossover_op": None,
                                 "mutation_opts": {},
                                 "crossover_opts": {},
-                                "warm_start_best": True,
                             },
                         },
                         "init_pop_size": 1,
@@ -235,7 +234,6 @@ def get_config(suite="COCO", comp=False):
                                 "crossover_op": "jaix.runner.ask_tell.strategy.CrossoverOp.UNIFORM",
                                 "mutation_opts": {},
                                 "crossover_opts": {},
-                                "warm_start_best": True,
                             },
                         },
                         "init_pop_size": 1,
@@ -245,9 +243,9 @@ def get_config(suite="COCO", comp=False):
             ]
 
     else:
-        xconfig["jaix.ExperimentConfig"][
-            "opt_class"
-        ] = "jaix.runner.ask_tell.ATOptimiser"
+        xconfig["jaix.ExperimentConfig"]["opt_class"] = (
+            "jaix.runner.ask_tell.ATOptimiser"
+        )
         if suite == "COCO" or suite == "RBF":
             # Continuous optimisation, use CMA-ES
             xconfig["jaix.ExperimentConfig"]["opt_config"] = {
@@ -276,7 +274,6 @@ def get_config(suite="COCO", comp=False):
                             "crossover_op": None,
                             "mutation_opts": {"p": 0.2},
                             "crossover_opts": {},
-                            "warm_start_best": True,
                         },
                     },
                     "init_pop_size": 1,

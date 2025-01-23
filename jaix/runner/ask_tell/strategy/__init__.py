@@ -8,4 +8,5 @@ from jaix.runner.ask_tell.strategy.basic_ea import (
     EAStrategy,
     CrossoverOp,
     UpdateStrategy,
+    WarmStartStrategy,
 )

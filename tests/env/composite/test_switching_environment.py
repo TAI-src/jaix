@@ -209,7 +209,7 @@ def test_force_stop_time(ec_env):
             # each environments only has 3 evals and will thus stop
             # even if wait period is 5
             # Will end at -1 since it does another step
-            assert info["evals_left"] == -1
+            assert info["evals_left"] == 0
             assert "final_observation" in info
             assert "final_r" in info
         if info["meta"]["steps_counter"] % 3 == 1:

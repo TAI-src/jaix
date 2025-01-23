@@ -25,7 +25,7 @@
                 "cache": true
               }
             },
-            "num_agg_instances": 1
+            "agg_instances": 1
           }
         },
         "env_wrappers": [
@@ -49,7 +49,7 @@
             "crossover_op": null,
             "mutation_opts": {},
             "crossover_opts": {},
-            "warm_start_best": true,
+            "warm_start_strategy": "jaix.runner.ask_tell.strategy.WarmStartStrategy.NONE",
             "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
             "update_opts": {
               "s": 4,
