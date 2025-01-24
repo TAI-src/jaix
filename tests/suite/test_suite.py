@@ -8,7 +8,7 @@ def init_suite():
         env_config=DummyEnvConfig(dimension=6),
         functions=[0, 1],
         instances=list(range(5)),
-        agg_instances=3,
+        agg_instances=[0, 1, 2],
     )
     return Suite(config)
 

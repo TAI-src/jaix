@@ -26,12 +26,13 @@ def env_config():
 
 
 def test_init(func_config, env_config):
+    print("fasf")
     config = ECSuiteConfig(
         [Sphere],
         [func_config],
         env_config,
         instances=list(range(2)),
-        agg_instances=1,
+        agg_instances=0,
     )
     suite = COF.create(ECSuite, config)
 
@@ -45,7 +46,7 @@ def test_get_envs(func_config, env_config):
         [func_config],
         env_config,
         instances=list(range(1)),
-        agg_instances=1,
+        agg_instances=0,
     )
     suite = COF.create(ECSuite, config)
 
@@ -66,7 +67,7 @@ def test_get_envs_agg(func_config, env_config):
         [func_config],
         env_config,
         instances=list(range(3)),
-        agg_instances=3,
+        agg_instances=0,
     )
     suite = COF.create(ECSuite, config)
 
