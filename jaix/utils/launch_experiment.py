@@ -208,7 +208,12 @@ def parse_args():
         "--sweep_keys", nargs="+", type=str, help="Keys to sweep value in config"
     )
     parser.add_argument("--sweep_values", nargs="+", type=float, help="Values to sweep")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.sweep_values:
+        cmp = [int(v) == v for v in args.sweep_values]
+        if all(cmp):
+            args.sweep_values = [int(v) for v in args.sweep_values]
+    return args
 
 
 if __name__ == "__main__":
