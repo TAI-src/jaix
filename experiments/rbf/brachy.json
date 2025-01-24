@@ -54,7 +54,7 @@
                 "budget_multiplier": 1000
               }
             },
-            "agg_instances": 1
+            "agg_instances": 0
           }
         },
         "env_wrappers": [

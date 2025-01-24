@@ -69,7 +69,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "instances": list(range(2)),
-                        "agg_instances": 2,
+                        "agg_instances": 0,
                     },
                 },
             },
@@ -90,7 +90,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "functions": [0],
-                        "agg_instances": 2,
+                        "agg_instances": 0,
                     },
                 },
             },
@@ -110,7 +110,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "instances": list(range(2)),
-                        "agg_instances": 2,
+                        "agg_instances": 0,
                     },
                 },
             },
@@ -398,6 +398,9 @@ def test_launch_final(config_file):
         config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
             "suite_config"
         ]["jaix.suite.SuiteConfig"]["instances"] = [0]
+        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
+            "suite_config"
+        ]["jaix.suite.SuiteConfig"]["agg_instances"] = 0
 
     results = launch_jaix_experiment(run_config=config, wandb=False)
     exit_code = [result["exit_codes"][0] for result in results.values()][0]

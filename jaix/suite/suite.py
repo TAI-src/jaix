@@ -23,7 +23,7 @@ class SuiteConfig(Config):
         env_config: Config,
         functions: Optional[List[int]] = None,
         instances: Optional[List[int]] = None,
-        agg_instances: Optional[Union[List[Tuple[int]], int]] = None,
+        agg_instances: Optional[Union[List[int], List[Tuple[int]], int]] = None,
     ):
         self.env_class = env_class
         self.env_config = env_config
@@ -38,7 +38,12 @@ class SuiteConfig(Config):
         if agg_instances is None:
             self.agg_instances = instance_permutations
         elif isinstance(agg_instances, int):
-            self.agg_instances = instance_permutations[:agg_instances]
+            assert agg_instances < len(instance_permutations)
+            self.agg_instances = [instance_permutations[agg_instances]]
+        elif isinstance(agg_instances, list) and all(
+            [isinstance(i, int) for i in agg_instances]
+        ):
+            self.agg_instances = [instance_permutations[i] for i in agg_instances]  # type: ignore
         else:
             self.agg_instances = agg_instances  # type: ignore
 
