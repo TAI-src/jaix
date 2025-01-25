@@ -33,7 +33,25 @@
             "jaix.env.wrapper.AnyFitWrapper",
             {}
           ]
-        ]
+        ],
+        "comp_config": {
+          "jaix.CompositeEnvironmentConfig": {
+            "agg_type": "jaix.suite.AggType.INST",
+            "comp_env_class": "jaix.env.composite.SwitchingEnvironment",
+            "comp_env_config": {
+              "jaix.env.composite.SwitchingEnvironmentConfig": {
+                "switching_pattern_class": "jaix.env.utils.switching_pattern.SeqRegSwitchingPattern",
+                "switching_pattern_config": {
+                  "jaix.env.utils.switching_pattern.SeqRegSwitchingPatternConfig": {
+                    "wait_period": 512,
+                    "carry_over": false
+                  }
+                },
+                "real_time": false
+              }
+            }
+          }
+        }
       }
     },
     "opt_class": "jaix.runner.ask_tell.ATOptimiser",

@@ -375,6 +375,7 @@ def test_sweep():
         "/experiments/hpo/binary.json",
         "/experiments/mmind/mmind_comp.json",
         "/experiments/hpo/binary_comp.json",
+        "/experiments/mmind/telltale_comp.json",
     ],
 )
 def test_launch_final(config_file):
