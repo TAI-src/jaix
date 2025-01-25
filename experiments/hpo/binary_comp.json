@@ -1,0 +1,133 @@
+{
+  "jaix.ExperimentConfig": {
+    "runner_class": "jaix.runner.ask_tell.ATRunner",
+    "runner_config": {
+      "jaix.runner.ask_tell.ATRunnerConfig": {
+        "max_evals": 2560,
+        "disp_interval": 500
+      }
+    },
+    "logging_config": {
+      "jaix.LoggingConfig": {
+        "log_level": 40
+      }
+    },
+    "env_config": {
+      "jaix.EnvironmentConfig": {
+        "suite_class": "jaix.suite.Suite",
+        "suite_config": {
+          "jaix.suite.SuiteConfig": {
+            "env_class": "jaix.env.singular.HPOEnvironment",
+            "env_config": {
+              "jaix.env.singular.HPOEnvironmentConfig": {
+                "task_type": "jaix.env.utils.hpo.TaskType.C1",
+                "repo_name": "D244_F3_C1530_30",
+                "cache": true
+              }
+            },
+            "agg_instances": 0
+          }
+        },
+        "env_wrappers": [
+          [
+            "jaix.env.wrapper.AnyFitWrapper",
+            {}
+          ]
+        ]
+      }
+    },
+    "opt_class": "jaix.runner.ask_tell.ATOptimiser",
+    "opt_config": {
+      "jaix.runner.ask_tell.ATOptimiserConfig": {
+        "strategy_class": "jaix.runner.ask_tell.strategy.ATBandit",
+        "strategy_config": {
+          "jaix.runner.ask_tell.strategy.ATBanditConfig": {
+            "bandit_config": {
+              "jaix.runner.ask_tell.strategy.utils.BanditConfig": {
+                "epsilon": 0.1,
+                "min_tries": 10,
+                "exploit_strategy": "jaix.runner.ask_tell.strategy.utils.BanditExploitStrategy.MAX"
+              }
+            },
+            "opt_confs": [
+              {
+                "jaix.runner.ask_tell.ATOptimiserConfig": {
+                  "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                  "strategy_config": {
+                    "jaix.runner.ask_tell.strategy.BasicEAConfig": {
+                      "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                      "mu": 1,
+                      "lam": 1,
+                      "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                      "crossover_op": null,
+                      "mutation_opts": {},
+                      "crossover_opts": {},
+                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.WarmStartStrategy.NONE",
+                      "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
+                      "update_opts": {
+                        "F": 1.2,
+                        "s": 1
+                      }
+                    }
+                  },
+                  "init_pop_size": 1,
+                  "stop_after": 2560
+                }
+              },
+              {
+                "jaix.runner.ask_tell.ATOptimiserConfig": {
+                  "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                  "strategy_config": {
+                    "jaix.runner.ask_tell.strategy.BasicEAConfig": {
+                      "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                      "mu": 1,
+                      "lam": 1,
+                      "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                      "crossover_op": null,
+                      "mutation_opts": {},
+                      "crossover_opts": {},
+                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.WarmStartStrategy.NONE",
+                      "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
+                      "update_opts": {
+                        "F": 1.2,
+                        "s": 1.718281828459045
+                      }
+                    }
+                  },
+                  "init_pop_size": 1,
+                  "stop_after": 2560
+                }
+              },
+              {
+                "jaix.runner.ask_tell.ATOptimiserConfig": {
+                  "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                  "strategy_config": {
+                    "jaix.runner.ask_tell.strategy.BasicEAConfig": {
+                      "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                      "mu": 1,
+                      "lam": 1,
+                      "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                      "crossover_op": null,
+                      "mutation_opts": {},
+                      "crossover_opts": {},
+                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.WarmStartStrategy.NONE",
+                      "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
+                      "update_opts": {
+                        "F": 1.2,
+                        "s": 4
+                      }
+                    }
+                  },
+                  "init_pop_size": 1,
+                  "stop_after": 2560
+                }
+              }
+            ]
+          }
+        },
+        "init_pop_size": 1,
+        "stop_after": 2560
+      }
+    }
+  }
+}
