@@ -1,10 +1,14 @@
 import wandb
 import numpy as np
+from collections import defaultdict
 
 api = wandb.Api()
-entity, project = "TAI_track", "mmind"
+entity, project = "TAI_track", "telltale2"
 runs = api.runs(entity + "/" + project)
 
+
+agg_instances = defaultdict(int)
+max_num = 4
 for run in runs:
     """
     importate_opts = run.config["jaix.ExperimentConfig"]["opt_config"][
@@ -24,8 +28,18 @@ for run in runs:
     run.group = str(factor)
     run.update()
     """
+    if "agg_instances" in run.group:
+        agg_i = run.config["jaix.ExperimentConfig"]["env_config"][
+            "jaix.EnvironmentConfig"
+        ]["suite_config"]["jaix.suite.SuiteConfig"]["agg_instances"]
+        if agg_instances[agg_i] < max_num:
+            run.group = "bandit"
+        else:
+            run.group = "bandit2"
+        agg_instances[agg_i] += 1
+        run.update()
 
-run = runs[0]
+# run = runs[0]
 # save the metrics for the run to a csv file
-metrics_dataframe = run.history()
-metrics_dataframe.to_csv("metrics.csv")
+# metrics_dataframe = run.history()
+# metrics_dataframe.to_csv("metrics.csv")
