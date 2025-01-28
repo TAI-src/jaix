@@ -153,6 +153,7 @@ def launch_jaix_experiment(
     wandb: bool = True,
     repeat: int = 1,
     sweep: Optional[Tuple[List[str], List[Any]]] = None,
+    group_name: Optional[str] = None,
 ):
     """
     Launch a jaix experiment from a run_config dictionary
@@ -177,6 +178,9 @@ def launch_jaix_experiment(
         run_configs.append(run_config)
         group_names.append(None)
 
+    # TODO: make nicer, this just overwrites for now
+    if group_name:
+        group_names = [group_name] * len(run_configs)
     results = {}
 
     for run_config, group_name in zip(run_configs, group_names):
@@ -208,6 +212,7 @@ def parse_args():
         "--sweep_keys", nargs="+", type=str, help="Keys to sweep value in config"
     )
     parser.add_argument("--sweep_values", nargs="+", type=float, help="Values to sweep")
+    parser.add_argument("--group", type=str, default=None, help="Wandb group name")
     args = parser.parse_args()
     if args.sweep_values:
         cmp = [int(v) == v for v in args.sweep_values]
@@ -245,6 +250,7 @@ if __name__ == "__main__":
             sweep_keys = args.sweep_keys  # type: List[str]
             sweep_values = args.sweep_values  # type: List[Any]
             launch_arguments["sweep"] = (sweep_keys, sweep_values)  # type: ignore
+        launch_arguments["group_name"] = args.group
         # TODO: better validation of arguments
     results = launch_jaix_experiment(**launch_arguments)  # type: ignore
     # Aggregate exit codes. If any experiment failed, the script will return something different than 0

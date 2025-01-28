@@ -101,7 +101,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         i.e. metrics, debug info.
         """
         x = np.asarray(x, dtype=self.action_space.dtype)
-        obs = self.func(x)
+        obs, r = self.func(x)
         terminated = self.func.final_target_hit()
         truncated = (
             self.func.evalsleft(self.budget_multiplier) <= 0
@@ -113,7 +113,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
 
         # observation, reward, terminated, truncated, info
         # TODO: reward cannot be multi-dimensional
-        return obs, obs[0], terminated, truncated, self._get_info()
+        return obs, r, terminated, truncated, self._get_info()
 
     def render(self):
         """

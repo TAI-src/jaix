@@ -47,7 +47,7 @@ def test_eval():
         precision=1e-8,
     )
     sphere = COF.create(Sphere, config, 1)
-    f = sphere([1, 2, 3])
+    f, _ = sphere([1, 2, 3])
     assert sphere.final_target_hit()
     assert f == [4, 4]
 
@@ -63,5 +63,5 @@ def test_format(n_obj):
         precision=1e-8,
     )
     sphere = COF.create(Sphere, config, 1)
-    f = sphere([1, 2, 3])
+    f, _ = sphere([1, 2, 3])
     assert len(f) == n_obj

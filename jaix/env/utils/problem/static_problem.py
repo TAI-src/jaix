@@ -83,11 +83,11 @@ class StaticProblem:
             ][1:]
         """
         self.evaluations += 1
-        fitness = self._eval(x)
+        fitness, r = self._eval(x)
         self.current_best = [
             f if f < cb else cb for f, cb in zip(fitness, self.current_best)
         ]
-        return fitness
+        return fitness, r
 
     def recommend(self, x):
         # TODO validate x

@@ -14,6 +14,7 @@ class RBFAdapterConfig(Config):
         num_rad_range: Tuple[int, int] = (15, 25),
         ratio_x_range: Tuple[float, float] = (0.25, 0.5),
         num_measure_points: int = 2000,
+        num_true_measure_points: int = 2000,
         x_val_range: Tuple[float, float] = (-10, 10),
         y_val_range: Tuple[float, float] = (
             1,
@@ -26,6 +27,7 @@ class RBFAdapterConfig(Config):
         self.num_rad_range = num_rad_range
         self.ratio_x_range = ratio_x_range
         self.num_measure_points = num_measure_points
+        self.num_true_measure_points = num_true_measure_points
         self.x_val_range = x_val_range
         self.y_val_range = y_val_range
         self.kernel = kernel
@@ -80,14 +82,14 @@ class RBFAdapter(ConfigurableObject):
         self.centers = RBFAdapter._split_range(config.x_val_range[0], x_length, num_rad)
         self.num_rad = num_rad
 
-    def get_targets(self):
+    def get_targets(self, num_measure_points):
         if not self.noisy:
             np.random.seed(self.inst)
 
         measure_points = np.random.uniform(
             low=self.x_val_range[0],
             high=self.x_val_range[1],
-            size=self.num_measure_points,
+            size=num_measure_points,
         )
         measure_points = np.sort(measure_points)
         targets = [
@@ -103,6 +105,10 @@ class RBFAdapter(ConfigurableObject):
         assert len(w) == self.num_rad
         eps = [1] * self.num_rad
         rbf = RBF(self.centers, eps, w, self.kernel)
-        targets = self.get_targets()
+        targets = self.get_targets(self.num_measure_points)
         d = [rbf.eval(m) - t for (m, t) in targets]
-        return self.err(d)
+
+        # True / higher fidelity error
+        true_targets = self.get_targets(self.num_true_measure_points)
+        true_d = [rbf.eval(m) - t for (m, t) in true_targets]
+        return self.err(d), self.err(true_d)
