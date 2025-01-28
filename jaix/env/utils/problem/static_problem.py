@@ -34,7 +34,9 @@ class StaticProblem:
             else self.max_values
         )  # type: List[float]
         self.evaluations = 0
-        self.recommendations = defaultdict(list)  # type: DefaultDict[int, List[np.ndarray]]
+        self.recommendations = defaultdict(
+            list
+        )  # type: DefaultDict[int, List[np.ndarray]]
         self.last_recommended_at = 0
         self.current_best = self.max_values
 
