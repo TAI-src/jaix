@@ -1,6 +1,7 @@
 from jaix.env.utils.problem.rbf import RBFAdapterConfig, RBFAdapter, RBF
 import pytest
 from math import isclose
+import numpy as np
 
 
 @pytest.mark.parametrize(
@@ -50,7 +51,7 @@ def test_get_targets(noisy):
     config.noisy = noisy
     rbf_adapter = RBFAdapter(config, 1337)
 
-    targets = rbf_adapter.get_targets()
+    targets = rbf_adapter.get_targets(config.num_measure_points)
 
     assert len(targets) == config.num_measure_points
     p = [(m, v) for (m, v) in targets if v != 0]
@@ -64,7 +65,7 @@ def test_get_targets(noisy):
     assert p[0][1] == rbf_adapter.target_val
 
     # _Test noise
-    targets_2 = rbf_adapter.get_targets()
+    targets_2 = rbf_adapter.get_targets(config.num_measure_points)
     if not noisy:
         assert targets == targets_2
     else:
@@ -77,6 +78,14 @@ def test_init():
     assert rbf_adapter1.centers == rbf_adapter2.centers
 
 
+def test_noise():
+    config = get_config()
+    rbf_adapter = RBFAdapter(config, 1337)
+    config.num_measure_points = 10
+    fit, r = rbf_adapter.comp_fit([0] * rbf_adapter.num_rad)
+    assert not np.isclose(fit, r)
+
+
 def test_comp_fit():
     config = RBFAdapterConfig(
         num_rad_range=(1, 1),
@@ -86,12 +95,13 @@ def test_comp_fit():
     )
     rbf_adapter = RBFAdapter(config, 3)
     # Just check that I can execute and is correct format
-    fit = rbf_adapter.comp_fit([0] * rbf_adapter.num_rad)
+    fit, r = rbf_adapter.comp_fit([0] * rbf_adapter.num_rad)
     assert isinstance(fit, float)
+    assert np.isclose(r, fit)
 
     # Check value makes sense
     rbf_adapter.err = lambda d: d
-    d = rbf_adapter.comp_fit([1])
-    targets = rbf_adapter.get_targets()
+    d, r = rbf_adapter.comp_fit([1])
+    targets = rbf_adapter.get_targets(config.num_measure_points)
     rbf = RBF(rbf_adapter.centers, [1], [1], rbf_adapter.kernel)
     assert d[0] == rbf.eval(targets[0][0]) - targets[0][1]

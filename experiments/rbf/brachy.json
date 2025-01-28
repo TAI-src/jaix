@@ -3,8 +3,8 @@
     "runner_class": "jaix.runner.ask_tell.ATRunner",
     "runner_config": {
       "jaix.runner.ask_tell.ATRunnerConfig": {
-        "max_evals": 30000,
-        "disp_interval": 5000
+        "max_evals": 5000,
+        "disp_interval": 1000
       }
     },
     "logging_config": {
@@ -34,6 +34,7 @@
                         0.5
                       ],
                       "num_measure_points": 2000,
+                      "num_true_measure_points": 2000,
                       "x_val_range": [
                         -10,
                         10
@@ -42,7 +43,7 @@
                         1,
                         4
                       ],
-                      "noisy": false
+                      "noisy": true
                     }
                   },
                   "precision": 1e-8

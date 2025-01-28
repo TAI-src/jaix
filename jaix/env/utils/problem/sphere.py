@@ -33,7 +33,7 @@ class Sphere(ConfigurableObject, StaticProblem):
 
     def __init__(self, config: SphereConfig, inst: int):
         ConfigurableObject.__init__(self, config)
-        self.min_values = [self._eval(xs)[i] for i, xs in enumerate(self.x_shifts)]
+        self.min_values = [self._eval(xs)[0][i] for i, xs in enumerate(self.x_shifts)]
         StaticProblem.__init__(
             self, self.dimension, self.num_objectives, self.precision
         )
@@ -45,7 +45,8 @@ class Sphere(ConfigurableObject, StaticProblem):
             self.mult * np.linalg.norm(x - xs) + ys
             for xs, ys in zip(self.x_shifts, self.y_shifts)
         ]
-        return fitness
+        # TODO: proper MO reward
+        return fitness, sum(fitness)
 
     def __str__(self):
         return f"Sphere {self.__dict__}"

@@ -7,7 +7,7 @@ entity, project = "TAI_track", "telltale2"
 runs = api.runs(entity + "/" + project)
 
 
-agg_instances = defaultdict(int)
+# agg_instances = defaultdict(int)
 max_num = 4
 for run in runs:
     """
@@ -28,6 +28,7 @@ for run in runs:
     run.group = str(factor)
     run.update()
     """
+    """
     if "agg_instances" in run.group:
         agg_i = run.config["jaix.ExperimentConfig"]["env_config"][
             "jaix.EnvironmentConfig"
@@ -38,6 +39,7 @@ for run in runs:
             run.group = "bandit2"
         agg_instances[agg_i] += 1
         run.update()
+    """
 
 # run = runs[0]
 # save the metrics for the run to a csv file

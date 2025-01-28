@@ -34,9 +34,7 @@ class StaticProblem:
             else self.max_values
         )  # type: List[float]
         self.evaluations = 0
-        self.recommendations = defaultdict(
-            list
-        )  # type: DefaultDict[int, List[np.ndarray]]
+        self.recommendations = defaultdict(list)  # type: DefaultDict[int, List[np.ndarray]]
         self.last_recommended_at = 0
         self.current_best = self.max_values
 
@@ -83,11 +81,11 @@ class StaticProblem:
             ][1:]
         """
         self.evaluations += 1
-        fitness = self._eval(x)
+        fitness, r = self._eval(x)
         self.current_best = [
             f if f < cb else cb for f, cb in zip(fitness, self.current_best)
         ]
-        return fitness
+        return fitness, r
 
     def recommend(self, x):
         # TODO validate x

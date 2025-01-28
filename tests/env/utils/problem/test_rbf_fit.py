@@ -12,7 +12,8 @@ def test_rbf_fit():
     config = RBFFitConfig(rbf_adapter_config, 1e-8)
     rbf = RBFFit(config, 5)
     x = [1] * rbf.dimension
-    assert isinstance(rbf._eval(x)[0], float)
+    fit, _ = rbf._eval(x)
+    assert isinstance(fit[0], float)
     assert not rbf.final_target_hit()
 
 

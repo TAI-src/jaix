@@ -38,5 +38,5 @@ def test_format(n_obj):
         suite = ex.Suite("bbob-biobj", "", "dimensions:3")
     f = suite.get_problem(1)
     coco_problem = COCOProblem(f)
-    res = coco_problem([1, 2, 3])
+    res, _ = coco_problem([1, 2, 3])
     assert len(res) == n_obj

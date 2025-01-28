@@ -39,10 +39,12 @@ class COCOProblem(StaticProblem):
         return self.problem.final_target_hit
 
     def _eval(self, x):
+        res = self.problem(x)
         if self.problem.number_of_objectives == 1:
-            return [self.problem(x)]
+            return [res], res
         else:
-            return self.problem(x)
+            # TODO: This should be a proper MO indicator
+            return res, sum(res)
 
     def __str__(self):
         return f"{self.dimension}/{self.problem.name}"
