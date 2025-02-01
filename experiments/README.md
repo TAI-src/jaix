@@ -48,7 +48,7 @@ Let's assume the following config:
     "key1": "value1",
     "key2": "value2",
     "config_class2": "config2",
-    "config2"": {
+    "config2": {
       "key3": "value3"
     }
   }
