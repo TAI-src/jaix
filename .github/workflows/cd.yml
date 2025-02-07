@@ -55,4 +55,5 @@ jobs:
         contents: read
     with:
         docker-dir: docker
+        setup-path: setup.py
     secrets: inherit

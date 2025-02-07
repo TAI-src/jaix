@@ -5,7 +5,7 @@ services:
   tabrepo:
     container_name: tabrepo
     env_file: .env
-    image: taisrc/jaix:tabrepo
+    image: taisrc/jaix:tabrepo${VER:+-}${VER}
     build:
         context: ../deps/tabrepo
         dockerfile: ../../docker/Dockerfile_tabrepo
@@ -14,7 +14,7 @@ services:
   jaix:
     container_name: jaix
     env_file: .env
-    image: taisrc/jaix
+    image: taisrc/jaix${VER:+:}${VER}
     depends_on:
         tabrepo:
             condition: service_completed_successfully
@@ -39,11 +39,11 @@ services:
     container_name: jaix_wandb_job
     env_file: .env
     depends_on:
-        tabrepo:
-            condition: service_completed_successfully
-    image: taisrc/jaix:job
+      - jaix
+    image: taisrc/jaix:job${VER:+-}${VER}
     build:
         context: ..
+        no_cache: true
         dockerfile: docker/Dockerfile_job
     volumes:
       - ../jaix:/jaix/jaix
