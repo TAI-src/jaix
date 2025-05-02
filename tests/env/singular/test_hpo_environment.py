@@ -2,6 +2,7 @@ from jaix.env.singular import HPOEnvironmentConfig, HPOEnvironment
 from jaix.env.utils.hpo import TaskType
 from ttex.config import ConfigurableObjectFactory as COF
 import pytest
+import json
 
 
 @pytest.fixture
@@ -70,8 +71,10 @@ def test_stop(env):
     env.reset(options={"online": True})
     assert not env.stop()
     while not env.stop():
-        _, r, _, _, info = env.step(env.action_space.sample())
-        assert info["best_ensemble_score"] <= r
+        obs, r, _, _, info = env.step(env.action_space.sample())
+        ensembles = json.loads(info["ensembles"])
+        print(ensembles)
+        assert len(ensembles[str(obs[0])]) >= 1
     assert env.training_budget <= env.training_time
     assert r == env.tabrepo_adapter.max_rank
 
