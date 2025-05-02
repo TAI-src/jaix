@@ -8,6 +8,8 @@ from jaix.env.utils.hpo import TaskType, TabrepoAdapter
 from typing import Optional
 from jaix import LOGGER_NAME
 from jaix.env.singular import SingularEnvironment
+from collections import defaultdict
+import json
 
 # TODO: Introduce ensembles at some point
 import logging
@@ -66,16 +68,17 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         )
         self.training_time = 0
         self.num_resets = 0
-        self.best_ensemble = (None, None, None)
+        self.ensembles = defaultdict(
+            list
+        )  # type: dict[float, list[tuple[list[int], float]]]
 
     def _get_info(self):
+        # TODO: don't send full ensembles mid-way
         return {
             "dataset": self.tabrepo_adapter.metadata,
             "stop": self.stop(),
             "env_step": self.training_time,
-            "best_ensemble": str(self.best_ensemble[0]),
-            "best_ensemble_score": self.best_ensemble[1],
-            "best_ensemble_time": self.best_ensemble[2],
+            "ensembles": json.dumps(self.ensembles),
         }
 
     def stop(self):
@@ -112,12 +115,8 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         logger.debug(
             f"Action {config_ids} resulted in obs {obs} with time {time_train_s}"
         )
-        if self.best_ensemble[0] is None:
-            self.best_ensemble = (config_ids, obs, time_train_s)
-        else:
-            if obs < self.best_ensemble[1]:
-                self.best_ensemble = (config_ids, obs, time_train_s)
-        logger.debug("Best ensemble: %s", self.best_ensemble)
+        # Record
+        self.ensembles[obs].append((config_ids.tolist(), time_train_s))
 
         self.training_time += time_train_s
         terminated = obs < self.target_rank
