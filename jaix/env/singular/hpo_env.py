@@ -66,12 +66,14 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         )
         self.training_time = 0
         self.num_resets = 0
+        self.best_ensemble = None
 
     def _get_info(self):
         return {
             "dataset": self.tabrepo_adapter.metadata,
             "stop": self.stop(),
             "env_step": self.training_time,
+            "best_ensemble": self.best_ensemble,
         }
 
     def stop(self):
@@ -93,6 +95,7 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
             # We only do partial resets for ec, so still "online"
             raise ValueError("HPO environments are always online")
         self.num_resets += 1
+        self.best_ensemble = None
         return None, self._get_info()
 
     def step(self, x):
@@ -108,6 +111,13 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         logger.debug(
             f"Action {config_ids} resulted in obs {obs} with time {time_train_s}"
         )
+        if self.best_ensemble is None:
+            self.best_ensemble = (config_ids, obs, time_train_s)
+        else:
+            if obs < self.best_ensemble[1]:
+                self.best_ensemble = (config_ids, obs, time_train_s)
+        logger.debug("Best ensemble: %s", self.best_ensemble)
+
         self.training_time += time_train_s
         terminated = obs < self.target_rank
         truncated = self.stop()
