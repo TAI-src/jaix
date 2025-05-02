@@ -25,7 +25,7 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         self.log_env_steps = 0
         self.log_renv_steps = 0
         self.best_raw_r = None
-        self.last_info = {}
+        self.last_info = {}  # type: dict
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)

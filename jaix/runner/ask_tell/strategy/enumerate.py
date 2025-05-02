@@ -18,7 +18,8 @@ class EnumerateATStrat(ConfigurableObject, ATStrategy):
         assert isinstance(env.action_space, spaces.MultiBinary)
         self.xstart = [env.action_space.sample() for _ in range(self.ask_size)]
         ATStrategy.__init__(self, self.xstart)
-        self.options = list(itertools.product([0, 1], repeat=env.action_space.n))
+        # TODO: figure out No overload variant of "product" matches argument types "list[int]", "tuple[int, ...]"  [call-overload]
+        self.options = list(itertools.product([0, 1], repeat=env.action_space.n))  # type: ignore
 
     def initialize(self):
         self.current = 0
