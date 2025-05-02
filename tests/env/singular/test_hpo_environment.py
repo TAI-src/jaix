@@ -73,7 +73,6 @@ def test_stop(env):
     while not env.stop():
         obs, r, _, _, info = env.step(env.action_space.sample())
         ensembles = json.loads(info["ensembles"])
-        print(ensembles)
         assert len(ensembles[str(obs[0])]) >= 1
     assert env.training_budget <= env.training_time
     assert r == env.tabrepo_adapter.max_rank
