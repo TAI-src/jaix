@@ -68,7 +68,9 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         )
         self.training_time = 0
         self.num_resets = 0
-        self.ensembles = defaultdict(list)  # type: dict[float, list[tuple[list[int], float]]]
+        self.ensembles = defaultdict(
+            list
+        )  # type: dict[float, list[tuple[list[int], float]]]
 
     def _get_info(self):
         # TODO: don't send full ensembles mid-way
