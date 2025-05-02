@@ -5,7 +5,7 @@ from tabrepo.repository.evaluation_repository import (
     load_repository,
 )
 from jaix.env.utils.hpo import TaskType, TabrepoAdapter
-from typing import Optional
+from typing import Optional, List, Tuple, Dict
 from jaix import LOGGER_NAME
 from jaix.env.singular import SingularEnvironment
 from collections import defaultdict
@@ -68,9 +68,7 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         )
         self.training_time = 0
         self.num_resets = 0
-        self.ensembles = defaultdict(
-            list
-        )  # type: dict[float, list[tuple[list[int], float]]]
+        self.ensembles = defaultdict(list)  # type: Dict[float, List[Tuple[List[int], float]]]
 
     def _get_info(self):
         # TODO: don't send full ensembles mid-way

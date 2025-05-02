@@ -3,13 +3,18 @@ import numpy as np
 from collections import defaultdict
 
 api = wandb.Api()
-entity, project = "TAI_track", "telltale2"
-runs = api.runs(entity + "/" + project)
+entity, project, group = "TAI_track", "hpo", "all"
+
+if group is not None:
+    runs = api.runs(entity + "/" + project, filters={"group": group})
+else:
+    runs = api.runs(entity + "/" + project)
 
 
 # agg_instances = defaultdict(int)
 max_num = 4
 for run in runs:
+    print(run.summary)
     """
     importate_opts = run.config["jaix.ExperimentConfig"]["opt_config"][
         "jaix.runner.ask_tell.ATOptimiserConfig"
