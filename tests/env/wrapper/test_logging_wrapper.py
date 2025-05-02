@@ -52,3 +52,16 @@ def test_additions():
     assert msg["env/step"] == msg["env/log_step"] + 1
     assert "env/raw_r/DummyEnv/0/1" in msg
     assert "env/best_raw_r/DummyEnv/0/1" in msg
+
+
+def test_close():
+    config = LoggingWrapperConfig(logger_name="DefaultLogger")
+    env = DummyEnv()
+    wrapped_env = LoggingWrapper(config, env)
+
+    wrapped_env.reset()
+    wrapped_env.step(wrapped_env.action_space.sample())
+
+    wrapped_env.close()
+    msg = ast.literal_eval(test_handler.last_record.getMessage())
+    assert "env/close/DummyEnv/0/1" in msg
