@@ -73,7 +73,6 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         return obs, r, term, trunc, info
 
     def close(self):
-        self.env.close()
         env_step = (
             self.last_info["env_step"]
             if "env_step" in self.last_info
@@ -83,13 +82,11 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
             "env/step": env_step,
             "env/log_step": self.log_env_steps,
         }
-        print(self.last_info)
         for key, value in self.last_info.items():
             # TODO: for now not nested
-            print(key)
-            print(value)
             if isinstance(value, dict):
                 continue
             closing_info[f"env/close/{str(self.env.unwrapped)}/{key}"] = value
 
         self.logger.info(closing_info)
+        self.env.close()
