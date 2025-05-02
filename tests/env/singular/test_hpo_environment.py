@@ -71,7 +71,7 @@ def test_stop(env):
     assert not env.stop()
     while not env.stop():
         _, r, _, _, info = env.step(env.action_space.sample())
-        assert info["best_ensemble"][1] <= r
+        assert info["best_ensemble_score"] <= r
     assert env.training_budget <= env.training_time
     assert r == env.tabrepo_adapter.max_rank
 

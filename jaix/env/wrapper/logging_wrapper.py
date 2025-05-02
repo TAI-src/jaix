@@ -84,6 +84,7 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         }
         for key, value in self.last_info.items():
             # TODO: for now not nested
+            # TODO: Test for loggable values for wandb. if not, issue warning. Probably do this in ttex
             if isinstance(value, dict):
                 continue
             closing_info[f"env/close/{str(self.env.unwrapped)}/{key}"] = value
