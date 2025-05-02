@@ -73,16 +73,21 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         return obs, r, term, trunc, info
 
     def close(self):
-        self.env.close()
         env_step = (
             self.last_info["env_step"]
             if "env_step" in self.last_info
             else self.log_env_steps
         )
-        self.logger.info(
-            {
-                f"env/close/{str(self.env.unwrapped)}": self.last_info,
-                "env/step": env_step,
-                "env/log_step": self.log_env_steps,
-            }
-        )
+        closing_info = {
+            "env/step": env_step,
+            "env/log_step": self.log_env_steps,
+        }
+        for key, value in self.last_info.items():
+            # TODO: for now not nested
+            # TODO: Test for loggable values for wandb. if not, issue warning. Probably do this in ttex
+            if isinstance(value, dict):
+                continue
+            closing_info[f"env/close/{str(self.env.unwrapped)}/{key}"] = value
+
+        self.logger.info(closing_info)
+        self.env.close()

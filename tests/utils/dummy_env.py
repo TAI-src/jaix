@@ -62,7 +62,7 @@ class DummyConfEnv(ConfigurableObject, SingularEnvironment):
         self.reward_space.seed(seed)
         self._trunc = False
         self._term = False
-        return self.observation_space.sample(), {}
+        return self.observation_space.sample(), DummyEnv.info()
 
     def step(self, x):
         return (
@@ -70,7 +70,7 @@ class DummyConfEnv(ConfigurableObject, SingularEnvironment):
             self.reward_space.sample()[0],
             self._term,
             self._trunc,
-            {},
+            DummyEnv.info(),
         )
 
     def stop(self):

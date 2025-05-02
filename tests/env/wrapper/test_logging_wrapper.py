@@ -64,4 +64,4 @@ def test_close():
 
     wrapped_env.close()
     msg = ast.literal_eval(test_handler.last_record.getMessage())
-    assert "env/close/DummyEnv/0/1" in msg
+    assert "env/close/DummyEnv/0/1/funcs" in msg
