@@ -79,10 +79,17 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
             if "env_step" in self.last_info
             else self.log_env_steps
         )
-        self.logger.info(
-            {
-                f"env/close/{str(self.env.unwrapped)}": self.last_info,
-                "env/step": env_step,
-                "env/log_step": self.log_env_steps,
-            }
-        )
+        closing_info = {
+            "env/step": env_step,
+            "env/log_step": self.log_env_steps,
+        }
+        print(self.last_info)
+        for key, value in self.last_info.items():
+            # TODO: for now not nested
+            print(key)
+            print(value)
+            if isinstance(value, dict):
+                continue
+            closing_info[f"env/close/{str(self.env.unwrapped)}/{key}"] = value
+
+        self.logger.info(closing_info)
