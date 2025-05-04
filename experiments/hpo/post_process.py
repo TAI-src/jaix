@@ -97,6 +97,8 @@ def get_run_data(n):
     for run in runs:
         hpo_dict = defaultdict(dict)
         hpo_mins = defaultdict(dict)
+        env_steps = []
+        all_data = []
         for key, value in run.summary.items():
             if "ensembles" in key:
                 _, _, _, id, fold, _ = key.split("/")
@@ -109,6 +111,17 @@ def get_run_data(n):
                     X = [x for x, _ in v]
                     x_diff = binary_distance(X, n=n)
                     T = [t for _, t in v]
+                    for x, t in v:
+                        all_data.append(
+                            {
+                                "f": int(id),
+                                "fold": int(fold),
+                                "id": f"{id}/{fold}",
+                                "x": which2dec([x])[0],
+                                "t": t,
+                                "r": float(k),
+                            }
+                        )
                     summary_dict[float(k)] = {
                         "number": len(v),
                         "bin_dist": summarise(x_diff),
@@ -121,6 +134,9 @@ def get_run_data(n):
                     "T": [t for _, t in ensembles[str(min_k)]],
                     "min_k": min_k,
                 }
+            elif "env_step" in key:
+                _, _, _, id, fold, _ = key.split("/")
+                env_steps.append({"id": int(id), "fold": int(fold), "env_step": value})
         ensemble_file = f"ensembles_{run.id}.pkl"
         with open(ensemble_file, "wb") as f:
             pickle.dump(hpo_dict, f)
@@ -131,6 +147,10 @@ def get_run_data(n):
             "ensemble_file": ensemble_file,
             "min_file": min_file,
         }
+        # Save all data
+        pd.DataFrame(all_data).to_csv(f"{run.id}_data.csv")
+        # Save env env_steps
+        pd.DataFrame(env_steps).to_csv(f"{run.id}_env_steps.csv")
     return files
 
 
