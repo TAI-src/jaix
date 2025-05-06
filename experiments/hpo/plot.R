@@ -8,6 +8,7 @@ plot_mat = function(mat, nbins=256, title=""){
   values = as.vector(mat)
   t_min = min(values[is.finite(values)], na.rm=TRUE)
   t_max = max(values[is.finite(values)], na.rm=TRUE)
+
   z_cap = max(abs(t_min), abs(t_max))
 
   palette <- colorRampPalette(c("red",'white','#0033BB'))(nbins)
@@ -29,6 +30,7 @@ plot_mat = function(mat, nbins=256, title=""){
 
 
 process = function(data, field){
+  ## comparative
   results = matrix(NA, nrow=length(unique(data$id)), ncol=6)
   counter = 1
   for(fid in sort(unique(data$id))){
@@ -42,9 +44,31 @@ process = function(data, field){
     results[counter,] = vals
     counter = counter +1
   }
-  colnames(results) = paste("i", c("1.1", "1.2", "2.1", "2.2", "3.1", "3.2"), sep="_")
+  colnames(results) = paste("f", c("0-1", "0-2", "1-0", "1-2", "2-0", "2-1"), sep="_")
   rownames(results) = paste("d", 0:(nrow(results)-1), sep="_")  
 
+  plot_mat(results, title = field)
+  
+}
+
+process_single = function(data, field){
+    
+  ## absolute
+  results = matrix(NA, nrow=length(unique(data$id)), ncol=3)
+  counter = 1
+  for(fid in sort(unique(data$id))){
+    vals = c()
+    tmp = data[data$id==fid,]
+    for(fold in unique(tmp$to)){
+      self = tmp[tmp$from==fold & tmp$to==fold, field]
+      vals = c(vals, self)
+    }
+    results[counter,] = vals
+    counter = counter +1
+  }
+  colnames(results) = paste("i", c("0", "1", "2"), sep="_")
+  rownames(results) = paste("d", 0:(nrow(results)-1), sep="_")  
+  
   plot_mat(results, title = field)
 }
 
@@ -55,6 +79,10 @@ pdf("fvq1pkfe_results.pdf")
 for(field in c("bin_dist.mean", "bin_dist.med", "bin_dist.min", "bin_dist.max", "set_matches", "number")){
 #for(field in c("bin_dist.max")){
   process(data,field)
+}
+for(field in c("number")){
+  #for(field in c("bin_dist.max")){
+  process_single(data,field)
 }
 
 # total training duration per id
@@ -77,6 +105,7 @@ for(d in unique(data$id)){
 lab = levels(cut(data$r, nColor))[c(seq(1,nColor,5),20)]
 legend("topright", legend=lab, pch=19, col=colors[c(seq(1,nColor,5),20)],
        title="Best ensemble rank")
+
 
 dev.off()
 
@@ -208,19 +237,23 @@ for(f in sort(unique(data$f))){
 }
 
 
-plot_across = function(data){
-  plot(data$r, data$f, col=data$cols, pch=data$shapes,
+
+
+plot_across = function(data, column, xlab, leg_title="which_m"){
+  plot(data[[column]], data$f, col=data$cols, pch=data$shapes,
        main=paste("Singles", paste(sort(unique(data$which)), collapse=" ")),
-       xlab="Ensemble rank",
+       xlab=xlab,
        ylab="Dataset id")
   for(d in unique(data$f)){
-    lines(x=c(0, max(data$r)), y=c(d,d), col="lightgrey")
+    lines(x=c(min(data[[column]]), max(data[[column]])), y=c(d,d), col="lightgrey")
   }
   legend("topright", inset=c(-0.2,0), legend=0:2,
          pch=shapes, title="folds")
   legend("bottomright", inset=c(-0.2,0), legend=1:9,
-         col=cols, pch=19, title="which_m")  
+         col=cols, pch=19, title=leg_title)  
 }
+
+library(dplyr)
 
 pdf("fvq1pkfe_singles.pdf")
 par(mar=c(5.1, 4.1, 4.1, 6.1), xpd=TRUE)
@@ -230,10 +263,63 @@ data= data[data$num_m == 1,]
 data$which = sapply(data$x, dec2which)
 data$cols = cols[as.numeric(factor(data$which))]
 data$shapes = shapes[as.numeric(factor(data$fold))]
-plot_across(data)
+data = data %>% 
+  group_by(id) %>% 
+  mutate(nr=scale(r))
+
+plot_across(data, column="r", "Ensemble rank")
+plot_across(data, column="nr", "Normalised ensemble rank")
+
 for(w in sort(unique(data$which))){
-  plot_across(data[data$which==w,])
+  plot_across(data[data$which==w,], "r", "Ensemble rank")
+  plot_across(data[data$which==w,], "nr", "Normalised ensemble rank")
 }
 
+data = data %>% 
+  group_by(f) %>% 
+  mutate(nt=scale(t))
+
+data$lt = log(data$t)
+plot_across(data, column="nt", "Normalised training time")
+plot_across(data, column="t", "Training time")
+plot_across(data, column="lt", "Log training time")
+
+
+dat = table(tmp$f, tmp$fold)
+
+for(x in 1:nrow(dat)){
+  for(y in 1:ncol(dat)){
+    val = tmp$min_r[tmp$id==paste(x-1,y-1,sep="/")]
+    if(length(val)==0){
+      dat[x,y] = NA
+    }else{
+      dat[x,y] = val
+    }
+  }
+}
+colnames(dat) = paste("i", c("0", "1", "2"), sep="_")
+rownames(dat) = paste("d", 0:(nrow(dat)-1), sep="_")
+
+
+data = read.csv("fvq1pkfe_data.csv")
+data = data %>% 
+  group_by(id) %>% 
+  mutate(scale_r=scale(r))
+
+dat = data.frame()
+for(t_cap in 1:9){
+  tmp = data %>% 
+    group_by(id) %>% 
+    filter(t<t_cap) %>% 
+    mutate(min_r=min(scale_r)) %>%
+    distinct(id, .keep_all=TRUE)
+  
+  tmp$t_cap = t_cap
+  tmp$cols = cols[t_cap]
+  dat = rbind(dat,tmp)
+}
+dat$shapes = shapes[as.numeric(factor(dat$fold))]
+dat$which = 0
+plot_across(dat, "min_r", "Best scaled rank capped", leg_title="t_cap")
 
 dev.off()
