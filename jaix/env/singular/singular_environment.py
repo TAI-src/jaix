@@ -6,9 +6,9 @@ class SingularEnvironment(gym.Env):
     @staticmethod
     def info(config):
         """
-            Returns a dictionary with information about the environment based on the passed configuration. It essentially interprets the config.
-            :param config: The configuration object.
-            :return: A dictionary with information about the environment.
+        Returns a dictionary with information about the environment based on the passed configuration. It essentially interprets the config.
+        :param config: The configuration object.
+        :return: A dictionary with information about the environment.
         """
         return {}
 
