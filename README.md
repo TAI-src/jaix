@@ -5,7 +5,7 @@ The jaix framework is a toolkit for running optimisation experiments based on th
 ## Running an experiment
 
 
-Experiments are fully described as a configuration file. Examples, requirements and more details can be found in in the [experiments](experiments/README.md) folder. The required setup and instructions are detailed there, including different options (using Docker, local python, via wandb.ai). All essentially boil down to a single command that starts the [experiment launcher](jaix/utiils/launch_experiment.py) with the desired config file.
+Experiments are fully described as a configuration file. Examples, requirements and more details can be found in in the [experiments](experiments/README.md) folder. The required setup and instructions are detailed there, including different options (using Docker, local python, and launching via the wandb.ai web UI). All essentially boil down to a single command that starts the [experiment launcher](jaix/utiils/launch_experiment.py) with the desired config file.
 
 ```
 pip install -e .
@@ -14,16 +14,60 @@ python jaix/utils/launch_experiment.py --config_file experiments/<path/to/config
 
 You can either run one of the existing configurations in the [experiments](experiments/README.md) folder, or create your own. For full instructions, follow [experiments](experiments/config.md).
 
-`
+## Extending the framework
 
+### Making additions configurable
 
+This framework is using configuration-driven development. This means that all experiments should be fully configurable in a json file. This allows easier comparison, overview, repeatability and tracking. This is implemented using the [`config`](https://github.com/TAI-src/ttex/tree/main/ttex/config) module provided by the ['tai-ttex`](https://pypi.org/project/tai-ttex/) package.
+
+To maintain this ability, all new classes that have configurable properties should look like this:
+```python
+
+from jaix.config import ConfigurableObject, Config
+
+class MyClassConfig(Configt):
+    def __init__(self, property1: str, property2: int):
+        # Save the properties
+        self.property1 = property1
+        self.property2 = property2
+
+class MyClass(ConfigurableObject):
+    config_class = MyClassConfig
+
+    def __init__(self, config: MyClassConfig, ...):
+        ConfigurableObject.__init__(self, config) # Not always necessary, but good practice
+        # Initialize your class here
+        # All properties in the config are now accessible
+        # via self.property1, self.property2, etc.
+
+  # Rest of the class
+```
+
+### Static Problem (EC)
+
+To add a new static problem (standard in EC research), create a class that inherits from the [`StaticProblem`](jaix/env/utils/problem/static_problem.py) class. A static problem is a function that maps an input to an output, and is not influenced by time or the state. For detailed instructions and examples, see [Static Problems](jaix/env/utils/problem/README.md).
+
+Note that a static problem can also be implemented as [`SingularEnvironment`](jaix/env/singular/singular_environment.py) (see below). The [`StaticProblem`](jaix/env/utils/problem/static_problem.py) class and [`ECEnvironment`](jaix/env/singular/ec_env.py) class are introduced to allow the addition of new static problems without the need to implement the full environment logic. At the same time, this ensures compatibility with the OpenAI gym framework while being able to maintain standard coding interfaces for functions in EC research.
+
+### Problem Environment (RL/EC)
+
+First decide if you are implementing a [`CompositeEnvironment`](jaix/env/composite/composite_environment.py), [SingularEnvironment](jaix/env/singular/singular_environment.py), or potentially both.
+* A composite environment is comprised of multiple singular once and should only be responsible for initialising the corresponding singular environments and switching between them.
+* A singular environment implements the logic and values that are actually passed to the optimisation algorithm.
+
+To add a new singular environment, create a class that inherits from the [`SingularEnvironment`](jaix/env/singular/singular_environment.py) class. For detailed instructions and examples, see [Singular Environments](jaix/env/singular/README.md). To add a new composite environment, create a class that inherits from the [`CompositeEnvironment`](jaix/env/composite/composite_environment.py) class. For detailed instructions and examples, see [Composite Environments](jaix/env/composite/README.md).
+
+### Environment Wrapper
+
+In order to ensure compatibility across different use cases, the OpenAI gym framework has introduced the concept of [environment wrappers](https://gymnasium.farama.org/api/wrappers/), which can alter a problem environment without needing to modify the underlying code. More importantly, wrappers offer a way to explore different problem models and evaluation settings without changing the underlying implementation (for example, by adding additional constraints to the search space, changing how solutions are represented, adding an additional objective, adding context information).
+
+To add a new environment wrapper, create a class that inherits from the [`PassthroughWrapper`](jaix/env/wrapper/passthrough_wrapper.py) class. For detailed instructions and examples, see [Environment Wrappers](jaix/env/wrapper/README.md).
 
 ## Troubleshooting
 
-Make sure all submodules for required dependencies in `deps` are pulled. To do that, navigate to each folder and do:
+Make sure all sub-modules for required dependencies in [`deps`](/deps) are pulled. To do that, navigate to each folder and do:
 ```
 git submodule init
 git submodule update
 ```
 
-See 'test_launch_experiment' for example config

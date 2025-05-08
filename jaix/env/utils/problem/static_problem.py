@@ -63,6 +63,11 @@ class StaticProblem:
 
     @abstractmethod
     def _eval(self, x):
+        """
+        Evaluate the objective function.
+            :param x: The input vector.
+            :return: Tuple of objective function value and reward.
+        """
         pass
 
     def __call__(self, x):

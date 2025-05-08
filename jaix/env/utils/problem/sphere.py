@@ -41,6 +41,11 @@ class Sphere(ConfigurableObject, StaticProblem):
         self.inst = inst
 
     def _eval(self, x):
+        """
+        Evaluate the objective function.
+            :param x: The input vector.
+            :return: Tuple of objective function value and reward.
+        """
         fitness = [
             self.mult * np.linalg.norm(x - xs) + ys
             for xs, ys in zip(self.x_shifts, self.y_shifts)
