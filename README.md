@@ -15,6 +15,7 @@ python jaix/utils/launch_experiment.py --config_file experiments/<path/to/config
 You can either run one of the existing configurations in the [experiments](experiments/README.md) folder, or create your own. For full instructions, follow [experiments](experiments/config.md).
 
 ## Extending the framework
+![modules](https://github.com/user-attachments/assets/aa328c45-9557-4462-aef1-0f7e3e1ac13b)
 
 ### Making additions configurable
 
