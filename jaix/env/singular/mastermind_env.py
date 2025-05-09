@@ -27,6 +27,14 @@ class MastermindEnvironmentConfig(Config):
 
 class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
     config_class = MastermindEnvironmentConfig
+    """
+    MastermindEnvironment implements an environment that simulates the game
+    Mastermind. The environment is defined by the number of slots,
+    the number of colours available for each slot, and the number of allowed guesses.
+    Two versions are implemented:
+    * non-sequential: Standard version, points are given for the number of correct guesses. This is an r-valued OneMax problem.
+    * sequential: The sequential version, where the order of the guesses matters. In this case, the environment is r-valued LeadingOnes.
+    """
 
     @staticmethod
     def info(config: MastermindEnvironmentConfig):

@@ -5,6 +5,11 @@ import uuid
 class SingularEnvironment(gym.Env):
     @staticmethod
     def info(config):
+        """
+        Returns a dictionary with information about the environment based on the passed configuration. It essentially interprets the config.
+        :param config: The configuration object.
+        :return: A dictionary with information about the environment.
+        """
         return {}
 
     def __init__(self, func_id: int, inst: int):
