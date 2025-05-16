@@ -5,7 +5,7 @@ The jaix framework is a toolkit for running optimisation experiments based on th
 ## Running an experiment
 
 
-Experiments are fully described as a configuration file. Examples, requirements and more details can be found in in the [experiments](experiments/README.md) folder. The required setup and instructions are detailed there, including different options (using Docker, local python, and launching via the wandb.ai web UI). All essentially boil down to a single command that starts the [experiment launcher](jaix/utiils/launch_experiment.py) with the desired config file.
+Experiments are fully described as a single [experiment configuration](/experiments/config.md) file. Examples, requirements and more details can be found in in the [experiments](experiments/README.md) folder. The required setup and instructions are detailed there, including different options (using Docker, local python, and launching via the wandb.ai web UI). All essentially boil down to a single command that starts the [experiment launcher](jaix/utiils/launch_experiment.py) with the desired config file.
 
 ```
 pip install -e .
@@ -19,30 +19,9 @@ You can either run one of the existing configurations in the [experiments](exper
 
 ### Making additions configurable
 
-This framework is using configuration-driven development. This means that all experiments should be fully configurable in a json file. This allows easier comparison, overview, repeatability and tracking. This is implemented using the [`config`](https://github.com/TAI-src/ttex/tree/main/ttex/config) module provided by the ['tai-ttex`](https://pypi.org/project/tai-ttex/) package.
+This framework is using [configuration-driven development](/experiments/configs.md#motivation-configuration-driven-development). This means that all experiments should be fully configurable in a json file. This allows easier comparison, overview, repeatability and tracking. This is implemented using the [`config`](https://github.com/TAI-src/ttex/tree/main/ttex/config) module provided by the ['tai-ttex`](https://pypi.org/project/tai-ttex/) package.
 
-To maintain this ability, all new classes that have configurable properties should look like this:
-```python
-
-from jaix.config import ConfigurableObject, Config
-
-class MyClassConfig(Configt):
-    def __init__(self, property1: str, property2: int):
-        # Save the properties
-        self.property1 = property1
-        self.property2 = property2
-
-class MyClass(ConfigurableObject):
-    config_class = MyClassConfig
-
-    def __init__(self, config: MyClassConfig, ...):
-        ConfigurableObject.__init__(self, config) # Not always necessary, but good practice
-        # Initialize your class here
-        # All properties in the config are now accessible
-        # via self.property1, self.property2, etc.
-
-  # Rest of the class
-```
+To maintain this ability, all new classes that have configurable properties should inherit from [`ConfigurableObject`](https://github.com/TAI-src/ttex/blob/main/ttex/config/configurable_object.py) and expect a config object that inherits from [`Config`](https://github.com/TAI-src/ttex/blob/main/ttex/config/config.py). See the module documentation for more details and examples.
 
 ### Static Problem (EC)
 

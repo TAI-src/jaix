@@ -40,5 +40,5 @@ A suitable environment configuration for `MyProblem` would look as follows:
       }
     }
 ```
-For an example of a full config with a static problem, see [`rbf`](/experiments/rbf/README.md), and for more information on the config format, see [config instructions](/experiments/config.md).
+For an example of a full config for a static problem, see [`rbf`](/experiments/rbf/brachy.json), and for more information on the config format, see the [module documentation](https://github.com/TAI-src/ttex/tree/main/ttex/config).
 

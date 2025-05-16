@@ -57,3 +57,5 @@ The configuration for a composite environment `MyCompositeEnv` would look someth
       }
     },
 ```
+
+For an example of a full config with a composite suite, see [`hpo`](/experiments/hpo/binary_comp.json), and for more information on the config format, see the [module documentation](https://github.com/TAI-src/ttex/tree/main/ttex/config).
