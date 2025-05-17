@@ -5,7 +5,6 @@ In this framework, the suite is responsible for providing the environments /prob
 
 There are currently three main ways of configuring a suite. They are listed below and described in more detail in subsections.
 * [`jaix.suite.ECSuite`](jaix/suite/ec_suite.py): Use if you want a suite comprised of [static problems](jaix/env/utils/problem/static_problem.py)
-)
 * `jaix.suite.Suite`: Use if you want a suite of [singular environments](jaix/env/singular/README.md).
 * Custom: Use if you want complete freedom to implement your own suite. In this case, you should implement a class that inherits from the [`jaix.suite.Suite`](jaix/suite.py) class and implements the `_get_env` method. For an example, see the [`COCO Suite`](jaix/suite/coco_suite.py). The configuration will depend on your implementation. See the [config module](https://github.com/TAI-src/ttex/tree/main/ttex/config) for general instructions.
 
