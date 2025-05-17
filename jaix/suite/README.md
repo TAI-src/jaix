@@ -32,10 +32,40 @@ To configure an `ECSuite` inside an [`EnvironmentConfig`](/experiments/config.md
                 "budget_multiplier": 1000
               }
             },
-            "agg_instances": 0
           }
         }
-        }
+      }
 ```
 
+An example can be found in the [rbf experiments](/experiments/rbf/brachy.json).
+Optionally, you can specify the following keys on the top level:
+* `instances`: A list of integers specifying the instances of the singular environment to be used. If not specified, all available instances will be used.
+* `agg_instances`: Only used in context of [`CompositeEnvironment`](/jaix/env/composite/README.md). The `CompositeEnvironment` will always contain all instances of the `SingularEnvironment` specified in `instances`, `agg_instances` specifies which of the permutations to use. If not specified, all available permutations will be used.
+
+
+## Configuring a Suite
+
+To configure a default `Suite` inside an [`EnvironmentConfig`](/experiments/config.md#environment-config), you need to specify the `suite_class` as `jaix.suite.Suite` and the `suite_config` as a dictionary with the following keys:
+```json
+{
+          "jaix.suite.SuiteConfig": {
+            "env_class": "full.path.to.SingularEnvironment",
+            "env_config": {
+              "full.path.to.SingularEnvironmentConfig": {
+                "property1": "val1", # Depends on problem
+              }
+            },
+          }
+```
+An example can be found in the [hpo experiments](/experiments/hpo/binary.json).
+Optionally, you can specify the following keys on the top level:
+* `instances`: A list of integers specifying the instances of the singular environment to be used. If not specified, all available instances will be used.
+* `agg_instances`: Only used in context of [`CompositeEnvironment`](/jaix/env/composite/README.md). The `CompositeEnvironment` will always contain all instances of the `SingularEnvironment` specified in `instances`, `agg_instances` specifies which of the permutations to use. If not specified, all available permutations will be used.
+
+## Configuring a Custom Suite
+
+To configure a custom `Suite` inside an [`EnvironmentConfig`](/experiments/config.md#environment-config), you need to specify the `suite_class` as `full.path.to.CustomSuite` and the `suite_config` as a dictionary with the appropriate keys, depending on what you specify in your `CustomSuiteConfig` class.
+
+
+An example for a custom suite is the [`COCOSuite`](jaix/suite/coco/coco_suite.py). An example configuration can be found in the [coco experiments](/experiments/coco/single_default.json).
 

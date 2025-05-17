@@ -21,13 +21,26 @@ As defined in [`jaix/experiment.py`](/jaix/experiment.py), the `ExperimentConfig
 As defined in [`jaix/environment_factory.py`](/jaix/environment_factory.py), the `EnvironmentConfig` class requires the following components, which are all described below:
 
 * `suite_class`: `Type[Suite]`. The class of the suite to be used. This is a subclass of [`jaix.suite.Suite`](jaix/suite.py).
-* `suite_config`: `SuiteConfig`. The configuration of the suite, i.e. the problem generator.
-* `env_wrappers`: `List[Tuple[Type[Wrapper], Dict]]`. The wrappers to be used. Each wrapper is a tuple of the class of the wrapper and the configuration of the wrapper. The class of the wrapper is a subclass of [`jaix.env.wrapper.Wrapper`](jaix/env/wrapper.py).
-* `comp_config`: `CompositeEnvironmentConfig`. The configuration of the composite environment, i.e. the environment that is used to switch between different environments. This is a subclass of [`jaix.env.composite.CompositeEnvironment`](jaix/env/composite/composite_environment.py).
+* `suite_config`: `SuiteConfig`. The configuration of the suite, i.e. the problem generator. [Suite Configuration details](/jaix/suite/README.md).
+* `env_wrappers`: `List[Tuple[Type[Wrapper], Dict]]`. The wrappers to be used. Each wrapper is a tuple of the class of the wrapper and the configuration of the wrapper. The class of the wrapper is a subclass of [`jaix.env.wrapper.Wrapper`](jaix/env/wrapper.py). [Wrapper Configuration details](/jaix/env/wrapper/README.md#wrapper-configuration).
+* `comp_config`: `CompositeEnvironmentConfig`. The configuration of the composite environment, i.e. the environment that is used to switch between different environments. This is a subclass of [`jaix.env.composite.CompositeEnvironment`](jaix/env/composite/composite_environment.py). The required keys depend on the environment config. Which instances are passed to the `CompositeEnvironment` is determined by the `instances` and `agg_instances` keys in the [suite configuration](/jaix/suite/README.md).
 * `seed`: `int`. The seed to be used for the environment. This is used to ensure that the experiment is reproducible.
 
+### Runner Config
 
+The configuration of the runner completely depends on the runner class. The runner class is a subclass of [`jaix.runner.Runner`](jaix/runner.py). The configuration is passed to the constructor of the runner class. The runner class is responsible for defining the interface between the optimiser and the environment. It is responsible for running the optimisation loop and calling the optimiser to optimise the environment.
 
+An example of a runner class is [`ATRunner`](/jaix/runner/ask_tell/ask_tell_runner.py), which implements the ask-tell interface. Full configuration examples are available in the [experiments](/experiments/README.md) folder.
+
+### Optimiser Config
+
+As with the runner, the configuration of the optimiser completely depends on the optimiser class. The optimiser class is a subclass of [`jaix.runner.Optimiser`](jaix/runner/optimiser.py). The configuration is passed to the constructor of the optimiser class. The optimiser class is responsible for implementing the optimisation logic within the interface defined by the runner. 
+
+An example of an optimiser class is [`ATOptimers`](/jaix/runner/ask_tell/at_optimiser.py). Full configuration examples are available in the [experiments](/experiments/README.md) folder.
+
+### Logging Config
+
+# TODO: todo
 
 ## Motivation Configuration-driven development
 

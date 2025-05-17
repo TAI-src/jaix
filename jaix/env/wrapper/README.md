@@ -5,6 +5,28 @@ In order to ensure compatibility across different use cases, the OpenAI gym fram
  More importantly, wrappers offer a way to explore different problem models and evaluation settings without changing the underlying implementation (for example, by adding additional constraints to the search space, changing how solutions are represented, adding an additional objective, adding context information).
 
 
+## Configuring a Wrapper
+
+To configure a wrapper inside an [`EnvironmentConfig`](/experiments/config.md#environment-config), you need to specify the `env_wrappers` as a list of tuples, where each tuple contains the class of the wrapper and the configuration of the wrapper (as a dictionary). The class of the wrapper is a subclass of [`jaix.env.wrapper.Wrapper`](jaix/env/wrapper.py).
+
+For example, to specify a [`LoggingWrapper`](/jaix/env/wrapper/logging_wrapper.py) and a [`MaxEvalWrapper`](/jaix/env/wrapper/max_eval_wrapper.py), you would do the following:
+```json
+        "env_wrappers": [
+          [
+            "jaix.env.wrapper.LoggingWrapper",
+            {
+              "loger_name": "logger name",
+            }
+          ],
+          [
+            "jaix.env.wrapper.MaxEvalWrapper",
+            {
+              "max_evals": 100,
+            }
+          ]
+        ]
+```
+
 ## Adding a Wrapper
 
 To add a new environment wrapper, create a class that inherits from the [`PassthroughWrapper`](jaix/env/wrapper/passthrough_wrapper.py) class. The `PassthroughWrapper` guarantees that all added methods are still available in the wrapped environment (unless they are overwritten). This is the same behaviour that you would expect from inheritance.
