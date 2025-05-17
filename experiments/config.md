@@ -40,7 +40,17 @@ An example of an optimiser class is [`ATOptimers`](/jaix/runner/ask_tell/at_opti
 
 ### Logging Config
 
-# TODO: todo
+Basic logging capabilities are always added to the [`experiment`](/jaix/experiment.py) to ensure basic tracking. However, this can be modified by using the [python logging facility](https://docs.python.org/3/library/logging.html), and specifically the [logging configuration](https://docs.python.org/3/library/logging.config.html) this framework offers.
+
+So, to add a `logging.Logger`, specify the following in the `jaix.LoggingConfig`:
+
+* `log_level`: `int`. The logging level to be used. This is used to filter the log messages. The default is `logging.INFO`.
+* `logger_name`: `str`. The name of the logger to be used. This is used to identify the logger in the log messages. The default is `DefaultLogger`. The default name can be changed by specifying the global variable `LOGGER_NAME`.
+* `disable_existing`: `bool`. If `True`, all existing loggers are disabled. This is used to ensure that only the loggers defined in the configuration are used. The default is `True`.
+* `dict_config`: `Dict`. The configuration of the logger. This is used to define the logging format, handlers, and other settings. More details can be found in the [python logging documentation](https://docs.python.org/3/library/logging.config.html). If nothing is specified, the [default logging configuration](https://docs.python.org/3/library/logging.config.html) from the `tai-ttex` package is used.
+
+For example, the [experiment launcher](/jaix/utils/launch_experiment.py) adds a specific `logging.Handler` that handles the integration to wandb (an experiment tracking framework). This handler is implemented in [`ttex.log.handler`](https://github.com/TAI-src/ttex/blob/main/ttex/log/handler/wandb_handler.py). This is done simply by adding the appropriate information to the logging config, as well as an additional `LoggingWrapper`.
+
 
 ## Motivation Configuration-driven development
 
