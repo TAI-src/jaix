@@ -15,7 +15,7 @@ For example, to specify a [`LoggingWrapper`](/jaix/env/wrapper/logging_wrapper.p
           [
             "jaix.env.wrapper.LoggingWrapper",
             {
-              "loger_name": "logger name",
+              "logger_name": "logger name",
             }
           ],
           [
