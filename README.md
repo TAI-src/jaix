@@ -19,7 +19,7 @@ You can either run one of the existing configurations in the [experiments](exper
 
 ### Making additions configurable
 
-This framework is using [configuration-driven development](/experiments/configs.md#motivation-configuration-driven-development). This means that all experiments should be fully configurable in a json file. This allows easier comparison, overview, repeatability and tracking. This is implemented using the [`config`](https://github.com/TAI-src/ttex/tree/main/ttex/config) module provided by the ['tai-ttex`](https://pypi.org/project/tai-ttex/) package.
+This framework is using [configuration-driven development](/experiments/config.md#motivation-configuration-driven-development). This means that all experiments should be fully configurable in a json file. This allows easier comparison, overview, repeatability and tracking. This is implemented using the [`config`](https://github.com/TAI-src/ttex/tree/main/ttex/config) module provided by the ['tai-ttex`](https://pypi.org/project/tai-ttex/) package.
 
 To maintain this ability, all new classes that have configurable properties should inherit from [`ConfigurableObject`](https://github.com/TAI-src/ttex/blob/main/ttex/config/configurable_object.py) and expect a config object that inherits from [`Config`](https://github.com/TAI-src/ttex/blob/main/ttex/config/config.py). See the module documentation for more details and examples.
 
