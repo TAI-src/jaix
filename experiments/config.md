@@ -1,7 +1,7 @@
 # Experiment Config
 
 
-This repository is using the [`config`](https://github.com/TAI-src/ttex/tree/main/ttex/config) module provided by the ['tai-ttex`](https://pypi.org/project/tai-ttex/) package. For mode details on their usage, please check out the documentation in that repository.
+This repository is using the [`config`](https://github.com/TAI-src/ttex/tree/main/ttex/config) module provided by the ['tai-ttex`](https://pypi.org/project/tai-ttex/) package. For more details on their usage, please check out the documentation in that repository.
 
 Here, we detail a specific class, [`ExperimentConfig`](/jaix/experiment.py), that fully specifies a complete experiment. It is made up of several nested configurations, that specify the separate modules. For our reasoning of ensuring configurability in this repository, see [below](#motivation-configuration-driven-development).
 
