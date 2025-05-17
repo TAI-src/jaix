@@ -41,6 +41,7 @@ The configuration for a singular environment `MySingularEnv` would look somethin
         ]
       }
     },
-
 ```
+
+For an example of a full config with a singular environment, see [`hpo`](/experiments/hpo/binary.json), and for more information on the config format, see the [module documentation](https://github.com/TAI-src/ttex/tree/main/ttex/config).
 
