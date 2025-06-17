@@ -46,6 +46,7 @@ class SuiteConfig(Config):
             self.agg_instances = [instance_permutations[i] for i in agg_instances]  # type: ignore
         else:
             self.agg_instances = agg_instances  # type: ignore
+        logger.debug(f"SuiteConfig created with {self.__dict__}")
 
 
 class Suite(ConfigurableObject):
