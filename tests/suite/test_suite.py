@@ -9,7 +9,7 @@ def init_suite():
         env_config=DummyEnvConfig(dimension=6),
         functions=[0, 1],
         instances=list(range(5)),
-        agg_instances=3,
+        agg_instances=[0, 1, 2],
     )
     return Suite(config)
 
@@ -46,9 +46,7 @@ def test_suite_config_agg_instances_many(inst, comp_env_num):
 def test_init():
     suite = init_suite()
     counter = 0
-    for agg_inst in suite.agg_instances:
-        counter +=1
-    assert counter == 3
+    assert len(suite.agg_instances) == 3
 
 
 def test_get_envs():
@@ -75,4 +73,5 @@ def test_get_agg_envs():
         assert len(envs) == len(suite.instances)
         assert isinstance(envs[0], DummyConfEnv)
         counter += 1
-    assert counter == len(suite.functions) * 3 # 3 is the number of aggregated instances in the test suite specified in the init function
+    assert counter == len(suite.functions) * len(suite.agg_instances), \
+        "Number of aggregated environments does not match expected count"
