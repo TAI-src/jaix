@@ -26,7 +26,7 @@
                 "target_rank": 0
               }
             },
-            "agg_instances": 0
+            "agg_instances": 1
           }
         },
         "env_wrappers": [

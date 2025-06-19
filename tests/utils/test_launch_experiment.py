@@ -69,7 +69,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "instances": list(range(2)),
-                        "agg_instances": 0,
+                        "agg_instances": 1,
                     },
                 },
             },
@@ -90,7 +90,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "functions": [0],
-                        "agg_instances": 0,
+                        "agg_instances": 1,
                     },
                 },
             },
@@ -110,7 +110,7 @@ def get_config(suite="COCO", comp=False):
                             },
                         },
                         "instances": list(range(2)),
-                        "agg_instances": 0,
+                        "agg_instances": 1,
                     },
                 },
             },
@@ -298,7 +298,7 @@ def test_wandb_init():
     prev_mode = os.environ.get("WANDB_MODE", "online")
     os.environ["WANDB_MODE"] = "offline"
     run = wandb_init(run_config=deepcopy(get_config()), project="ci-cd")
-    assert run.mode == "dryrun"
+    assert run.settings.run_mode == "offline-run"
     shutil.rmtree(run.dir, ignore_errors=True)
     run.finish()
 
@@ -404,7 +404,7 @@ def test_launch_final(config_file):
         ]["jaix.suite.SuiteConfig"]["instances"] = [0]
         config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
             "suite_config"
-        ]["jaix.suite.SuiteConfig"]["agg_instances"] = 0
+        ]["jaix.suite.SuiteConfig"]["agg_instances"] = 1
 
     results = launch_jaix_experiment(run_config=config, wandb=False)
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
@@ -412,18 +412,5 @@ def test_launch_final(config_file):
     assert data_dir is None
     assert exit_code == 0
 
-def test_launch_long():
-    config_file = "/experiments/mmind/mmind_comp.json"
-    with open(config_file, "r") as f:
-        config = json.load(f)
-    # modify the config for test (longer, logging)
-    config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"]["suite_config"]["jaix.suite.SuiteConfig"]["instances"] = list(range(20))
-    config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"]["suite_config"]["jaix.suite.SuiteConfig"]["agg_instances"] = None
-    config["jaix.ExperimentConfig"]["logging_config"]["jaix.LoggingConfig"]["log_level"] = 10
 
-    print("Running long experiment with config:", config)
-    results = launch_jaix_experiment(run_config=config, wandb=False)
-    exit_code = [result["exit_codes"][0] for result in results.values()][0]
-    data_dir = [result["data_dirs"][0] for result in results.values()][0]
-    assert data_dir is None
-    assert exit_code == 0
+
