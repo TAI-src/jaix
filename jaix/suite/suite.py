@@ -43,7 +43,7 @@ class SuiteConfig(Config):
         comp_env_num = len(self.instances) if comp_env_num is None else comp_env_num
         instance_permutations = itertools.permutations(self.instances, comp_env_num)
        
-        self.agg_instances: List[Tuple[int, ...]] = []
+        self.agg_instances: List[Tuple[int, ...]]
         if agg_instances is None:
             # Nothing passed, use all permutations of instances
             if len(self.instances) > 5:
@@ -51,7 +51,7 @@ class SuiteConfig(Config):
                     "No aggregation instances passed, using all permutations of instances. "
                     "This may take a long time for large instance sets or crash the system."
                 )
-            self.agg_instances: List[Tuple[int, ...]] = list(instance_permutations)
+            self.agg_instances = list(instance_permutations)
         elif isinstance(agg_instances, int):
             # Integer n passed, use n random permutations
             # TODO: Make this seedable
@@ -60,7 +60,7 @@ class SuiteConfig(Config):
                 logger.warning(
                     "Using random permutations of instances. Inefficient for small instance sets."
                 )
-            inst_tuples = [
+            inst_tuples: List[Tuple[int, ...]] = [
                 tuple(
                     np.random.choice(self.instances, size=comp_env_num, replace=False)
                 )
@@ -76,37 +76,35 @@ class SuiteConfig(Config):
                     )
                 )
             # expecting normal ints, so reformatting
-            self.agg_instances: List[Tuple[int, ...]] = [
+            self.agg_instances = [
                 tuple([int(x) for x in perm]) for perm in set(inst_tuples)
             ]
-        elif isinstance(agg_instances, list) and all(
-            [isinstance(i, int) for i in agg_instances]
-        ):
-            assert all(
-                i >= 0 for i in agg_instances
-            ), "agg_instances must be a list of non-negative integers"
-            assert all(
-                i < math.factorial(len(self.instances)) for i in agg_instances
-            ), "agg_instances must be a list of integers less than the number of permutations (0 to n!)"
-            # List of integers passed (the desired indices). iterate to find the permutations
-            if len(self.instances) > 5:
-                logger.warning(
-                    "Filtering out indices. This may take a long time for large instance sets"
-                )
-            for i, perm in enumerate(instance_permutations):
-                if i in agg_instances:
-                    self.agg_instances.append(perm)
-        elif isinstance(agg_instances, list) and all(
-            [isinstance(i, tuple) for i in agg_instances]
-        ):
-            assert all(
-                min(i) >= 0 for i in agg_instances
-            ), "agg_instances must be a list of tuples with non-negative integers"
-            assert all(
-                max(i) < len(self.instances) for i in agg_instances
-            ), "agg_instances must be a list of tuples with integers less than the number of instances"
-            # List of tuples passed (the desired permutations). Use those directly
-            self.agg_instances: List[Tuple[int, ...]] = agg_instances
+        elif isinstance(agg_instances, list):
+            if all([isinstance(i, int) for i in agg_instances]):
+                assert all(
+                    i >= 0 for i in agg_instances
+                ), "agg_instances must be a list of non-negative integers"
+                assert all(
+                    i < math.factorial(len(self.instances)) for i in agg_instances
+                ), "agg_instances must be a list of integers less than the number of permutations (0 to n!)"
+                # List of integers passed (the desired indices). iterate to find the permutations
+                if len(self.instances) > 5:
+                    logger.warning(
+                        "Filtering out indices. This may take a long time for large instance sets"
+                    )
+                self.agg_instances = []
+                for i, perm in enumerate(instance_permutations):
+                    if i in agg_instances:
+                        self.agg_instances.append(perm)
+            elif all([isinstance(i, tuple) for i in agg_instances]):
+                assert all(
+                    min(i) >= 0 for i in agg_instances
+                ), "agg_instances must be a list of tuples with non-negative integers"
+                assert all(
+                    max(i) < len(self.instances) for i in agg_instances
+                ), "agg_instances must be a list of tuples with integers less than the number of instances"
+                # List of tuples passed (the desired permutations). Use those directly
+                self.agg_instances = agg_instances
         else:
             # Invalid type passed, raise error
             raise ValueError(
