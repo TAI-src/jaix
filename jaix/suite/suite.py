@@ -42,7 +42,7 @@ class SuiteConfig(Config):
         # generate instance permuations of length comp_env_num
         comp_env_num = len(self.instances) if comp_env_num is None else comp_env_num
         instance_permutations = itertools.permutations(self.instances, comp_env_num)
-       
+
         self.agg_instances: List[Tuple[int, ...]]
         if agg_instances is None:
             # Nothing passed, use all permutations of instances
@@ -81,7 +81,9 @@ class SuiteConfig(Config):
             ]
         elif isinstance(agg_instances, list):
             if all([isinstance(i, int) for i in agg_instances]):
-                agg_instances = cast(List[int], agg_instances) # otherwise mypy complains
+                agg_instances = cast(
+                    List[int], agg_instances
+                )  # otherwise mypy complains
                 assert all(
                     i >= 0 for i in agg_instances
                 ), "agg_instances must be a list of non-negative integers"
@@ -98,7 +100,9 @@ class SuiteConfig(Config):
                     if i in agg_instances:
                         self.agg_instances.append(perm)
             elif all([isinstance(i, tuple) for i in agg_instances]):
-                agg_instances = cast(List[Tuple[int, ...]], agg_instances)  # otherwise mypy complains
+                agg_instances = cast(
+                    List[Tuple[int, ...]], agg_instances
+                )  # otherwise mypy complains
                 assert all(
                     min(i) >= 0 for i in agg_instances
                 ), "agg_instances must be a list of tuples with non-negative integers"

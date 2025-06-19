@@ -58,6 +58,7 @@ def test_init():
     counter = 0
     assert len(suite.agg_instances) == 3
 
+
 def test_get_envs():
     suite = init_suite()
     func = 0
@@ -82,5 +83,6 @@ def test_get_agg_envs():
         assert len(envs) == len(suite.instances)
         assert isinstance(envs[0], DummyConfEnv)
         counter += 1
-    assert counter == len(suite.functions) * len(suite.agg_instances), \
-        "Number of aggregated environments does not match expected count"
+    assert counter == len(suite.functions) * len(
+        suite.agg_instances
+    ), "Number of aggregated environments does not match expected count"
