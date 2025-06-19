@@ -411,6 +411,3 @@ def test_launch_final(config_file):
     data_dir = [result["data_dirs"][0] for result in results.values()][0]
     assert data_dir is None
     assert exit_code == 0
-
-
-
