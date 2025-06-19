@@ -121,6 +121,7 @@ def run_experiment(
         )
     else:
         data_dir = None
+    logger.info(f"Running experiment with config: {exp_config}")
 
     try:
         Experiment.run(exp_config)
