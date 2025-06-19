@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Type, List, Union, Tuple
+from typing import Optional, Type, List, Union, Tuple, cast
 from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
 import gymnasium as gym
 import random as rnd
@@ -25,7 +25,7 @@ class SuiteConfig(Config):
         functions: Optional[List[int]] = None,
         instances: Optional[List[int]] = None,
         comp_env_num: Optional[int] = None,
-        agg_instances: Optional[Union[List[int], List[Tuple[int]], int]] = None,
+        agg_instances: Optional[Union[List[int], List[Tuple[int, ...]], int]] = None,
         seed: Optional[int] = None,
     ):
         logger.debug("Creating SuiteConfig")
@@ -81,6 +81,7 @@ class SuiteConfig(Config):
             ]
         elif isinstance(agg_instances, list):
             if all([isinstance(i, int) for i in agg_instances]):
+                agg_instances = cast(List[int], agg_instances) # otherwise mypy complains
                 assert all(
                     i >= 0 for i in agg_instances
                 ), "agg_instances must be a list of non-negative integers"
@@ -97,6 +98,7 @@ class SuiteConfig(Config):
                     if i in agg_instances:
                         self.agg_instances.append(perm)
             elif all([isinstance(i, tuple) for i in agg_instances]):
+                agg_instances = cast(List[Tuple[int, ...]], agg_instances)  # otherwise mypy complains
                 assert all(
                     min(i) >= 0 for i in agg_instances
                 ), "agg_instances must be a list of tuples with non-negative integers"
