@@ -42,6 +42,7 @@ class SuiteConfig(Config):
         # generate instance permuations of length comp_env_num
         comp_env_num = len(self.instances) if comp_env_num is None else comp_env_num
         instance_permutations = itertools.permutations(self.instances, comp_env_num)
+        
         if agg_instances is None:
             # Nothing passed, use all permutations of instances
             if len(self.instances) > 5:
@@ -49,7 +50,7 @@ class SuiteConfig(Config):
                     "No aggregation instances passed, using all permutations of instances. "
                     "This may take a long time for large instance sets or crash the system."
                 )
-            self.agg_instances = list(instance_permutations)
+            self.agg_instances: List[Tuple[int]] = list(instance_permutations)
         elif isinstance(agg_instances, int):
             # Integer n passed, use n random permutations
             # TODO: Make this seedable
@@ -74,10 +75,9 @@ class SuiteConfig(Config):
                     )
                 )
             # expecting normal ints, so reformatting
-            self.agg_instances = [
+            self.agg_instances: List[Tuple[int]] = [
                 tuple([int(x) for x in perm]) for perm in set(inst_tuples)
             ]
-
         elif isinstance(agg_instances, list) and all(
             [isinstance(i, int) for i in agg_instances]
         ):
@@ -92,7 +92,7 @@ class SuiteConfig(Config):
                 logger.warning(
                     "Filtering out indices. This may take a long time for large instance sets"
                 )
-            self.agg_instances = []
+            self.agg_instances: List[Tuple[int]] = [] 
             for i, perm in enumerate(instance_permutations):
                 if i in agg_instances:
                     self.agg_instances.append(perm)
@@ -106,7 +106,7 @@ class SuiteConfig(Config):
                 max(i) < len(self.instances) for i in agg_instances
             ), "agg_instances must be a list of tuples with integers less than the number of instances"
             # List of tuples passed (the desired permutations). Use those directly
-            self.agg_instances = agg_instances
+            self.agg_instances: List[Tuple[int]] = agg_instances
         else:
             # Invalid type passed, raise error
             raise ValueError(
