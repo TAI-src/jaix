@@ -7,3 +7,4 @@ from jaix.env.singular.mastermind_env import (
     MastermindEnvironmentConfig,
     MastermindEnvironment,
 )
+from jaix.env.singular.ase_env import *
