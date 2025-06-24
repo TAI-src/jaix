@@ -7,7 +7,7 @@ setup(
     name="tai_jaix",
     version=__version__,
     packages=find_packages(),
-    install_requires=["cma", "gymnasium", "coco-experiment", "regex", "tai-ttex"],
+    install_requires=["cma", "gymnasium", "coco-experiment", "regex", "tai-ttex", "ase"],
     license="GPL3",
     long_description="jaix",
     long_description_content_type="text/x-rst",
