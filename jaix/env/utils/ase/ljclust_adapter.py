@@ -5,16 +5,38 @@ from ase.optimize import BFGS
 from ase import Atoms
 import os
 import numpy as np
-from typing import Optional
+from typing import Optional, Union
 from scipy.spatial.distance import pdist
+from ttex.config import ConfigFactory, ConfigurableObject
 
 import logging
 from jaix import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
+class LJClustAdapterConfig:
+    def __init__(self,
+                 target_dir: str = "./ljclust_data",
+                 opt_alg: Type[Optimizer] = BFGS,
+                 opt_params: dict = {},
+                 lj_params: dict = {},
+                 fmax: float = 0.5,
+                 local_steps: int = 1000,
+                 covalent_radius: float = 1.0,
+                 ):
+        self.target_dir = target_dir
+        self.opt_alg = opt_alg
+        self.opt_params = opt_params
+        self.lj_params = lj_params
+        self.fmax = fmax
+        self.local_steps = local_steps
+        self.covalent_radius = covalent_radius
+   
 
-class LJClustAdapter:
+
+class LJClustAdapter(ConfigurableObject):
+    config_class = LJClustAdapterConfig
+
     @staticmethod
     def _download_tar(target_dir) -> str:
         """
@@ -127,42 +149,63 @@ class LJClustAdapter:
         e = atoms.get_potential_energy()
         return e, atoms
 
+    @staticmethod
+    def finst2species(function: int, instance: int) -> str:
+        """
+        Converts function and instance to a species string.
+        :param function: Function index.
+        :param instance: Instance index.
+        :return: Species string.
+        """
+        assert function == 0, "LJClustAdapter only supports one function (0)."
+        assert instance >= 0, "Instance must be a non-negative integer."
+        available_numbers = list(range(3, 151))  # Valid number of atoms
+        if instance >= len(available_numbers):
+            raise ValueError(
+                f"Instance {instance} is out of range for LJClustAdapter. "
+                f"Valid instances are from 0 to {len(available_numbers) - 1}."
+            )
+        num_atoms = available_numbers[instance]
+        return f"C{num_atoms}"  # Species string for LJ cluster
+
     def __init__(
         self,
-        num_atoms: int,
-        opt_alg: Optimizer = BFGS,
-        opt_params: dict = {},
-        lj_params: dict = {},
-        target_dir: str = ".",
-        fmax: float = 0.5,
-        local_steps: int = 1000,
-        covalent_radius: float = 1.0,
-    ):
+            config: LJClustAdapterConfig):
         """
         Initializes the LJClustAdapter with the number of atoms and optional Lennard-Jones parameters.
         :param num_atoms: Number of atoms in the cluster.
         :param lj_params: Optional dictionary of Lennard-Jones parameters.
         :param target_dir: Directory to store the data.
         """
-        self.num_atoms = num_atoms
-        self.lj_params = lj_params
-        self.target_dir = target_dir
-        self.positions = LJClustAdapter._retrieve_cluster_data(num_atoms, target_dir)
-        self.min_val, self.min_pos = LJClustAdapter.retrieve_known_min(
-            num_atoms, target_dir, lj_params
+
+        if not os.path.exists(self.target_dir):
+            os.makedirs(self.target_dir)
+            logger.debug(f"Created target directory: {self.target_dir}")
+
+    def set_species(self, species_str: str) -> None:
+        """
+        Sets the number of atoms for the adapter.
+        :param num_atoms: Number of atoms in the cluster.
+        """
+        tmp_atoms = Atoms(species_str)
+        # need to figure out what makes sense here
+        self.num_atoms = len(tmp_atoms.get_atomic_numbers())
+        # TODO: We only do carbon atm
+        assert species_str == f"C{self.num_atoms}", (
+            f"Species string {species_str} does not match expected format C{self.num_atoms}."
         )
-        self.atom_str = f"C{num_atoms}"  # Assuming carbon atoms
-        self.opt_alg = opt_alg
-        self.opt_params = opt_params
-        self.fmax = fmax
-        self.local_steps = local_steps
-        self.covalent_radius = covalent_radius
+        self.min_val, self.min_atoms = LJClustAdapter.retrieve_known_min(
+            self.num_atoms, self.target_dir, self.lj_params
+        )
+        self.min_pos = self.min_atoms.get_positions()
+        self.atom_str = species_str
         self.box_length = (
             2
-            * covalent_radius
-            * (0.5 + ((3.0 * num_atoms) / (4 * np.pi * np.sqrt(2))) ** (1 / 3))
+            * self.covalent_radius
+            * (0.5 + ((3.0 * self.num_atoms) / (4 * np.pi * np.sqrt(2))) ** (1 / 3))
         )
         # TODO: Importance of box_length?
+
 
     def evaluate(self, positions: np.ndarray) -> tuple[float, np.ndarray]:
         """
@@ -176,7 +219,19 @@ class LJClustAdapter:
             calculator=LennardJones(**self.lj_params),
         )
         energy = atoms.get_potential_energy()
-        return energy
+        return energy, self.info(atoms)
+
+    def info(self, atoms: Atoms) -> dict:
+        """
+        Returns information about the atom wrt the distance to the known minimum.
+        :param atom: Atom object.
+        :return: Dictionary containing information about the atom.
+        """
+        # TODO: Add additional info, such as distance in atom space, isomerism, etc.
+        return {
+            "energy": atoms.get_potential_energy()-self.min_val,
+        }
+
 
     def local_opt(self, positions: np.ndarray) -> tuple[float, np.ndarray]:
         """
@@ -201,6 +256,7 @@ class LJClustAdapter:
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
         :return: Boolean indicating whether the configuration is valid.
         """
+        # TODO: Why is this a good validation?
 
         if positions.shape[0] == 0:
             return True
@@ -216,9 +272,10 @@ class LJClustAdapter:
         :return: Numpy array of shape (num_samples, num_atoms, 3) representing the positions of the atoms.
         """
         rng = np.random.default_rng(seed)
+        # TODO: Figure out proper seeding across jaix
 
         valid = False
-        positions = None
+        positions: np.ndarray
         while not valid:
             positions = (rng.random((self.num_atoms, 3)) - 0.5) * self.box_length * 1.5
             valid = self.validate(positions)
