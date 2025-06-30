@@ -52,15 +52,9 @@ def test_retrieve_known_min(request):
         reader = csv.DictReader(csvfile, delimiter=";")
         glob_min = {int(row["N"]): float(row["Energy"]) for row in reader}
     for num_atoms in range(3, 151):
-        min_val, _ = LJClustAdapter.retrieve_known_min(num_atoms, target_dir=target_dir)
+        min_val, _ = LJClustAdapter.retrieve_known_min(num_atoms, target_dir=target_dir, lj_params = {"sigma": 1.0, "epsilon": 1.0, "rc":1e6, "smooth":False} )
         # Check that the retrieved minimum roughly matches the known minimum
-        print(abs(min_val - glob_min[num_atoms]), num_atoms)
-        # TODO: Why is the difference so big? Up to 35 for bigger clusters!
-        # assert abs(min_val - glob_min[num_atoms]) < 0.85, f"Mismatch for {num_atoms} atoms: {min_val} != {glob_min[num_atoms]}"
-        #
-        # For now, we just check that the value is a float and not None
-        assert isinstance(min_val, float), f"Minimum value for {num_atoms} atoms is not a float."
-        assert min_val is not None, f"Minimum value for {num_atoms} atoms is None."
+        assert abs(min_val - glob_min[num_atoms]) < 1e-5, f"Mismatch for {num_atoms} atoms: {min_val} != {glob_min[num_atoms]}"
 
 
 def get_parameters(def_vals:bool) -> dict:

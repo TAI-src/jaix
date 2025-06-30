@@ -13,7 +13,7 @@ class LJClustEnvironmentConfig(Config):
     def __init__(self,
                  ljclust_adapter_config: LJClustAdapterConfig,
                  budget: int = np.iinfo(np.int32).max,
-                 target_accuracy: float: 0.0,
+                 target_accuracy: float = 0.0,
                  ):
         self.ljclust_adapter_config = ljclust_adapter_config
         self.budget = budget

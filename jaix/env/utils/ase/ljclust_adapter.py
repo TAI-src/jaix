@@ -5,7 +5,7 @@ from ase.optimize import BFGS
 from ase import Atoms
 import os
 import numpy as np
-from typing import Optional, Union
+from typing import Optional, Union, Type
 from scipy.spatial.distance import pdist
 from ttex.config import ConfigFactory, ConfigurableObject
 
@@ -28,6 +28,8 @@ class LJClustAdapterConfig:
         self.opt_alg = opt_alg
         self.opt_params = opt_params
         self.lj_params = lj_params
+        if not self.lj_params:
+            self.lj_params = {"sigma": 1.0, "epsilon": 1.0, "rc":1e6, "smooth":False}  # LJ parameters that can reproduce the known minima
         self.fmax = fmax
         self.local_steps = local_steps
         self.covalent_radius = covalent_radius
@@ -218,6 +220,7 @@ class LJClustAdapter(ConfigurableObject):
             positions=positions,
             calculator=LennardJones(**self.lj_params),
         )
+        atoms.set_pbc(False)  # No periodic boundary conditions for LJ clusters
         energy = atoms.get_potential_energy()
         return energy, self.info(atoms)
 
