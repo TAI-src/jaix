@@ -1,13 +1,16 @@
+from csv import DictReader
 import requests
 from ase.calculators.lj import LennardJones
 from ase.optimize.optimize import Optimizer
-from ase.optimize import BFGS
+from ase.optimize import BFGS, FIRE
 from ase import Atoms
 import os
 import numpy as np
 from typing import Optional, Type
 from scipy.spatial.distance import pdist
 from ttex.config import ConfigurableObject
+from ase.calculators.kim import KIM
+from os import path
 
 import logging
 from jaix import LOGGER_NAME
@@ -21,7 +24,6 @@ class LJClustAdapterConfig:
         target_dir: str = "./ljclust_data",
         opt_alg: Type[Optimizer] = BFGS,
         opt_params: dict = {},
-        lj_params: dict = {},
         fmax: float = 0.5,
         local_steps: int = 1000,
         covalent_radius: float = 1.0,
@@ -29,7 +31,6 @@ class LJClustAdapterConfig:
         self.target_dir = target_dir
         self.opt_alg = opt_alg
         self.opt_params = opt_params
-        self.lj_params = lj_params
         self.fmax = fmax
         self.local_steps = local_steps
         self.covalent_radius = covalent_radius
@@ -128,27 +129,45 @@ class LJClustAdapter(ConfigurableObject):
         return positions
 
     @staticmethod
-    def retrieve_known_min(
-        num_atoms: int, target_dir: str = ".", lj_params: dict = {}
-    ) -> tuple[float, Atoms]:
+    def retrieve_lj_params(atom_str: str) -> dict:
         """
-        Retrieves the known minimum configuration for a given number of atoms.
-        :param num_atoms: Number of atoms in the cluster.
-        :param target_dir: Directory to store the data.
-        :return: Path to the .xyz file containing the known minimum configuration.
+        Retrieves the Lennard-Jones parameters for a given atom string.
+        :param atom_str: Atom string in the format "C{num_atoms}" or "X{num_atoms}".
+        :return: Tuple containing sigma, epsilon, and cutoff.
         """
-        def_lj_params = LennardJones.default_parameters.copy()
-        def_lj_params.update(lj_params)
-        positions = LJClustAdapter._retrieve_cluster_data(num_atoms, target_dir)
-        atoms = Atoms(
-            "C" * num_atoms,  # Assuming all atoms are carbon for LJ clusters
-            positions=positions,
-            calculator=LennardJones(**def_lj_params),
+        atom_numbers = Atoms(atom_str).get_atomic_numbers()
+        assert (
+            len(set(atom_numbers)) == 1
+        ), "This part only supports single-element clusters."
+        num_atoms = len(atom_numbers)
+        if atom_str == f"X{num_atoms}":
+            # Default settings from KIM model
+            return {"sigma": 1.0, "epsilon": 1.0, "cutoff": 4}
+
+        # TODO: there is probably a nicer way to do this
+        material = atom_str.replace(str(num_atoms), "")  # Remove the number of atoms
+        params = {}
+        file_name = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "lj_params.csv"
         )
-        # TODO: Do we need to specify the cell?
-        # TODO: Are they always carbon atoms?
-        e = atoms.get_potential_energy()
-        return e, atoms
+        with open(file_name, newline="") as csvfile:
+            reader = DictReader(csvfile, delimiter=",")
+            for row in reader:
+                if row["Species_i"] == material:
+                    assert (
+                        row["Species_j"] == material
+                    ), "This part only supports single-element clusters."
+                    params = {
+                        "sigma": float(row["sigma"]),
+                        "epsilon": float(row["epsilon"]),
+                        "cutoff": float(row["cutoff"]),
+                    }
+                    break
+        if not params:
+            raise ValueError(
+                f"No Lennard-Jones parameters found for species {material}."
+            )
+        return params
 
     @staticmethod
     def finst2species(function: int, instance: int) -> str:
@@ -168,6 +187,88 @@ class LJClustAdapter(ConfigurableObject):
             )
         num_atoms = available_numbers[instance]
         return f"C{num_atoms}"  # Species string for LJ cluster
+
+    @staticmethod
+    def _construct_atoms(positions: np.ndarray, atom_str: str) -> Atoms:
+        """
+        Constructs an Atoms object from the given positions.
+        :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
+        :return: Atoms object.
+        """
+        num_atoms = len(Atoms(atom_str).get_atomic_numbers())
+
+        # TODO: figure out the cell
+        if atom_str == f"X{num_atoms}":
+            # No specific Material set, assuming theoretical LJ setting
+            # Easiest to compute with in-built LJ and specific (near) infinite cutoff
+            calc = LennardJones(
+                sigma=1.0,
+                epsilon=1.0,
+                rc=1e6,
+                smooth=False,
+            )
+            atoms = Atoms(
+                positions=positions,
+                calculator=calc,
+            )
+        else:
+            # If atom_str is set, we assume a specific LJ setting
+            # Best to compute with KIM, which knows about the LJ parameters (sigma, epsilon, cutoff)
+            calc = KIM("LJ_ElliottAkerson_2015_Universal__MO_959249795837_003")
+            atoms = Atoms(
+                atom_str,
+                positions=positions,
+                calculator=calc,
+            )
+
+        atoms.set_pbc(False)  # No periodic boundary conditions for LJ clusters
+
+        return atoms
+
+    @staticmethod
+    def retrieve_known_min(
+        atom_str: str,
+        target_dir: str = ".",
+        local_opt: bool = True,
+    ) -> tuple[float, Atoms]:
+        """
+        Retrieves the known minimum configuration for a given number of atoms.
+        :param num_atoms: Number of atoms in the cluster.
+        :param target_dir: Directory to store the data.
+        :return: Path to the .xyz file containing the known minimum configuration.
+        """
+        num_atoms = len(Atoms(atom_str).get_atomic_numbers())
+
+        positions = LJClustAdapter._retrieve_cluster_data(num_atoms, target_dir)
+        if atom_str != f"X{num_atoms}":
+            # If the atom_str is not a theoretical LJ setting, we scale the positions
+            # to match the covalent radius of the atoms
+            try:
+                lj_params = LJClustAdapter.retrieve_lj_params(atom_str)
+            except AssertionError as e:
+                logger.warning(
+                    f"Failed to retrieve LJ parameters for {atom_str}: {e}. "
+                    "Returning None"
+                )
+                return np.nan, None
+            except ValueError as e:
+                logger.warning(
+                    f"Failed to retrieve LJ parameters for {atom_str}: {e}. "
+                    "Returning None"
+                )
+                return np.nan, None
+
+            # Scale positions based on the sigma value from the Lennard-Jones parameters
+            positions *= lj_params["sigma"]
+
+        atoms = LJClustAdapter._construct_atoms(positions, atom_str)
+
+        if local_opt:
+            # Perform local optimization to finetune optimum
+            opt_alg = FIRE(atoms)
+            opt_alg.run(fmax=1e-10, steps=1000)
+        e = atoms.get_potential_energy()
+        return e, atoms
 
     def __init__(self, config: LJClustAdapterConfig):
         """
@@ -195,7 +296,7 @@ class LJClustAdapter(ConfigurableObject):
             species_str == f"C{self.num_atoms}"
         ), f"Species string {species_str} does not match expected format C{self.num_atoms}."
         self.min_val, self.min_atoms = LJClustAdapter.retrieve_known_min(
-            self.num_atoms, self.target_dir, self.lj_params
+            species_str, self.target_dir
         )
         self.min_pos = self.min_atoms.get_positions()
         self.atom_str = species_str
@@ -212,11 +313,7 @@ class LJClustAdapter(ConfigurableObject):
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
         :return: Tuple containing the potential energy and forces.
         """
-        atoms = Atoms(
-            self.atom_str,
-            positions=positions,
-            calculator=LennardJones(**self.lj_params),
-        )
+        atoms = LJClustAdapter._construct_atoms(positions, self.atom_str)
         energy = atoms.get_potential_energy()
         return energy, self.info(atoms)
 
@@ -239,11 +336,7 @@ class LJClustAdapter(ConfigurableObject):
         :return: Optimized atomic positions.
         """
 
-        atoms = Atoms(
-            self.atom_str,
-            positions=positions,
-            calculator=LennardJones(**self.lj_params),
-        )
+        atoms = LJClustAdapter._construct_atoms(positions, self.atom_str)
         opt = self.opt_alg(atoms, **self.opt_params)
         opt.run(fmax=self.fmax, steps=self.local_steps)
         return atoms.get_potential_energy(), atoms.get_positions()

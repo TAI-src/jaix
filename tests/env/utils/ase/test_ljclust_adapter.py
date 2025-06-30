@@ -53,22 +53,58 @@ def test_retrieve_cluster_data():
     assert positions.shape == (num_atoms, 3)
 
 
-def test_retrieve_known_min(request):
+@pytest.mark.parametrize("atom_str", ["C3", "X17", "He33"])
+def test_retrieve_lj_params(atom_str):
+    params = LJClustAdapter.retrieve_lj_params(atom_str)
+    assert isinstance(params, dict), "LJ parameters should be a dictionary."
+    assert "sigma" in params, "LJ parameters should contain 'sigma'."
+    assert "epsilon" in params, "LJ parameters should contain 'epsilon'."
+    assert isinstance(params["sigma"], float), "'sigma' should be a float."
+
+
+def test_retrieve_known_min_X(request):
     with open(request.path.parent.joinpath("glob_min.csv"), newline="") as csvfile:
         reader = csv.DictReader(csvfile, delimiter=";")
         glob_min = {int(row["N"]): float(row["Energy"]) for row in reader}
     for num_atoms in range(3, 151):
-        min_val, _ = LJClustAdapter.retrieve_known_min(num_atoms, target_dir=target_dir)
+        min_val, _ = LJClustAdapter.retrieve_known_min(
+            f"X{num_atoms}",
+            target_dir=target_dir,
+            local_opt=False,
+        )
         # Check that the retrieved minimum roughly matches the known minimum
-        print(abs(min_val - glob_min[num_atoms]), num_atoms)
-        # TODO: Why is the difference so big? Up to 35 for bigger clusters!
-        # assert abs(min_val - glob_min[num_atoms]) < 0.85, f"Mismatch for {num_atoms} atoms: {min_val} != {glob_min[num_atoms]}"
-        #
-        # For now, we just check that the value is a float and not None
-        assert isinstance(
-            min_val, float
-        ), f"Minimum value for {num_atoms} atoms is not a float."
-        assert min_val is not None, f"Minimum value for {num_atoms} atoms is None."
+
+        assert (
+            abs(min_val - glob_min[num_atoms]) < 1e-5
+        ), f"Mismatch for {num_atoms} atoms: {min_val} != {glob_min[num_atoms]}"
+
+
+@pytest.mark.parametrize("atom_str", ["C3", "X17", "He33"])
+def test_retrieve_known_min_material(atom_str):
+    min_val, atoms = LJClustAdapter.retrieve_known_min(
+        atom_str,
+        target_dir=target_dir,
+        local_opt=False,
+    )
+    print(atoms.positions)
+    from ase.optimize import BFGS
+
+    opt = BFGS(atoms)
+    opt.run(fmax=1e-6, steps=1000)
+    assert (
+        abs(min_val - atoms.get_potential_energy()) < 1e-5
+    ), f"Mismatch for {atom_str}: {min_val} != {atoms.get_potential_energy()}"
+    assert atoms.get_potential_energy() <= min_val
+
+    min_val_loc, atoms2 = LJClustAdapter.retrieve_known_min(
+        atom_str,
+        target_dir=target_dir,
+        local_opt=True,
+    )
+
+    assert (
+        abs(min_val_loc - atoms2.get_potential_energy()) < 1e-10
+    ), f"Mismatch for {atom_str}: {min_val_loc} != {atoms2.get_potential_energy()}"
 
 
 def get_config(def_vals: bool) -> LJClustAdapterConfig:

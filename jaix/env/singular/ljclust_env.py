@@ -14,7 +14,7 @@ class LJClustEnvironmentConfig(Config):
     def __init__(
         self,
         ljclust_adapter_config: LJClustAdapterConfig,
-        target_accuracy: float = 0.0,
+        target_accuracy: float = 1e-5,
     ):
         self.ljclust_adapter_config = ljclust_adapter_config
         self.target_accuracy = target_accuracy
