@@ -8,6 +8,8 @@ import numpy as np
 from typing import Optional, Union, Type
 from scipy.spatial.distance import pdist
 from ttex.config import ConfigFactory, ConfigurableObject
+from ase.calculators.kim.kim import KIM
+
 
 import logging
 from jaix import LOGGER_NAME
@@ -141,14 +143,20 @@ class LJClustAdapter(ConfigurableObject):
         def_lj_params = LennardJones.default_parameters.copy()
         def_lj_params.update(lj_params)
         positions = LJClustAdapter._retrieve_cluster_data(num_atoms, target_dir)
+        #positions *= 1.3541700
         atoms = Atoms(
-            "C" * num_atoms,  # Assuming all atoms are carbon for LJ clusters
+            f"C{num_atoms}",  # Assuming all atoms are carbon
             positions=positions,
             calculator=LennardJones(**def_lj_params),
+            #calculator = KIM("LJ_ElliottAkerson_2015_Universal__MO_959249795837_003")
         )
+        atoms.set_pbc(False)  # No periodic boundary conditions for LJ clusters
+
+        #https://openkim.org/files/MO_959249795837_003/LennardJones612_UniversalShifted.params
         # TODO: Do we need to specify the cell?
         # TODO: Are they always carbon atoms?
         e = atoms.get_potential_energy()
+        #e /=6.3695300
         return e, atoms
 
     @staticmethod
