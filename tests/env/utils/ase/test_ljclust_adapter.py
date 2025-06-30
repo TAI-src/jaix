@@ -1,12 +1,14 @@
-from jaix.env.utils.ase import LJClustAdapter
+from jaix.env.utils.ase import LJClustAdapter, LJClustAdapterConfig
 import os
 import shutil
 import csv
 import pytest
 from ase.optimize import LBFGS
 from ase import Atoms
+from ase.optimize.optimize import Optimizer
 from ase.calculators.lj import LennardJones
 import numpy as np
+from ttex.config import ConfigFactory
 
 target_dir = "./tmp_data"
 
@@ -31,13 +33,17 @@ def test_download_unpack():
     tar_file = LJClustAdapter._download_tar(tdir)
     assert os.path.exists(tar_file), "Tar file was not downloaded."
     LJClustAdapter._unpack_tar(tar_file, target_dir=os.path.join(tdir, "LJ_data"))
-    assert os.path.exists(os.path.join(tdir, "LJ_data")), "LJ_data directory was not created."
+    assert os.path.exists(
+        os.path.join(tdir, "LJ_data")
+    ), "LJ_data directory was not created."
 
     # make sure it still works if existing data is there
     tar_file = LJClustAdapter._download_tar(tdir)
     assert os.path.exists(tar_file), "Tar file not found"
     LJClustAdapter._unpack_tar(tar_file, target_dir=os.path.join(tdir, "LJ_data"))
-    assert os.path.exists(os.path.join(tdir, "LJ_data")), "LJ_data directory was not created."
+    assert os.path.exists(
+        os.path.join(tdir, "LJ_data")
+    ), "LJ_data directory was not created."
     shutil.rmtree(tdir, ignore_errors=False)
 
 
@@ -59,11 +65,13 @@ def test_retrieve_known_min(request):
         # assert abs(min_val - glob_min[num_atoms]) < 0.85, f"Mismatch for {num_atoms} atoms: {min_val} != {glob_min[num_atoms]}"
         #
         # For now, we just check that the value is a float and not None
-        assert isinstance(min_val, float), f"Minimum value for {num_atoms} atoms is not a float."
+        assert isinstance(
+            min_val, float
+        ), f"Minimum value for {num_atoms} atoms is not a float."
         assert min_val is not None, f"Minimum value for {num_atoms} atoms is None."
 
 
-def get_parameters(def_vals:bool) -> dict:
+def get_config(def_vals: bool) -> LJClustAdapterConfig:
     adapter_params = {
         "target_dir": target_dir,
     }
@@ -77,33 +85,50 @@ def get_parameters(def_vals:bool) -> dict:
             "covalent_radius": 1.1,
         }
         adapter_params.update(spec_params)
-    return adapter_params
+    config = LJClustAdapterConfig(**adapter_params)
+    return config
+
 
 @pytest.mark.parametrize("def_vals", [True, False])
 def test_init(def_vals):
     # Test initialization of the adapter
-    adapter_params = get_parameters(def_vals=def_vals)
-    adapter = LJClustAdapter(**adapter_params)
-    assert isinstance(adapter, LJClustAdapter), "Adapter is not an instance of LJClustAdapter."
-    for key, value in adapter_params.items():
-        assert adapter.__dict__[key] == value, f"{key} is not set correctly in the adapter."
+    adapter_config = get_config(def_vals=def_vals)
+    adapter = LJClustAdapter(adapter_config)
+    assert isinstance(
+        adapter, LJClustAdapter
+    ), "Adapter is not an instance of LJClustAdapter."
+    for key, value in adapter_config.__dict__.items():
+        assert (
+            adapter.__dict__[key] == value
+        ), f"{key} is not set correctly in the adapter."
+
 
 def test_init_advanced():
-    # Test folder generation works
-    # Test opt_alg extraction works
+    # Test that we can pass optimizer as a string
     tdir = "./tmp_data2"
-    adapter_params = get_parameters(def_vals=False)
+    config = get_config(def_vals=False)
+    adapter_params = config.__dict__
     adapter_params["target_dir"] = tdir
     adapter_params["opt_alg"] = "ase.optimize.LBFGS"
-    adapter = LJClustAdapter(**adapter_params)
-    assert isinstance(adapter, LJClustAdapter), "Adapter is not an instance of LJClustAdapter."
+    config_dict = {"jaix.env.utils.ase.LJClustAdapterConfig": adapter_params}
+    nconfig = ConfigFactory.from_dict(config_dict)
+    assert issubclass(
+        nconfig.opt_alg, Optimizer
+    ), "Optimizer is not an subclass of ase.optimize.Optimizer."
+
+    # Test folder creation works
+    adapter = LJClustAdapter(nconfig)
+    assert isinstance(
+        adapter, LJClustAdapter
+    ), "Adapter is not an instance of LJClustAdapter."
     assert os.path.exists(tdir), "Target directory was not created."
     shutil.rmtree(tdir, ignore_errors=True)
 
+
 def test_set_species():
     # Test setting species works
-    adapter_params = get_parameters(def_vals=True)
-    adapter = LJClustAdapter(**adapter_params)
+    adapter_config = get_config(def_vals=True)
+    adapter = LJClustAdapter(adapter_config)
     with pytest.raises(AssertionError):
         # Should raise an error if species is not set
         adapter.set_species("Ar13C3")
@@ -113,18 +138,25 @@ def test_set_species():
 
     assert isinstance(adapter.min_val, float), "Minimum value is not a float."
     assert isinstance(adapter.box_length, float), "Box length is not a float."
-    assert isinstance(adapter.min_pos, np.ndarray), "Minimum positions are not a numpy array."
-  
+    assert isinstance(
+        adapter.min_pos, np.ndarray
+    ), "Minimum positions are not a numpy array."
+
+
 # TODO: Figure out a way to test validation
+
 
 @pytest.mark.parametrize("def_vals", [True, False])
 def test_generate(def_vals):
     # Test the generate method of the adapter
-    adapter_params = get_parameters(def_vals=def_vals)
-    adapter = LJClustAdapter(**adapter_params)
+    adapter_config = get_config(def_vals=def_vals)
+    adapter = LJClustAdapter(adapter_config)
     adapter.set_species("C13")  # Set number of atoms to 13
     pos = adapter.random_generate()
-    assert pos.shape == (adapter.num_atoms, 3), "Generated positions do not match the number of atoms."
+    assert pos.shape == (
+        adapter.num_atoms,
+        3,
+    ), "Generated positions do not match the number of atoms."
     # Check that the positions are valid
     assert adapter.validate(pos), "Generated positions are not valid."
     # Check we can create an atoms object
@@ -133,38 +165,52 @@ def test_generate(def_vals):
         positions=pos,
         calculator=LennardJones(**adapter.lj_params),
     )
-    assert isinstance(atoms, Atoms), "Atoms object could not be created from generated positions."
-    assert isinstance(atoms.get_potential_energy(), float), "Potential energy could not be calculated from generated positions."
+    assert isinstance(
+        atoms, Atoms
+    ), "Atoms object could not be created from generated positions."
+    assert isinstance(
+        atoms.get_potential_energy(), float
+    ), "Potential energy could not be calculated from generated positions."
+
 
 @pytest.mark.parametrize("def_vals", [True, False])
 def test_evaluate(def_vals):
     # Test the evaluate method of the adapter
-    adapter_params = get_parameters(def_vals=def_vals)
-    adapter = LJClustAdapter(**adapter_params)
+    adapter_config = get_config(def_vals=def_vals)
+    adapter = LJClustAdapter(adapter_config)
     adapter.set_species("C13")  # Set number of atoms to 13
     pos = adapter.random_generate()
     energy, info = adapter.evaluate(pos)
     assert isinstance(energy, float), "Energy is not a float."
     assert "energy" in info, "Info dictionary does not contain 'energy' key."
-    assert isinstance(info["energy"], float), "Energy in info dictionary is not a float."
+    assert isinstance(
+        info["energy"], float
+    ), "Energy in info dictionary is not a float."
     assert info["energy"] >= 0
+
 
 @pytest.mark.parametrize("def_vals", [True, False])
 def test_local_opt(def_vals):
     # Test the local optimization method of the adapter
-    adapter_params = get_parameters(def_vals=def_vals)
-    adapter = LJClustAdapter(**adapter_params)
+    adapter_config = get_config(def_vals=def_vals)
+    adapter = LJClustAdapter(adapter_config)
     adapter.set_species("C13")  # Set number of atoms to 13
     pos = adapter.random_generate()
     # Get current energy
     initial_energy, _ = adapter.evaluate(pos)
     energy, opt_pos = adapter.local_opt(pos)
     assert isinstance(energy, float), "Energy after optimization is not a float."
-    assert opt_pos.shape == (adapter.num_atoms, 3), "Optimized positions do not match the number of atoms."
+    assert opt_pos.shape == (
+        adapter.num_atoms,
+        3,
+    ), "Optimized positions do not match the number of atoms."
     # Check that the optimized positions are valid
     assert adapter.validate(opt_pos), "Optimized positions are not valid."
-# Check that the energy is lower than the initial energy
-    assert energy <= initial_energy, "Energy after optimization is not lower than initial energy."
+    # Check that the energy is lower than the initial energy
+    assert (
+        energy <= initial_energy
+    ), "Energy after optimization is not lower than initial energy."
+
 
 def test_finst2species():
     with pytest.raises(AssertionError):

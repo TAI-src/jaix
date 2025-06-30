@@ -5,25 +5,27 @@ from ase.optimize import BFGS
 from ase import Atoms
 import os
 import numpy as np
-from typing import Optional, Union
+from typing import Optional, Type
 from scipy.spatial.distance import pdist
-from ttex.config import ConfigFactory, ConfigurableObject
+from ttex.config import ConfigurableObject
 
 import logging
 from jaix import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
+
 class LJClustAdapterConfig:
-    def __init__(self,
-                 target_dir: str = "./ljclust_data",
-                 opt_alg: Type[Optimizer] = BFGS,
-                 opt_params: dict = {},
-                 lj_params: dict = {},
-                 fmax: float = 0.5,
-                 local_steps: int = 1000,
-                 covalent_radius: float = 1.0,
-                 ):
+    def __init__(
+        self,
+        target_dir: str = "./ljclust_data",
+        opt_alg: Type[Optimizer] = BFGS,
+        opt_params: dict = {},
+        lj_params: dict = {},
+        fmax: float = 0.5,
+        local_steps: int = 1000,
+        covalent_radius: float = 1.0,
+    ):
         self.target_dir = target_dir
         self.opt_alg = opt_alg
         self.opt_params = opt_params
@@ -31,7 +33,6 @@ class LJClustAdapterConfig:
         self.fmax = fmax
         self.local_steps = local_steps
         self.covalent_radius = covalent_radius
-   
 
 
 class LJClustAdapter(ConfigurableObject):
@@ -168,15 +169,14 @@ class LJClustAdapter(ConfigurableObject):
         num_atoms = available_numbers[instance]
         return f"C{num_atoms}"  # Species string for LJ cluster
 
-    def __init__(
-        self,
-            config: LJClustAdapterConfig):
+    def __init__(self, config: LJClustAdapterConfig):
         """
         Initializes the LJClustAdapter with the number of atoms and optional Lennard-Jones parameters.
         :param num_atoms: Number of atoms in the cluster.
         :param lj_params: Optional dictionary of Lennard-Jones parameters.
         :param target_dir: Directory to store the data.
         """
+        ConfigurableObject.__init__(self, config)
 
         if not os.path.exists(self.target_dir):
             os.makedirs(self.target_dir)
@@ -191,9 +191,9 @@ class LJClustAdapter(ConfigurableObject):
         # need to figure out what makes sense here
         self.num_atoms = len(tmp_atoms.get_atomic_numbers())
         # TODO: We only do carbon atm
-        assert species_str == f"C{self.num_atoms}", (
-            f"Species string {species_str} does not match expected format C{self.num_atoms}."
-        )
+        assert (
+            species_str == f"C{self.num_atoms}"
+        ), f"Species string {species_str} does not match expected format C{self.num_atoms}."
         self.min_val, self.min_atoms = LJClustAdapter.retrieve_known_min(
             self.num_atoms, self.target_dir, self.lj_params
         )
@@ -205,7 +205,6 @@ class LJClustAdapter(ConfigurableObject):
             * (0.5 + ((3.0 * self.num_atoms) / (4 * np.pi * np.sqrt(2))) ** (1 / 3))
         )
         # TODO: Importance of box_length?
-
 
     def evaluate(self, positions: np.ndarray) -> tuple[float, np.ndarray]:
         """
@@ -229,9 +228,8 @@ class LJClustAdapter(ConfigurableObject):
         """
         # TODO: Add additional info, such as distance in atom space, isomerism, etc.
         return {
-            "energy": atoms.get_potential_energy()-self.min_val,
+            "energy": atoms.get_potential_energy() - self.min_val,
         }
-
 
     def local_opt(self, positions: np.ndarray) -> tuple[float, np.ndarray]:
         """
