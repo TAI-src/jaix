@@ -23,9 +23,9 @@ class LJClustAdapterConfig:
         self,
         target_dir: str = "./ljclust_data",
         opt_alg: Type[Optimizer] = BFGS,
-        opt_alg_params: dict = {}, # Parameters for the optimizer initialization
-        opt_run_params: dict = {}, # Parameters for the optimizer run, including fmax and steps
-        by_species: bool = True, # If True, function is species index, instance is number of atoms; otherwise, vice versa.
+        opt_alg_params: dict = {},  # Parameters for the optimizer initialization
+        opt_run_params: dict = {},  # Parameters for the optimizer run, including fmax and steps
+        by_species: bool = True,  # If True, function is species index, instance is number of atoms; otherwise, vice versa.
     ):
         self.target_dir = target_dir
         self.opt_alg = opt_alg
@@ -39,7 +39,7 @@ class LJClustAdapter(ConfigurableObject):
 
     @staticmethod
     def _download_tar(target_dir) -> str:
-        """ 
+        """
         Downloads the Lennard-Jones clusters data from the Cambridge database.
         :param target_dir: Directory to store the downloaded data.
         :return: Path to the downloaded tar file.
@@ -71,7 +71,7 @@ class LJClustAdapter(ConfigurableObject):
 
     @staticmethod
     def _unpack_tar(tar_path: str, target_dir: str) -> str:
-        """ 
+        """
         Unpacks the downloaded tar file containing Lennard-Jones clusters data.
         :param tar_path: Path to the downloaded tar file.
         :param target_dir: Directory to unpack the data into.
@@ -142,16 +142,22 @@ class LJClustAdapter(ConfigurableObject):
             os.path.dirname(os.path.realpath(__file__)), "lj_params.csv"
         )
         if not os.path.exists(file_name):
-            raise FileNotFoundError(f"Lennard-Jones parameters file {file_name} not found.")
-        
+            raise FileNotFoundError(
+                f"Lennard-Jones parameters file {file_name} not found."
+            )
+
         params = {}
         with open(file_name, newline="") as csvfile:
             reader = DictReader(csvfile, delimiter=",")
             if material is None:
-                return {row["Species_i"]: {"sigma": float(row["sigma"]),
-                                        "epsilon": float(row["epsilon"]),
-                                        "cutoff": float(row["cutoff"])}
-                                for row in reader}
+                return {
+                    row["Species_i"]: {
+                        "sigma": float(row["sigma"]),
+                        "epsilon": float(row["epsilon"]),
+                        "cutoff": float(row["cutoff"]),
+                    }
+                    for row in reader
+                }
             # If material is specified, retrieve parameters for that material
             for row in reader:
                 if row["Species_i"] == material:
@@ -165,13 +171,15 @@ class LJClustAdapter(ConfigurableObject):
                     }
                     break
         if not params:
-            raise ValueError(f"Lennard-Jones parameters for {material} not found in {file_name}.")
+            raise ValueError(
+                f"Lennard-Jones parameters for {material} not found in {file_name}."
+            )
         logger.debug(f"Retrieved Lennard-Jones parameters for {material}: {params}")
         return params
 
     @staticmethod
     def retrieve_lj_params(atom_str: str) -> dict:
-        """ 
+        """
         Retrieves the Lennard-Jones parameters for a given atom string.
         :param atom_str: String representing the atoms, e.g., "Cu10" for 10 copper atoms.
         :return: Dictionary containing Lennard-Jones parameters (sigma, epsilon, cutoff).
@@ -201,27 +209,33 @@ class LJClustAdapter(ConfigurableObject):
 
     @staticmethod
     def finst2species(function: int, instance: int, by_species: bool = True) -> str:
-        """ 
+        """
         Converts function and instance indices to a species string for LJ clusters.
         :param function: Index of the function (species).
         :param instance: Index of the instance (number of atoms).
         :param by_species: If True, function is species index, instance is number of atoms; otherwise, vice versa.
         :return: Species string, e.g., "Cu10" for 10 copper atoms.
         """
-        params = LJClustAdapter._retrieve_lj_params() # Retrieve all parameters
-        available_species = ["X"]+list(params.keys()) # Add "X" for theoretical LJ clusters
+        params = LJClustAdapter._retrieve_lj_params()  # Retrieve all parameters
+        available_species = ["X"] + list(
+            params.keys()
+        )  # Add "X" for theoretical LJ clusters
         available_numbers = list(range(3, 151))  # Valid number of atoms
-        
+
         species_idx = function if by_species else instance
         instance_idx = instance if by_species else function
 
         if species_idx < 0 or species_idx >= len(available_species):
-            raise ValueError(f"Function index {function} is out of range for LJClustAdapter.")
+            raise ValueError(
+                f"Function index {function} is out of range for LJClustAdapter."
+            )
         species = available_species[species_idx]
         if instance_idx < 0 or instance_idx >= len(available_numbers):
-            raise ValueError(f"Instance index {instance} is out of range for LJClustAdapter.")
+            raise ValueError(
+                f"Instance index {instance} is out of range for LJClustAdapter."
+            )
         num_atoms = available_numbers[instance_idx]
-        
+
         return f"{species}{num_atoms}"  # Species string for LJ cluster
 
     @staticmethod
@@ -239,11 +253,9 @@ class LJClustAdapter(ConfigurableObject):
         distances = pdist(positions)
         return float(np.min(distances)) >= 0.15
 
-
-
     @staticmethod
     def _construct_atoms(positions: np.ndarray, atom_str: str) -> Atoms:
-        """ 
+        """
         Constructs an ASE Atoms object from positions and atom string.
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
         :param atom_str: String representing the atoms, e.g., "Cu10" for 10 copper atoms.
@@ -285,7 +297,7 @@ class LJClustAdapter(ConfigurableObject):
         target_dir: str = ".",
         local_opt: bool = True,
     ) -> tuple[float, Atoms]:
-        """ 
+        """
         Retrieves the known minimum energy and corresponding atomic positions for a given atom string.
         :param atom_str: String representing the atoms, e.g., "Cu10" for 10 copper atoms.
         :param target_dir: Directory to store the data.
@@ -302,11 +314,10 @@ class LJClustAdapter(ConfigurableObject):
             return np.nan, None
         if lj_params is None:
             logger.warning(
-                f"Lennard-Jones parameters for {atom_str} not found. "
-                "Returning None."
+                f"Lennard-Jones parameters for {atom_str} not found. " "Returning None."
             )
             return np.nan, None
-        
+
         # Scale positions based on the sigma value from the Lennard-Jones parameters
         positions *= lj_params["sigma"]
         atoms = LJClustAdapter._construct_atoms(positions, atom_str)
@@ -314,7 +325,9 @@ class LJClustAdapter(ConfigurableObject):
         if local_opt:
             # Perform local optimization to finetune optimum
             opt_alg = FIRE(atoms, logfile=None)
-            fmax = 1e-10*lj_params["epsilon"]/lj_params["sigma"]  # Force convergence threshold
+            fmax = (
+                1e-10 * lj_params["epsilon"] / lj_params["sigma"]
+            )  # Force convergence threshold
             opt_alg.run(fmax=fmax, steps=1000)
         e = atoms.get_potential_energy()
         return e, atoms
@@ -379,7 +392,7 @@ class LJClustAdapter(ConfigurableObject):
         }
 
     def local_opt(self, positions: np.ndarray) -> tuple[float, np.ndarray]:
-        """ 
+        """
         Performs local optimization on the given atomic positions.
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
         :return: Tuple containing the potential energy and the optimized positions.
@@ -389,7 +402,6 @@ class LJClustAdapter(ConfigurableObject):
         opt = self.opt_alg(atoms, **self.opt_alg_params, logfile=None)
         opt.run(**self.opt_run_params)
         return atoms.get_potential_energy(), atoms.get_positions()
-
 
     def random_generate(self, seed: Optional[int] = None) -> np.ndarray:
         """

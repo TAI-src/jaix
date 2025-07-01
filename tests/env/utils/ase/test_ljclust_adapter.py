@@ -52,6 +52,7 @@ def test_retrieve_cluster_data():
     positions = LJClustAdapter._retrieve_cluster_data(num_atoms, target_dir=target_dir)
     assert positions.shape == (num_atoms, 3)
 
+
 @pytest.mark.parametrize("material", ["He", "C", "X"])
 def test_retrieve_lj_params_file(material):
     params = LJClustAdapter._retrieve_lj_params(material)
@@ -59,6 +60,7 @@ def test_retrieve_lj_params_file(material):
     assert "sigma" in params, "LJ parameters should contain 'sigma'."
     assert "epsilon" in params, "LJ parameters should contain 'epsilon'."
     assert isinstance(params["sigma"], float), "'sigma' should be a float."
+
 
 def test_retrieve_lj_params_file_special():
     # Unknonw material, throws error
@@ -86,6 +88,7 @@ def test_retrieve_lj_params(atom_str):
         assert "sigma" in params, "LJ parameters should contain 'sigma'."
         assert "epsilon" in params, "LJ parameters should contain 'epsilon'."
         assert isinstance(params["sigma"], float), "'sigma' should be a float."
+
 
 def test_finst2species():
     with pytest.raises(ValueError):
@@ -117,9 +120,11 @@ def create_random_positions(num_atoms):
     positions = (rng.random((num_atoms, 3)) - 0.5) * box_length * 1.5
     return positions
 
+
 def test_validate():
     # TODO: once I know what we actually want to validate
     pass
+
 
 @pytest.mark.parametrize("atom_str", ["C3", "X13", "He150", "C3H4"])
 def test_construct_atoms(atom_str):
@@ -127,7 +132,9 @@ def test_construct_atoms(atom_str):
     positions = create_random_positions(num_atoms)
     atoms = LJClustAdapter._construct_atoms(positions, atom_str)
     assert isinstance(atoms, Atoms), "Constructed atoms is not an instance of Atoms."
-    assert isinstance(atoms.get_potential_energy(), float), "Potential energy is not a float."
+    assert isinstance(
+        atoms.get_potential_energy(), float
+    ), "Potential energy is not a float."
     if atom_str.startswith("X"):
         assert isinstance(
             atoms.calc, LennardJones
@@ -154,12 +161,13 @@ def test_retrieve_known_min_X(request):
             abs(min_val - glob_min[num_atoms]) < 1e-5
         ), f"Mismatch for {num_atoms} atoms: {min_val} != {glob_min[num_atoms]}"
         # Check that the positions are valid
-        assert atoms.positions.shape == (num_atoms, 3), (
-            f"Positions for {num_atoms} atoms do not match expected shape."
-        )
-        assert LJClustAdapter.validate(atoms.positions), (
-            f"Positions for {num_atoms} atoms are not valid."
-        )
+        assert atoms.positions.shape == (
+            num_atoms,
+            3,
+        ), f"Positions for {num_atoms} atoms do not match expected shape."
+        assert LJClustAdapter.validate(
+            atoms.positions
+        ), f"Positions for {num_atoms} atoms are not valid."
 
 
 @pytest.mark.parametrize("atom_str", ["C3", "X17", "He33", "Og150", "C150"])
@@ -185,11 +193,13 @@ def test_retrieve_known_min_material(atom_str):
         target_dir=target_dir,
         local_opt=True,
     )
-    assert min_val_loc <= min_val, (
-        f"Local minimum for {atom_str} did not improve after minimizatio")
+    assert (
+        min_val_loc <= min_val
+    ), f"Local minimum for {atom_str} did not improve after minimizatio"
     assert (
         abs(min_val - atoms2.get_potential_energy()) < 0.005
     ), f"Mismatch for {atom_str}: {min_val} != {atoms2.get_potential_energy()}"
+
 
 @pytest.mark.parametrize("atom_str", ["C3H4", "Abc17", "Dum3"])
 def test_retrieve_known_min_invalid(atom_str):
@@ -200,7 +210,8 @@ def test_retrieve_known_min_invalid(atom_str):
             LJClustAdapter.retrieve_known_min(
                 atom_str,
                 target_dir=target_dir,
-                local_opt=False,)
+                local_opt=False,
+            )
     else:
         # If the atom string is valid, we should not raise an error
         min_val, atoms = LJClustAdapter.retrieve_known_min(
@@ -284,8 +295,9 @@ def test_set_species():
     ), "Minimum positions are not a numpy array."
 
 
-
-@pytest.mark.parametrize("def_vals,atom_str", [(True,"C13"), (False,"He33"), (True, "C3H4"), (True, "X17")])
+@pytest.mark.parametrize(
+    "def_vals,atom_str", [(True, "C13"), (False, "He33"), (True, "C3H4"), (True, "X17")]
+)
 def test_generate(def_vals, atom_str):
     # Test the generate method of the adapter
     adapter_config = get_config(def_vals=def_vals)
@@ -294,7 +306,7 @@ def test_generate(def_vals, atom_str):
     pos = adapter.random_generate()
     assert pos.shape == (
         adapter.num_atoms,
-3,
+        3,
     ), "Generated positions do not match the number of atoms."
     # Check that the positions are valid
     assert adapter.validate(pos), "Generated positions are not valid."
@@ -308,7 +320,9 @@ def test_generate(def_vals, atom_str):
     ), "Potential energy could not be calculated from generated positions."
 
 
-@pytest.mark.parametrize("def_vals,atom_str", [(True,"C13"), (False,"He33"), (True, "C3H4"), (True, "X17")])
+@pytest.mark.parametrize(
+    "def_vals,atom_str", [(True, "C13"), (False, "He33"), (True, "C3H4"), (True, "X17")]
+)
 def test_evaluate(def_vals, atom_str):
     # Test the evaluate method of the adapter
     adapter_config = get_config(def_vals=def_vals)
@@ -323,14 +337,18 @@ def test_evaluate(def_vals, atom_str):
         info["energy_diff"], float
     ), "Energy in info dictionary is not a float."
     if atom_str == "C3H4":
-        assert np.isnan(info["energy_diff"]), "Energy difference for C3H4 should be NaN."
+        assert np.isnan(
+            info["energy_diff"]
+        ), "Energy difference for C3H4 should be NaN."
     else:
         assert not np.isnan(
             info["energy_diff"]
         ), "Energy difference should not be NaN for other materials."
 
-   
-@pytest.mark.parametrize("def_vals,atom_str", [(True,"C13"), (False,"He33"), (True, "C3H4"), (True, "X17")])
+
+@pytest.mark.parametrize(
+    "def_vals,atom_str", [(True, "C13"), (False, "He33"), (True, "C3H4"), (True, "X17")]
+)
 def test_local_opt(def_vals, atom_str):
     # Test the local optimization method of the adapter
     adapter_config = get_config(def_vals=def_vals)
@@ -351,5 +369,3 @@ def test_local_opt(def_vals, atom_str):
     assert (
         energy <= initial_energy
     ), "Energy after optimization is not lower than initial energy."
-
-
