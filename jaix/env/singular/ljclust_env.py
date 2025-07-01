@@ -15,9 +15,11 @@ class LJClustEnvironmentConfig(Config):
         self,
         ljclust_adapter_config: LJClustAdapterConfig,
         target_accuracy: float = 1e-5,
+        by_species: bool = True,  # If True, function is species index, instance is number of atoms; otherwise, vice versa.
     ):
         self.ljclust_adapter_config = ljclust_adapter_config
         self.target_accuracy = target_accuracy
+        self.by_species = by_species
 
 
 class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
@@ -27,10 +29,10 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
     def info(config: LJClustEnvironmentConfig):
         # Return information about the environment
         # TODO: Need to figure out what could be used for different functions and instances
-        # then read from adapter instead of hardcoding
+        info = LJClustAdapter.get_info(config.by_species)
         return {
-            "num_funcs": 1,
-            "num_insts": 148,
+            "num_funcs": info["num_funcs"],
+            "num_insts": info["num_insts"],
         }
 
     def __init__(self, config: LJClustEnvironmentConfig, func: int, inst: int):
@@ -40,7 +42,8 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
         self.adapter = COF.create(LJClustAdapter, config.ljclust_adapter_config)
         self.adapter.set_species(species_str)
 
-        # TODO need to figure out the actual box where to look for atom positions
+        # TODO: need to figure out the actual box where to look for atom positions
+        # Based on adapter box length
         self.action_space = gym.spaces.Box(
             low=0.0, high=np.inf, shape=(self.adapter.num_atoms, 3), dtype=np.float64
         )

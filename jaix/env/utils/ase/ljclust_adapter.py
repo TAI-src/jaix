@@ -25,13 +25,11 @@ class LJClustAdapterConfig:
         opt_alg: Type[Optimizer] = BFGS,
         opt_alg_params: dict = {},  # Parameters for the optimizer initialization
         opt_run_params: dict = {},  # Parameters for the optimizer run, including fmax and steps
-        by_species: bool = True,  # If True, function is species index, instance is number of atoms; otherwise, vice versa.
     ):
         self.target_dir = target_dir
         self.opt_alg = opt_alg
         self.opt_alg_params = opt_alg_params
         self.opt_run_params = opt_run_params
-        self.by_species = by_species
 
 
 class LJClustAdapter(ConfigurableObject):
@@ -208,6 +206,27 @@ class LJClustAdapter(ConfigurableObject):
         return params
 
     @staticmethod
+    def get_info(by_species: bool):
+        """
+        Retrieves available species and numbers for Lennard-Jones clusters.
+        :param by_species: If True, returns species as functions; otherwise, returns numbers as functions.
+        :return: Dictionary containing available species, available numbers, number of functions, and number of instances.
+        """
+        params = LJClustAdapter._retrieve_lj_params()  # Retrieve all parameters
+        available_species = ["X"] + list(
+            params.keys()
+        )  # Add "X" for theoretical LJ clusters
+        available_numbers = list(range(3, 151))  # Valid number of atoms
+        functions = available_species if by_species else available_numbers
+        instances = available_numbers if by_species else available_species
+        return {
+            "avail_species": available_species,
+            "avail_numbers": available_numbers,
+            "num_funcs": len(functions),
+            "num_insts": len(instances),
+        }
+
+    @staticmethod
     def finst2species(function: int, instance: int, by_species: bool = True) -> str:
         """
         Converts function and instance indices to a species string for LJ clusters.
@@ -216,11 +235,9 @@ class LJClustAdapter(ConfigurableObject):
         :param by_species: If True, function is species index, instance is number of atoms; otherwise, vice versa.
         :return: Species string, e.g., "Cu10" for 10 copper atoms.
         """
-        params = LJClustAdapter._retrieve_lj_params()  # Retrieve all parameters
-        available_species = ["X"] + list(
-            params.keys()
-        )  # Add "X" for theoretical LJ clusters
-        available_numbers = list(range(3, 151))  # Valid number of atoms
+        available_info = LJClustAdapter.get_info(by_species)
+        available_species = available_info["avail_species"]
+        available_numbers = available_info["avail_numbers"]
 
         species_idx = function if by_species else instance
         instance_idx = instance if by_species else function
@@ -357,11 +374,14 @@ class LJClustAdapter(ConfigurableObject):
         if self.min_atoms is not None:
             self.min_pos = self.min_atoms.get_positions()
         # box length source? https://www.researchgate.net/publication/235583835_Local_structures_in_medium-sized_Lennard-Jones_clusters_Monte_Carlo_simulations
-        lj_params = LJClustAdapter.retrieve_lj_params(self.atom_str)
+        self.lj_params = LJClustAdapter.retrieve_lj_params(self.atom_str)
+        covalent_radius = (
+            self.lj_params.get("sigma", 1.0) if self.lj_params is not None else 1.0
+        )
         # TODO: figure out good values here
         self.box_length = (
             2
-            * self.covalent_radius
+            * covalent_radius
             * (0.5 + ((3.0 * self.num_atoms) / (4 * np.pi * np.sqrt(2))) ** (1 / 3))
         )
         # TODO: Importance of box_length?

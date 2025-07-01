@@ -232,7 +232,6 @@ def get_config(def_vals: bool) -> LJClustAdapterConfig:
             "opt_alg": LBFGS,
             "opt_alg_params": {"alpha": 71},
             "opt_run_params": {"fmax": 0.1, "steps": 1000},
-            "covalent_radius": 1.1,
         }
         adapter_params.update(spec_params)
     config = LJClustAdapterConfig(**adapter_params)
