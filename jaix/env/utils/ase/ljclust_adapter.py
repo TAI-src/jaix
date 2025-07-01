@@ -25,14 +25,12 @@ class LJClustAdapterConfig:
         opt_alg: Type[Optimizer] = BFGS,
         opt_alg_params: dict = {}, # Parameters for the optimizer initialization
         opt_run_params: dict = {}, # Parameters for the optimizer run, including fmax and steps
-        covalent_radius: float = 1.0, # TODO: better generation
         by_species: bool = True, # If True, function is species index, instance is number of atoms; otherwise, vice versa.
     ):
         self.target_dir = target_dir
         self.opt_alg = opt_alg
         self.opt_alg_params = opt_alg_params
         self.opt_run_params = opt_run_params
-        self.covalent_radius = covalent_radius
         self.by_species = by_species
 
 
@@ -345,6 +343,9 @@ class LJClustAdapter(ConfigurableObject):
         self.min_pos = None
         if self.min_atoms is not None:
             self.min_pos = self.min_atoms.get_positions()
+        # box length source? https://www.researchgate.net/publication/235583835_Local_structures_in_medium-sized_Lennard-Jones_clusters_Monte_Carlo_simulations
+        lj_params = LJClustAdapter.retrieve_lj_params(self.atom_str)
+        # TODO: figure out good values here
         self.box_length = (
             2
             * self.covalent_radius
