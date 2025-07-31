@@ -221,8 +221,8 @@ class LJClustAdapter(ConfigurableObject):
         return {
             "avail_species": available_species,
             "avail_numbers": available_numbers,
-            "num_funcs": len(functions),
-            "num_insts": len(instances),
+            "num_funcs": len(functions), # type: ignore[arg-type]
+            "num_insts": len(instances), # type: ignore[arg-type]
         }
 
     @staticmethod
