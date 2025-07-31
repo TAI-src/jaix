@@ -6,7 +6,7 @@ from ase.optimize import BFGS, FIRE
 from ase import Atoms
 import os
 import numpy as np
-from typing import Optional, Type, Union
+from typing import Optional, Type, Union, List, Tuple
 from scipy.spatial.distance import pdist
 from ttex.config import ConfigurableObject, Config
 from ase.calculators.kim import KIM
@@ -212,10 +212,10 @@ class LJClustAdapter(ConfigurableObject):
         :return: Dictionary containing available species, available numbers, number of functions, and number of instances.
         """
         params = LJClustAdapter._retrieve_lj_params()  # Retrieve all parameters
-        available_species = ["X"] + list(
+        available_species: List[str] = ["X"] + list(
             params.keys()
         )  # Add "X" for theoretical LJ clusters
-        available_numbers = list(range(3, 151))  # Valid number of atoms
+        available_numbers: List[int] = list(range(3, 151))  # Valid number of atoms
         functions = available_species if by_species else available_numbers
         instances = available_numbers if by_species else available_species
         return {
@@ -312,7 +312,7 @@ class LJClustAdapter(ConfigurableObject):
         atom_str: str,
         target_dir: str = ".",
         local_opt: bool = True,
-    ) -> tuple[float, Union[Atoms, None]]:
+    ) -> Tuple[float, Union[Atoms, None]]:
         """
         Retrieves the known minimum energy and corresponding atomic positions for a given atom string.
         :param atom_str: String representing the atoms, e.g., "Cu10" for 10 copper atoms.
@@ -385,7 +385,7 @@ class LJClustAdapter(ConfigurableObject):
         )
         # TODO: Importance of box_length?
 
-    def evaluate(self, positions: np.ndarray) -> tuple[float, dict]:
+    def evaluate(self, positions: np.ndarray) -> Tuple[float, dict]:
         """
         Evaluates the potential energy of the given atomic positions.
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
@@ -410,7 +410,7 @@ class LJClustAdapter(ConfigurableObject):
             "energy_diff": atoms.get_potential_energy() - self.min_val,
         }
 
-    def local_opt(self, positions: np.ndarray) -> tuple[float, np.ndarray]:
+    def local_opt(self, positions: np.ndarray) -> Tuple[float, np.ndarray]:
         """
         Performs local optimization on the given atomic positions.
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
