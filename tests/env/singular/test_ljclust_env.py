@@ -3,6 +3,7 @@ import pytest
 from jaix.env.utils.ase import LJClustAdapterConfig
 import numpy as np
 
+
 @pytest.fixture
 def config():
     return LJClustEnvironmentConfig(
@@ -28,6 +29,7 @@ def test_init(env):
     assert env.best_so_far == np.inf, "Best so far should be initialized to infinity."
     assert env.adapter is not None, "Adapter should be initialized."
 
+
 def test_info(config):
     info = LJClustEnvironment.info(config)
     assert "num_funcs" in info, "Number of functions information is missing."
@@ -51,7 +53,9 @@ def test_step(env):
         action = env.action_space.sample()
         obs, reward, done, truncated, info = env.step(action)
 
-        assert obs in env.observation_space, "Observation is not in the observation space."
+        assert (
+            obs in env.observation_space
+        ), "Observation is not in the observation space."
         assert isinstance(reward, float), "Reward should be a float."
         assert not done, "Environment should not be done after one step."
         assert not truncated, "Environment should not be truncated after one step."
@@ -66,15 +70,19 @@ def test_step(env):
 def test_stop(env):
     env.reset(options={"online": True})
     env.best_so_far = env.adapter.min_val + env.target_accuracy + 1e-6
-    assert not env.stop(), "Environment should not stop before reaching target accuracy."
+    assert (
+        not env.stop()
+    ), "Environment should not stop before reaching target accuracy."
 
     env.best_so_far = env.adapter.min_val + env.target_accuracy
     assert env.stop(), "Environment should stop after reaching target accuracy."
+
 
 def test_instance_seeding(env):
     # TODO: Implement a test for instance test_instance_seeding
     # This is a placeholder for the actual test.
     pass
+
 
 def test_render(env):
     # Test rendering functionality
