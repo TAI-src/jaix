@@ -6,9 +6,9 @@ from ase.optimize import BFGS, FIRE
 from ase import Atoms
 import os
 import numpy as np
-from typing import Optional, Type
+from typing import Optional, Type, Union
 from scipy.spatial.distance import pdist
-from ttex.config import ConfigurableObject
+from ttex.config import ConfigurableObject, Config
 from ase.calculators.kim import KIM
 from os import path
 
@@ -18,7 +18,7 @@ from jaix import LOGGER_NAME
 logger = logging.getLogger(LOGGER_NAME)
 
 
-class LJClustAdapterConfig:
+class LJClustAdapterConfig(Config):
     def __init__(
         self,
         target_dir: str = "./ljclust_data",
@@ -104,8 +104,7 @@ class LJClustAdapter(ConfigurableObject):
             tar_path = LJClustAdapter._download_tar(target_dir)
             LJClustAdapter._unpack_tar(tar_path, target_dir=lj_data_dir)
             logger.debug("Lennard-Jones clusters database downloaded and unpacked.")
-        # TODO: Identify what the "i" versions are for
-        # Lowest energy icosahedral minima at sizes with non-icosahedral global minima.
+        # i versions are for Lowest energy icosahedral minima at sizes with non-icosahedral global minima.
 
         cluster_file = os.path.join(lj_data_dir, str(num_atoms))
         if not os.path.exists(cluster_file):
@@ -176,7 +175,7 @@ class LJClustAdapter(ConfigurableObject):
         return params
 
     @staticmethod
-    def retrieve_lj_params(atom_str: str) -> dict:
+    def retrieve_lj_params(atom_str: str) -> Union[dict, None]:
         """
         Retrieves the Lennard-Jones parameters for a given atom string.
         :param atom_str: String representing the atoms, e.g., "Cu10" for 10 copper atoms.
@@ -313,7 +312,7 @@ class LJClustAdapter(ConfigurableObject):
         atom_str: str,
         target_dir: str = ".",
         local_opt: bool = True,
-    ) -> tuple[float, Atoms]:
+    ) -> tuple[float, Union[Atoms, None]]:
         """
         Retrieves the known minimum energy and corresponding atomic positions for a given atom string.
         :param atom_str: String representing the atoms, e.g., "Cu10" for 10 copper atoms.
@@ -346,8 +345,8 @@ class LJClustAdapter(ConfigurableObject):
                 1e-10 * lj_params["epsilon"] / lj_params["sigma"]
             )  # Force convergence threshold
             opt_alg.run(fmax=fmax, steps=1000)
-        e = atoms.get_potential_energy()
-        return e, atoms
+        energy = atoms.get_potential_energy()
+        return energy, atoms
 
     def __init__(self, config: LJClustAdapterConfig):
         """
@@ -386,7 +385,7 @@ class LJClustAdapter(ConfigurableObject):
         )
         # TODO: Importance of box_length?
 
-    def evaluate(self, positions: np.ndarray) -> tuple[float, np.ndarray]:
+    def evaluate(self, positions: np.ndarray) -> tuple[float, dict]:
         """
         Evaluates the potential energy of the given atomic positions.
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.

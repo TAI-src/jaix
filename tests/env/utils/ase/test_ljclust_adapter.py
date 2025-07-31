@@ -8,7 +8,7 @@ from ase import Atoms
 from ase.optimize.optimize import Optimizer
 from ase.calculators.lj import LennardJones
 import numpy as np
-from ttex.config import ConfigFactory
+from ttex.config import ConfigFactory, ConfigurableObjectFactory as COF
 
 target_dir = "./tmp_data"
 

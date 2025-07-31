@@ -15,6 +15,7 @@ setup(
         "tai-ttex",
         "ase",
         "kimpy",
+        "requests"
     ],
     license="GPL3",
     long_description="jaix",

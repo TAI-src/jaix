@@ -44,13 +44,19 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
 
         # TODO: need to figure out the actual box where to look for atom positions
         # Based on adapter box length
+        # An action is the positions of atoms in 3D space,
+        # one coordinate per atom
         self.action_space = gym.spaces.Box(
-            low=0.0, high=np.inf, shape=(self.adapter.num_atoms, 3), dtype=np.float64
+            low=0.0, high=np.inf, shape=(self.adapter.num_atoms *3,), dtype=np.float64
         )
+        # An observation is the energy after the last action
         self.observation_space = gym.spaces.Box(
             low=-np.inf, high=np.inf, shape=(1,), dtype=np.float64
         )
         self.best_so_far = np.inf
+        # Count how often the environment is reset
+        # (corresponds to algorithms restarts +1 )
+        self.num_resets = 0
 
     def _get_info(self):
         return {
@@ -74,13 +80,14 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
         """
         if options is None or "online" not in options or not options["online"]:
             # We only do partial resets for ec, so still "online"
-            raise ValueError("HPO environments are always online")
+            raise ValueError("LJClustEnvironments are always online")
         self.num_resets += 1
         self.best_so_far = np.inf
         return None, self._get_info()
 
     def step(self, pos):
         val: float
+        pos = np.reshape(pos, (self.adapter.num_atoms, 3))
         if not self.adapter.validate(pos):
             val = np.inf  # TODO: Figure out proper penalties or nan
             add_info = {"invalid": True}
@@ -95,7 +102,7 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
         terminated = self.stop()
         truncated = False
         r = -val
-        return val, r, terminated, truncated, info
+        return np.asarray([val], dtype=self.action_space.dtype), r, terminated, truncated, info
 
     def render(self):
         """
