@@ -9,8 +9,7 @@ import json
 
 
 def get_config(suite="COCO", comp=False):
-    known_suites = {"cont": ["COCO", "RBF", "ASE"],
-                    "disc": ["HPO", "MMind"]}
+    known_suites = {"cont": ["COCO", "RBF", "ASE"], "disc": ["HPO", "MMind"]}
 
     xconfig = {
         "jaix.ExperimentConfig": {
@@ -348,7 +347,8 @@ def test_launch_jaix_experiment_wandb():
 
 
 @pytest.mark.parametrize(
-    "suite, comp", itertools.product(["COCO", "RBF", "HPO", "MMind", "ASE"], [False, True])
+    "suite, comp",
+    itertools.product(["COCO", "RBF", "HPO", "MMind", "ASE"], [False, True]),
 )
 def test_launch_jaix_experiment(suite, comp):
     config = get_config(suite, comp)
