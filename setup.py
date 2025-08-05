@@ -17,11 +17,11 @@ setup(
         "regex",
         "coco-experiment",
     ],
-    #extras_require={
+    # extras_require={
     #    'ase': ['ase', 'kimpy', 'requests'],
     #    'tabrepo': ['tabrepo', 'regex'],
     #    'coco': ['coco-experiment', 'regex'],
-    #},
+    # },
     license="GPL3",
     long_description="jaix",
     long_description_content_type="text/x-rst",
