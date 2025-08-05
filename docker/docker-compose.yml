@@ -15,9 +15,6 @@ services:
     container_name: jaix
     env_file: .env
     image: taisrc/jaix${VER:+:}${VER}
-    depends_on:
-        tabrepo:
-            condition: service_completed_successfully
     build:
         context: ..
         dockerfile: docker/Dockerfile
