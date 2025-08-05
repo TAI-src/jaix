@@ -17,19 +17,21 @@ from jaix import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
+LJ_MAX_RC = 1e6  # near infinite cutoff to get as close to the optimum values known in literature as possible
+MIN_ATOM_DISTANCE = 0.15  # Minimum distance between atoms in the Lennard-Jones clusters
 
 class LJClustAdapterConfig(Config):
     def __init__(
         self,
         target_dir: str = "./ljclust_data",
         opt_alg: Type[Optimizer] = BFGS,
-        opt_alg_params: dict = {},  # Parameters for the optimizer initialization
-        opt_run_params: dict = {},  # Parameters for the optimizer run, including fmax and steps
+        opt_alg_params: dict = None,  # Parameters for the optimizer initialization
+        opt_run_params: dict = None,  # Parameters for the optimizer run, including fmax and steps
     ):
         self.target_dir = target_dir
         self.opt_alg = opt_alg
-        self.opt_alg_params = opt_alg_params
-        self.opt_run_params = opt_run_params
+        self.opt_alg_params = {} if opt_alg_params is None else opt_alg_params
+        self.opt_run_params = {} if opt_run_params is None else opt_run_params
 
 
 class LJClustAdapter(ConfigurableObject):
@@ -267,7 +269,7 @@ class LJClustAdapter(ConfigurableObject):
             return True
 
         distances = pdist(positions)
-        return float(np.min(distances)) >= 0.15
+        return float(np.min(distances)) >= MIN_ATOM_DISTANCE
 
     @staticmethod
     def _construct_atoms(positions: np.ndarray, atom_str: str) -> Atoms:
@@ -287,7 +289,7 @@ class LJClustAdapter(ConfigurableObject):
             calc = LennardJones(
                 sigma=1.0,
                 epsilon=1.0,
-                rc=1e6,
+                rc=LJ_MAX_RC,  # near infinite cutoff
                 smooth=False,
             )
             atoms = Atoms(

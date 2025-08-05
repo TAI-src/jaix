@@ -63,7 +63,7 @@ def test_retrieve_lj_params_file(material):
 
 
 def test_retrieve_lj_params_file_special():
-    # Unknonw material, throws error
+    # Unknown material, throws error
     with pytest.raises(ValueError):
         LJClustAdapter._retrieve_lj_params("Abc")
     with pytest.raises(ValueError):
@@ -195,7 +195,7 @@ def test_retrieve_known_min_material(atom_str):
     )
     assert (
         min_val_loc <= min_val
-    ), f"Local minimum for {atom_str} did not improve after minimizatio"
+    ), f"Local minimum for {atom_str} did not improve after minimization"
     assert (
         abs(min_val - atoms2.get_potential_energy()) < 0.005
     ), f"Mismatch for {atom_str}: {min_val} != {atoms2.get_potential_energy()}"
