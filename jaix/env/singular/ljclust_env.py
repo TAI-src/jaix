@@ -47,7 +47,10 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
         # An action is the positions of atoms in 3D space,
         # one coordinate per atom
         self.action_space = gym.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(self.adapter.num_atoms * 3,), dtype=np.float64
+            low=-np.inf,
+            high=np.inf,
+            shape=(self.adapter.num_atoms * 3,),
+            dtype=np.float64,
         )
         # An observation is the energy after the last action
         self.observation_space = gym.spaces.Box(

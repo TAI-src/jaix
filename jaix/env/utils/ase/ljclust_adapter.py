@@ -20,6 +20,7 @@ logger = logging.getLogger(LOGGER_NAME)
 LJ_MAX_RC = 1e6  # near infinite cutoff to get as close to the optimum values known in literature as possible
 MIN_ATOM_DISTANCE = 0.15  # Minimum distance between atoms in the Lennard-Jones clusters
 
+
 class LJClustAdapterConfig(Config):
     def __init__(
         self,
