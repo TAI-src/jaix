@@ -308,7 +308,6 @@ def get_config(suite="COCO", comp=False):
             }
     return xconfig
 
-
 def test_wandb_logger():
     exp_config = CF.from_dict(get_config())
     nexp_config = wandb_logger(exp_config, "dummy_run", "dummy_name")
