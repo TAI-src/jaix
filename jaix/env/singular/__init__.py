@@ -7,3 +7,7 @@ from jaix.env.singular.mastermind_env import (
     MastermindEnvironmentConfig,
     MastermindEnvironment,
 )
+from jaix.env.singular.ljclust_env import (
+    LJClustEnvironmentConfig,
+    LJClustEnvironment,
+)

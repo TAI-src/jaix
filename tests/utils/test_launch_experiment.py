@@ -9,6 +9,8 @@ import json
 
 
 def get_config(suite="COCO", comp=False):
+    known_suites = {"cont": ["COCO", "RBF", "ASE"], "disc": ["HPO", "MMind"]}
+
     xconfig = {
         "jaix.ExperimentConfig": {
             "runner_class": "jaix.runner.ask_tell.ATRunner",
@@ -115,6 +117,30 @@ def get_config(suite="COCO", comp=False):
                 },
             },
         }
+    elif suite == "ASE":
+        xconfig["jaix.ExperimentConfig"]["env_config"] = {
+            "jaix.EnvironmentConfig": {
+                "suite_class": "jaix.suite.Suite",
+                "suite_config": {
+                    "jaix.suite.SuiteConfig": {
+                        "env_class": "jaix.env.singular.LJClustEnvironment",
+                        "env_config": {
+                            "jaix.env.singular.LJClustEnvironmentConfig": {
+                                "ljclust_adapter_config": {
+                                    "jaix.env.utils.ase.LJClustAdapterConfig": {
+                                        "target_dir": "./tmp_data",
+                                    },
+                                },
+                                "target_accuracy": 0.0,
+                            },
+                        },
+                        "functions": [0],
+                        "instances": [0],
+                        "agg_instances": 1,
+                    },
+                },
+            },
+        }
     xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
         "env_wrappers"
     ] = [("jaix.env.wrapper.AnyFitWrapper", {})]
@@ -165,8 +191,8 @@ def get_config(suite="COCO", comp=False):
                 "init_pop_size": 1,
             },
         }
-
-        if suite == "COCO" or suite == "RBF":
+        # Continuous optimisation uses CMA-ES, discrete uses Basic EA
+        if suite in known_suites["cont"]:
             xconfig["jaix.ExperimentConfig"]["opt_config"][
                 "jaix.runner.ask_tell.ATOptimiserConfig"
             ]["strategy_config"]["jaix.runner.ask_tell.strategy.ATBanditConfig"][
@@ -246,7 +272,7 @@ def get_config(suite="COCO", comp=False):
         xconfig["jaix.ExperimentConfig"][
             "opt_class"
         ] = "jaix.runner.ask_tell.ATOptimiser"
-        if suite == "COCO" or suite == "RBF":
+        if suite in known_suites["cont"]:
             # Continuous optimisation, use CMA-ES
             xconfig["jaix.ExperimentConfig"]["opt_config"] = {
                 "jaix.runner.ask_tell.ATOptimiserConfig": {
@@ -321,7 +347,8 @@ def test_launch_jaix_experiment_wandb():
 
 
 @pytest.mark.parametrize(
-    "suite, comp", itertools.product(["COCO", "RBF", "HPO", "MMind"], [False, True])
+    "suite, comp",
+    itertools.product(["COCO", "RBF", "HPO", "MMind", "ASE"], [False, True]),
 )
 def test_launch_jaix_experiment(suite, comp):
     config = get_config(suite, comp)
