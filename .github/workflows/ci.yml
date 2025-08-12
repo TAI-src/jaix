@@ -21,17 +21,22 @@ on:
         description: "Reason for Running"
         required: false
         default: "Manually trigger ci"
+      from-scratch:
+        description: "Build from scratch?"
+        required: false
+        default: false
+  schedule: # trigger every week
+    - cron: '0 0 * * 1'
 
 concurrency:
   group: >-
     ${{ github.workflow }}-${{ github.ref }}-${{ github.triggering_actor == 'auto-cid' || github.triggering_actor != 'github-actions[bot]' }}
   cancel-in-progress: true
 
-
 jobs:
   run-base-ci:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@main
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/from_scratch
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
       # added or changed files to the repository and create PR
@@ -41,11 +46,12 @@ jobs:
       docker-service: jaix
       lint-src: jaix
       pretty: true
+      from-scratch: ${{ github.event_name == 'schedule' || github.event.inputs.from-scratch == 'true' }}
     secrets: inherit
     
   test-hpo:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@main
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/from_scratch
     needs:
       - run-base-ci
     permissions:
@@ -57,12 +63,13 @@ jobs:
       docker-service: jaix_hpo
       lint-src: jaix
       pretty: false
+      from-scratch: false
     secrets: inherit
     
     
   test-coco:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@main
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/from_scratch
     needs:
       - run-base-ci
     permissions:
@@ -74,11 +81,12 @@ jobs:
       docker-service: jaix_coco
       lint-src: jaix
       pretty: false
+      from-scratch: false
     secrets: inherit
     
   test-ase:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@main
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/from_scratch
     needs:
       - run-base-ci
     permissions:
@@ -90,4 +98,5 @@ jobs:
       docker-service: jaix_ase
       lint-src: jaix
       pretty: false
+      from-scratch: false
     secrets: inherit
