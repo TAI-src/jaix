@@ -26,8 +26,12 @@ class LJClustAdapterConfig(Config):
         self,
         target_dir: str = "./ljclust_data",
         opt_alg: Type[Optimizer] = BFGS,
-        opt_alg_params: Optional[dict] = None,  # Parameters for the optimizer initialization
-        opt_run_params: Optional[dict] = None,  # Parameters for the optimizer run, including fmax and steps
+        opt_alg_params: Optional[
+            dict
+        ] = None,  # Parameters for the optimizer initialization
+        opt_run_params: Optional[
+            dict
+        ] = None,  # Parameters for the optimizer run, including fmax and steps
     ):
         self.target_dir = target_dir
         self.opt_alg = opt_alg
