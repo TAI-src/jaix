@@ -30,7 +30,7 @@ on:
 
 concurrency:
   group: >-
-    ${{ github.workflow }}-${{ github.ref }}-${{ github.triggering_actor == 'auto-cid' || github.triggering_actor = 'github-actions[bot]' }}
+    ${{ github.workflow }}-${{ github.ref }}-${{ github.triggering_actor == 'auto-cid' || github.triggering_actor == 'github-actions[bot]' }}
   cancel-in-progress: true
 
 jobs:
