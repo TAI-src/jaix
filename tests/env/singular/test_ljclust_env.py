@@ -3,13 +3,17 @@ import pytest
 from jaix.env.utils.ase import LJClustAdapterConfig
 import numpy as np
 
+@pytest.fixture(scope="session", autouse=True)
+def skip_remaining_tests():
+    if LJClustAdapterConfig is None:
+        pytest.skip("Skipping LJClust tests. If this is unexpected, check that the ase extra is installed.")
 
 @pytest.fixture
-def config():
-    return LJClustEnvironmentConfig(
-        ljclust_adapter_config=LJClustAdapterConfig(target_dir="./tmp_data"),
-        target_accuracy=0.0,
-    )
+def config(skip_remaining_tests):
+     return LJClustEnvironmentConfig(
+            ljclust_adapter_config=LJClustAdapterConfig(target_dir="./tmp_data"),
+            target_accuracy=0.0,
+            )
 
 
 @pytest.fixture

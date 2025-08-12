@@ -49,7 +49,7 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         env_step = info["env_step"] if "env_step" in info else self.log_env_steps
         # Log per reset
         info_dict = {
-            f"env/r/{str(self.env.unwrapped)}": r.item(),
+            f"env/r/{str(self.env.unwrapped)}": float(r.item()),
             f"env/resets/{self.env.unwrapped}": self.log_resets,
             # f"restarts/r/{self.dim}/{self.env}/{self.log_resets}": r.item(),
             "env/step": env_step,
@@ -57,16 +57,16 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
             # "restarts/step": self.log_renv_steps,
         }
         if "raw_r" in info:
-            info_dict[f"env/raw_r/{str(self.env.unwrapped)}"] = info["raw_r"]
+            info_dict[f"env/raw_r/{str(self.env.unwrapped)}"] = float(info["raw_r"])
             new_r = info["raw_r"]
         else:
             new_r = r
         self.best_raw_r = (
             new_r if self.best_raw_r is None else min(self.best_raw_r, new_r)
         )
-        info_dict[f"env/best_raw_r/{str(self.env.unwrapped)}"] = self.best_raw_r
+        info_dict[f"env/best_raw_r/{str(self.env.unwrapped)}"] = float(self.best_raw_r)
         if term:
-            info_dict[f"env/term/{str(self.env.unwrapped)}"] = self.log_renv_steps
+            info_dict[f"env/term/{str(self.env.unwrapped)}"] = float(self.log_renv_steps)
 
         self.logger.info(info_dict)
         # TODO: Figure out what info would be helpful from all the sub-wrappers etc

@@ -1,16 +1,16 @@
-FROM taisrc/jaix:tabrepo
-
-RUN sudo apt install -y pkgconf
-RUN sudo add-apt-repository -y ppa:openkim/latest && sudo apt-get update && sudo apt-get install -y libkim-api-dev openkim-models
-
-# Preload python packages required
-RUN pip install pytest black mypy pylint
+FROM python:3.12 AS jaix_base
 
 WORKDIR /jaix
 COPY setup.py setup.py
 COPY jaix jaix
+RUN pip install pip-tools && pip-compile --output-file requirements.txt setup.py
 
-USER root
-RUN pip install -e .
+FROM python:3.12
+COPY --from=jaix_base /jaix /jaix
+WORKDIR /jaix
+
+RUN pip install --no-cache-dir -r requirements.txt
+ARG EXTRAS
+RUN pip install --no-cache-dir -e .${EXTRAS}
 
 WORKDIR /tests

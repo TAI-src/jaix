@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.md
+*.ipynb
+*.env
+
+## tabrepo
+tabrepo/.git
+tabrepo/.github
+tabrepo/env/
+tabrepo/venv/
+tabrepo/docs/
+tabrepo/examples/
+tabrepo/scripts/
+tabrepo/tst/
+

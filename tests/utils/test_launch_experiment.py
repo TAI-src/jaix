@@ -8,7 +8,7 @@ import itertools
 import json
 
 
-def get_config(suite="COCO", comp=False):
+def get_config(suite="RBF", comp=False):
     known_suites = {"cont": ["COCO", "RBF", "ASE"], "disc": ["HPO", "MMind"]}
 
     xconfig = {
@@ -352,7 +352,11 @@ def test_launch_jaix_experiment_wandb():
 )
 def test_launch_jaix_experiment(suite, comp):
     config = get_config(suite, comp)
-    results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False)
+    try:
+        results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False)
+    except TypeError:
+        assert suite in ["COCO", "HPO", "ASE"] # The others are in the base package
+        pytest.skip(f"Skipping test for {suite}. Check installed extras if this is unexpected")
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
     data_dir = [result["data_dirs"][0] for result in results.values()][0]
     assert data_dir is None
@@ -360,7 +364,7 @@ def test_launch_jaix_experiment(suite, comp):
 
 
 def test_repeat():
-    config = get_config("COCO", False)
+    config = get_config("RBF", False)
     results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False, repeat=2)
     exit_codes = [result["exit_codes"] for result in results.values()]
     data_dirs = [result["data_dirs"] for result in results.values()]
@@ -371,7 +375,7 @@ def test_repeat():
 
 
 def test_sweep():
-    config = get_config("COCO", False)
+    config = get_config("RBF", False)
     keys = [
         "jaix.ExperimentConfig",
         "opt_config",
@@ -433,7 +437,11 @@ def test_launch_final(config_file):
             "suite_config"
         ]["jaix.suite.SuiteConfig"]["agg_instances"] = 1
 
-    results = launch_jaix_experiment(run_config=config, wandb=False)
+    try:
+        results = launch_jaix_experiment(run_config=config, wandb=False)
+    except TypeError:
+        pytest.skip(f"Skipping test for {config_file}. Check installed extras if this is unexpected")
+  
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
     data_dir = [result["data_dirs"][0] for result in results.values()][0]
     assert data_dir is None

@@ -5,12 +5,16 @@ from ttex.config import (
     ConfigurableObjectFactory as COF,
 )
 import os
-import cocoex as ex
 from jaix.suite import AggType
+
+@pytest.fixture(scope="module", autouse=True)
+def skip_remaining_tests():
+    if COCOProblem is None:
+        pytest.skip("Skipping COCO tests. If this is unexpected, check that the coco extra is installed.")
 
 
 @pytest.fixture(scope="function")
-def env_config():
+def env_config(skip_remaining_tests):
     config = ECEnvironmentConfig(budget_multiplier=1)
     return config
 
@@ -78,6 +82,7 @@ def test_get_envs_agg(env_config):
 
 
 def test_get_problem_dict(env_config):
+    import cocoex as ex
     suite = ex.Suite("bbob", "", "")
     # TODO: check how this works for bi-objective
 

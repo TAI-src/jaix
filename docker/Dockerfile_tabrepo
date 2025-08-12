@@ -1,15 +1,28 @@
-FROM rayproject/ray:latest-py312-cpu
-RUN sudo apt-get update && sudo apt-get install -y g++ software-properties-common
+FROM rayproject/ray:latest-py312-cpu AS tabrepo_base
 
+# Set working directory
 WORKDIR /tabrepo
-COPY setup.py setup.py
-COPY tabrepo tabrepo
-COPY data/metadata data/metadata
-COPY data/configs data/configs
 
+# Copy only requirements first (for better caching if setup.py doesn't change often)
+COPY tabrepo/setup.py .
+COPY tabrepo/tabrepo tabrepo
+COPY tabrepo/data/metadata data/metadata
+COPY tabrepo/data/configs data/configs
+
+FROM rayproject/ray:latest-py312-cpu AS tabrepo
+COPY --from=tabrepo_base /tabrepo /tabrepo
 USER root
-RUN pip install -e .
-# Load relevant tabrepo data
-RUN python -c "from tabrepo.repository.evaluation_repository import load_repository; load_repository('D244_F3_C1530_30',load_predictions=True, cache=True)"
-# Compile measures
-RUN python -c "from tabrepo.repository.evaluation_repository import EvaluationRepository"
+
+RUN sudo apt-get update && \
+    sudo apt-get install -y --no-install-recommends \
+        g++ && \
+    sudo rm -rf /var/lib/apt/lists/*
+WORKDIR /tabrepo
+RUN pip install --no-cache-dir .
+
+# Preload repository data & compile measures in a single layer to reduce layers
+RUN python -c "\
+from tabrepo.repository.evaluation_repository import load_repository; \
+load_repository('D244_F3_C1530_30', load_predictions=True, cache=True); \
+from tabrepo.repository.evaluation_repository import EvaluationRepository"
+

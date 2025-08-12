@@ -25,7 +25,7 @@ on:
 jobs:
   run-ci:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@main
+    uses: TAI-src/.github/.github/workflows/ci.yml@build_cache
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
       # added or changed files to the repository and create PR
@@ -34,4 +34,5 @@ jobs:
     with:
       docker-service: jaix
       lint-src: jaix
+      pretty: true
     secrets: inherit
