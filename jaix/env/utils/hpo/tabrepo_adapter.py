@@ -11,7 +11,6 @@ from jaix.env.utils.hpo import TaskType
 # ModelType = Enum("ModelType", model_types)
 
 
-
 class TabrepoAdapter:
     @staticmethod
     def get_dataset_names(

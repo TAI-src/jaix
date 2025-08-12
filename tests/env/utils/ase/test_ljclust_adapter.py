@@ -1,4 +1,5 @@
 from jaix.env.utils.ase import LJClustAdapter, LJClustAdapterConfig
+
 if LJClustAdapter is not None:
     from ase.optimize import LBFGS
     from ase import Atoms
@@ -15,10 +16,13 @@ from ttex.config import ConfigFactory, ConfigurableObjectFactory as COF
 
 target_dir = "./tmp_data"
 
+
 @pytest.fixture(scope="module", autouse=True)
 def skip_remaining_tests():
     if LJClustAdapter is None:
-        pytest.skip("Skipping LJCluster tests. If this is unexpected, check that the ase extra is installed.")
+        pytest.skip(
+            "Skipping LJCluster tests. If this is unexpected, check that the ase extra is installed."
+        )
 
 
 @pytest.fixture(scope="module", autouse=True)

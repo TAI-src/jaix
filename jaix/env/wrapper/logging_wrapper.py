@@ -66,7 +66,9 @@ class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
         )
         info_dict[f"env/best_raw_r/{str(self.env.unwrapped)}"] = float(self.best_raw_r)
         if term:
-            info_dict[f"env/term/{str(self.env.unwrapped)}"] = float(self.log_renv_steps)
+            info_dict[f"env/term/{str(self.env.unwrapped)}"] = float(
+                self.log_renv_steps
+            )
 
         self.logger.info(info_dict)
         # TODO: Figure out what info would be helpful from all the sub-wrappers etc
