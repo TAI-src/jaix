@@ -23,13 +23,15 @@ on:
         default: "Manually trigger ci"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}-${{ github.triggering_actor == 'auto-cid' || github.triggering_actor != 'github-actions[bot]' }}
   cancel-in-progress: true
+
 
 jobs:
   run-base-ci:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
+    uses: TAI-src/.github/.github/workflows/ci.yml@main
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
       # added or changed files to the repository and create PR
@@ -43,7 +45,7 @@ jobs:
     
   test-hpo:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
+    uses: TAI-src/.github/.github/workflows/ci.yml@main
     needs:
       - run-base-ci
     permissions:
@@ -60,7 +62,7 @@ jobs:
     
   test-coco:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
+    uses: TAI-src/.github/.github/workflows/ci.yml@main
     needs:
       - run-base-ci
     permissions:
@@ -76,7 +78,7 @@ jobs:
     
   test-ase:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
+    uses: TAI-src/.github/.github/workflows/ci.yml@main
     needs:
       - run-base-ci
     permissions:
