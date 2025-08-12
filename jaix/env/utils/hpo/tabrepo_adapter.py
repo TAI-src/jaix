@@ -1,17 +1,14 @@
 from tabrepo.constants.model_constants import MODEL_TYPE_DICT
 from tabrepo.repository.evaluation_repository import EvaluationRepository
-from enum import Enum
 import re
 from typing import Optional, List, Union, Tuple
 import pandas as pd
 import numpy as np
+from jaix.env.utils.hpo import TaskType
 
 # model_types = list(MODEL_TYPE_DICT.values())
 # model_tuples = [(mt, mt) for mt in model_types]
 # ModelType = Enum("ModelType", model_types)
-TaskType = Enum(
-    "TaskType", [("C1", "binary"), ("R", "regression"), ("CM", "multiclass")]
-)
 
 
 class TabrepoAdapter:

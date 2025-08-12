@@ -23,9 +23,9 @@ on:
         default: "Manually trigger ci"
 
 jobs:
-  run-ci:
+  run-base-ci:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/ci.yml@main
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
       # added or changed files to the repository and create PR
@@ -34,4 +34,54 @@ jobs:
     with:
       docker-service: jaix
       lint-src: jaix
+      pretty: true
+    secrets: inherit
+    
+  test-hpo:
+    if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
+    needs:
+      - run-base-ci
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository and create PR
+      contents: write
+      pull-requests: write
+    with:
+      docker-service: jaix_hpo
+      lint-src: jaix
+      pretty: false
+    secrets: inherit
+    
+    
+  test-coco:
+    if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
+    needs:
+      - run-base-ci
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository and create PR
+      contents: write
+      pull-requests: write
+    with:
+      docker-service: jaix_coco
+      lint-src: jaix
+      pretty: false
+    secrets: inherit
+    
+  test-ase:
+    if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
+    needs:
+      - run-base-ci
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository and create PR
+      contents: write
+      pull-requests: write
+    with:
+      docker-service: jaix_ase
+      lint-src: jaix
+      pretty: false
     secrets: inherit

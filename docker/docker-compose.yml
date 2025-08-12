@@ -5,11 +5,39 @@ services:
   tabrepo:
     container_name: tabrepo
     env_file: .env
-    image: taisrc/jaix:tabrepo${VER:+-}${VER}
+    image: taisrc/tabrepo
     build:
-        context: ../deps/tabrepo
-        dockerfile: ../../docker/Dockerfile_tabrepo
+        context: ../deps/
+        dockerfile: ../docker/Dockerfile_tabrepo
         shm_size: '4gb'
+        args:
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        target: tabrepo
+        cache_from:
+            - taisrc/tabrepo
+            - type=registry,ref=taisrc/tabrepo:latest
+
+  jaix_hpo:
+    container_name: jaix_hpo
+    env_file: .env
+    image: taisrc/jaix_hpo${VER:+:}${VER}
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile_hpo
+        args:
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        cache_from:
+            - taisrc/jaix_hpo
+            - type=registry,ref=taisrc/jaix_hpo:latest
+            - taisrc/jaix
+            - type=registry,ref=taisrc/jaix:latest
+            - taisrc/tabrepo
+            - type=registry,ref=taisrc/tabrepo:latest
+    volumes:
+      - ../jaix:/jaix
+      - ../tests:/tests
+      - ../experiments:/experiments
+    shm_size: '16gb'
 
   jaix:
     container_name: jaix
@@ -18,11 +46,79 @@ services:
     build:
         context: ..
         dockerfile: docker/Dockerfile
+        args:
+            EXTRAS: ""
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        cache_from:
+            - taisrc/jaix
+            - type=registry,ref=taisrc/jaix:latest
+            - taisrc/jaix_base
+            - type=registry,ref=taisrc/jaix_base:latest
     volumes:
       - ../jaix:/jaix
       - ../tests:/tests
       - ../experiments:/experiments
     shm_size: '16gb'
+
+  jaix_base:
+    container_name: jaix_base
+    env_file: .env
+    image: taisrc/jaix_base${VER:+:}${VER}
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
+        args:
+            EXTRAS: ""
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        target: jaix_base
+        cache_from:
+            - taisrc/jaix_base
+            - type=registry,ref=taisrc/jaix_base:latest
+    shm_size: '16gb'
+
+  jaix_coco:
+    container_name: jaix_coco
+    env_file: .env
+    image: taisrc/jaix_coco${VER:+:}${VER}
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
+        args:
+            EXTRAS: "[coco]"
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        cache_from:
+            - taisrc/jaix_coco
+            - type=registry,ref=taisrc/jaix_coco:latest
+            - taisrc/jaix_base
+            - type=registry,ref=taisrc/jaix_base:latest
+    volumes:
+      - ../jaix:/jaix
+      - ../tests:/tests
+      - ../experiments:/experiments
+    shm_size: '16gb'
+  
+  jaix_ase:
+    container_name: jaix_ase
+    env_file: .env
+    image: taisrc/jaix_ase${VER:+:}${VER}
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile_ase
+        args:
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        cache_from:
+            - taisrc/jaix_ase
+            - type=registry,ref=taisrc/jaix_ase:latest
+            - taisrc/jaix_base
+            - type=registry,ref=taisrc/jaix_base:latest
+    volumes:
+      - ../jaix:/jaix
+      - ../tests:/tests
+      - ../experiments:/experiments
+    shm_size: '16gb'
+    depends_on:
+        - jaix_base
+  
     
   wandb_launcher:
     container_name: wandb_launcher
@@ -42,6 +138,8 @@ services:
         context: ..
         no_cache: true
         dockerfile: docker/Dockerfile_job
+        args:
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
     volumes:
       - ../jaix:/jaix/jaix
       - ../tests:/jaix/tests
