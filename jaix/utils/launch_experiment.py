@@ -80,7 +80,7 @@ def wandb_init(
     """
     # log versions of all packages
     packages = {
-        "pkg": {dist.metadata["Name"]: dist.version for dist in distributions()}
+        "pkg": {dist.metadata["Name"]: dist.version for dist in distributions()},
         "repo": "jaix"
     }
 
