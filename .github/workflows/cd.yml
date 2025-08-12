@@ -50,7 +50,7 @@ jobs:
         
   release-docker:
     if: github.triggering_actor == 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/release-docker.yml@main
+    uses: TAI-src/.github/.github/workflows/release-docker.yml@feat/build_cache
     permissions:
         contents: read
     with:
