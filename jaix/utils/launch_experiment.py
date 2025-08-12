@@ -79,7 +79,9 @@ def wandb_init(
         wandb.sdk.wandb_run.Run: Wandb run
     """
     # log versions of all packages
-    packages = {"pkg": {dist.metadata['Name']: dist.version for dist in distributions()}}
+    packages = {
+        "pkg": {dist.metadata["Name"]: dist.version for dist in distributions()}
+    }
     packages["repo"] = "jaix"  # Add jaix repo
 
     run_config.update(packages)
