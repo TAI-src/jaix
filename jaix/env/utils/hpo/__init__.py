@@ -8,4 +8,4 @@ try:
     from jaix.env.utils.hpo.tabrepo_adapter import TabrepoAdapter
 except ImportError:
     # If the import fails, we set TabrepoAdapter to None
-    TabrepoAdapter = None # type: ignore[assignment,misc]
+    TabrepoAdapter = None  # type: ignore[assignment,misc]
