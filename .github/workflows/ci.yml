@@ -41,6 +41,11 @@ jobs:
     uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
     needs:
       - run-base-ci
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository and create PR
+      contents: write
+      pull-requests: write
     with:
       docker-service: jaix_hpo
       lint-src: jaix
