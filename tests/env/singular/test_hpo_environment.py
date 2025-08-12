@@ -8,9 +8,9 @@ import json
 @pytest.fixture(scope="module", autouse=True)
 def skip_remaining_tests():
     if HPOEnvironment is None:
-        pytest.skip("Skipping HPO tests. If this is unexpected, check that the tabrepo extra is installed.")
-
-
+        pytest.skip(
+            "Skipping HPO tests. If this is unexpected, check that the tabrepo extra is installed."
+        )
 
 
 @pytest.fixture

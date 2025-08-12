@@ -1,4 +1,5 @@
 from enum import Enum
+
 TaskType = Enum(
     "TaskType", [("C1", "binary"), ("R", "regression"), ("CM", "multiclass")]
 )
