@@ -1,12 +1,14 @@
 FROM taisrc/tabrepo
 
+ENV PYTHONPATH="/tabrepo"
+
 COPY --from=taisrc/jaix_base:latest /jaix /jaix
 USER root
 WORKDIR /jaix
 RUN pip install pip-tools && \
-    pip-compile --extra hpo --output-file requirements.txt setup.py && \
-    pip install --no-cache-dir --no-deps -r requirements.txt && \
-    pip install --no-cache-dir numpy==1.26.4 # avoids incompabilities
+   pip-compile --extra hpo --output-file requirements.txt setup.py && \
+   pip install --no-cache-dir --no-deps -r requirements.txt && \
+   pip install --no-cache-dir numpy==1.26.4 'requests<2.31' 'urllib3<2'
 RUN pip install --no-deps --no-cache-dir -e .[hpo]
 
 WORKDIR /tests

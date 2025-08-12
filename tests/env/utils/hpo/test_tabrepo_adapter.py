@@ -113,9 +113,8 @@ def test_adapter(repo, task_type, inst):
     assert adapter.dataset == datasets[inst]
 
     assert len(adapter.configs) > 0
-    hyperparams = repo.configs_hyperparameters(configs=adapter.configs)
-    for config_name, params in hyperparams.items():
-        assert params["ag_args"]["name_suffix"].startswith("_c1")
+    for config_name in adapter.configs:
+        assert "_c1_" in config_name
 
     rank, time_train_s = adapter.evaluate(3)
     assert rank >= 0
