@@ -81,8 +81,8 @@ def wandb_init(
     # log versions of all packages
     packages = {
         "pkg": {dist.metadata["Name"]: dist.version for dist in distributions()}
+        "repo": "jaix"
     }
-    packages["repo"] = "jaix"  # Add jaix repo
 
     run_config.update(packages)
     if not project:
