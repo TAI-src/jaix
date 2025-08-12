@@ -16,6 +16,7 @@ services:
         cache_from:
             - taisrc/tabrepo
             - type=registry,ref=taisrc/tabrepo:latest
+    shm_size: '16gb'
 
   jaix_hpo:
     container_name: jaix_hpo
