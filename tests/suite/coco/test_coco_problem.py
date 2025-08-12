@@ -1,12 +1,16 @@
 from jaix.suite.coco import COCOProblem
 import pytest
+
 if COCOProblem is not None:
     import cocoex as ex
+
 
 @pytest.fixture(scope="module", autouse=True)
 def skip_remaining_tests():
     if COCOProblem is None:
-        pytest.skip("Skipping COCO tests. If this is unexpected, check that the coco extra is installed.")
+        pytest.skip(
+            "Skipping COCO tests. If this is unexpected, check that the coco extra is installed."
+        )
 
 
 @pytest.fixture

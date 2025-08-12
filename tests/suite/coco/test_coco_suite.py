@@ -7,10 +7,13 @@ from ttex.config import (
 import os
 from jaix.suite import AggType
 
+
 @pytest.fixture(scope="module", autouse=True)
 def skip_remaining_tests():
     if COCOProblem is None:
-        pytest.skip("Skipping COCO tests. If this is unexpected, check that the coco extra is installed.")
+        pytest.skip(
+            "Skipping COCO tests. If this is unexpected, check that the coco extra is installed."
+        )
 
 
 @pytest.fixture(scope="function")
@@ -83,6 +86,7 @@ def test_get_envs_agg(env_config):
 
 def test_get_problem_dict(env_config):
     import cocoex as ex
+
     suite = ex.Suite("bbob", "", "")
     # TODO: check how this works for bi-objective
 

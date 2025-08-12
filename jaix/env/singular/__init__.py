@@ -6,6 +6,7 @@ from jaix.env.singular.mastermind_env import (
     MastermindEnvironmentConfig,
     MastermindEnvironment,
 )
+
 # only import if tabrepo extra options
 try:
     from jaix.env.singular.hpo_env import HPOEnvironmentConfig, HPOEnvironment
@@ -15,7 +16,10 @@ except ImportError:
     HPOEnvironment = None
 # only import if ase extra options
 try:
-    from jaix.env.singular.ljclust_env import LJClustEnvironmentConfig, LJClustEnvironment
+    from jaix.env.singular.ljclust_env import (
+        LJClustEnvironmentConfig,
+        LJClustEnvironment,
+    )
 except ImportError:
     # If the import fails, we set LJClustEnvironmentConfig and LJClustEnvironment to None
     LJClustEnvironmentConfig = None

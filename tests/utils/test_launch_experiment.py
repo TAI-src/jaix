@@ -355,8 +355,10 @@ def test_launch_jaix_experiment(suite, comp):
     try:
         results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False)
     except TypeError:
-        assert suite in ["COCO", "HPO", "ASE"] # The others are in the base package
-        pytest.skip(f"Skipping test for {suite}. Check installed extras if this is unexpected")
+        assert suite in ["COCO", "HPO", "ASE"]  # The others are in the base package
+        pytest.skip(
+            f"Skipping test for {suite}. Check installed extras if this is unexpected"
+        )
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
     data_dir = [result["data_dirs"][0] for result in results.values()][0]
     assert data_dir is None
@@ -440,8 +442,10 @@ def test_launch_final(config_file):
     try:
         results = launch_jaix_experiment(run_config=config, wandb=False)
     except TypeError:
-        pytest.skip(f"Skipping test for {config_file}. Check installed extras if this is unexpected")
-  
+        pytest.skip(
+            f"Skipping test for {config_file}. Check installed extras if this is unexpected"
+        )
+
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
     data_dir = [result["data_dirs"][0] for result in results.values()][0]
     assert data_dir is None

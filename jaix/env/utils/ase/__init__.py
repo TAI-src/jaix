@@ -1,5 +1,5 @@
 try:
-     from jaix.env.utils.ase.ljclust_adapter import LJClustAdapter, LJClustAdapterConfig
+    from jaix.env.utils.ase.ljclust_adapter import LJClustAdapter, LJClustAdapterConfig
 except ImportError:
     # If the import fails, we set LJClustAdapter and LJClustAdapterConfig to None
     LJClustAdapter = None
