@@ -15,6 +15,7 @@ import argparse
 import json
 from jaix.utils.dict_tools import nested_set
 from copy import deepcopy
+from importlib.metadata import distributions
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -77,12 +78,11 @@ def wandb_init(
     Returns:
         wandb.sdk.wandb_run.Run: Wandb run
     """
-    # Config to log
-    # jaix_version = version("tai_jaix")
-    jaix_version = "0.1.0"  # TODO: Fix this
-    config_override = {"repo": "jaix", "version": jaix_version}
+    # log versions of all packages
+    packages = {"pkg": {dist.metadata['Name']: dist.version for dist in distributions()}}
+    packages["repo"] = "jaix"  # Add jaix repo
 
-    run_config.update(config_override)
+    run_config.update(packages)
     if not project:
         run = wandb.init(config=run_config, group=group)
     else:
