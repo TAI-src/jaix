@@ -81,7 +81,7 @@ def wandb_init(
     # log versions of all packages
     packages = {
         "pkg": {dist.metadata["Name"]: dist.version for dist in distributions()},
-        "repo": "jaix"
+        "repo": "jaix",
     }
 
     run_config.update(packages)
