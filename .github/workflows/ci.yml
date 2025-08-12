@@ -23,7 +23,7 @@ on:
         default: "Manually trigger ci"
 
 jobs:
-  run-ci:
+  run-base-ci:
     if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
     uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
     permissions:
@@ -35,4 +35,14 @@ jobs:
       docker-service: jaix
       lint-src: jaix
       pretty: true
+    secrets: inherit
+    
+  test-hpo:
+    uses: TAI-src/.github/.github/workflows/ci.yml@feat/build_cache
+    needs:
+      - run-base-ci
+    with:
+      docker-service: jaix_hpo
+      lint-src: jaix
+      pretty: false
     secrets: inherit
