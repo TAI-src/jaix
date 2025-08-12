@@ -12,7 +12,6 @@ services:
         shm_size: '4gb'
         args:
             BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
-        target: tabrepo
         cache_from:
             - taisrc/tabrepo
             - type=registry,ref=taisrc/tabrepo:latest

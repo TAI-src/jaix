@@ -1,4 +1,4 @@
-FROM rayproject/ray:latest-py312-cpu AS tabrepo_base
+FROM rayproject/ray:latest-py311-cpu AS tabrepo_base
 
 # Set working directory
 WORKDIR /tabrepo
@@ -9,7 +9,7 @@ COPY tabrepo/tabrepo tabrepo
 COPY tabrepo/data/metadata data/metadata
 COPY tabrepo/data/configs data/configs
 
-FROM rayproject/ray:latest-py312-cpu AS tabrepo
+FROM rayproject/ray:latest-py311-cpu
 COPY --from=tabrepo_base /tabrepo /tabrepo
 USER root
 
