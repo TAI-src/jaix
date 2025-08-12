@@ -128,21 +128,18 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       
-  wandb_job_jaix:
-    container_name: wandb_job_jaix
+  wandb_job:
+    container_name: jaix_wandb_job
     env_file: .env
-    image: taisrc/wandb_job_jaix${VER:+:}${VER}
+    depends_on:
+      - jaix
+    image: taisrc/jaix:job${VER:+-}${VER}
     build:
         context: ..
+        no_cache: true
         dockerfile: docker/Dockerfile_job
         args:
             BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
-            IMAGE: "taisrc/jaix${VER:+:}${VER}"
-        cache_from:
-            - taisrc/jaix
-            - type=registry,ref=taisrc/jaix:latest
-            - taisrc/wandb_job_jaix
-            - type=registry,ref=taisrc/wandb_job_jaix:latest
     volumes:
       - ../jaix:/jaix/jaix
       - ../tests:/jaix/tests
