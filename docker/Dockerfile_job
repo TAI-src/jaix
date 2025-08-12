@@ -1,14 +1,17 @@
-FROM taisrc/jaix
-#Needs jaix so tabrepo is there
+ARG IMAGE=taisrc/jaix:latest
+FROM python:3.12 AS job_base
 RUN apt-get update && apt-get install -y curl
 
 WORKDIR /wandb
-
-# Get job entry python file
-ENV ENTRY_PATH=/jaix/jaix/utils/launch_experiment.py
 
 # Get launcher script from ttex
 RUN curl -LJO https://raw.githubusercontent.com/TAI-src/ttex/refs/heads/main/launch.sh
 RUN chmod +x launch.sh
 
+FROM ${IMAGE}
+COPY --from=job_base /wandb /wandb
+WORKDIR /wandb
+
+# Get job entry python file
+ENV ENTRY_PATH=/jaix/jaix/utils/launch_experiment.py
 ENTRYPOINT ["./launch.sh", "-j"]
