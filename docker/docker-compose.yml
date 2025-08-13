@@ -1,66 +1,40 @@
-# docker-compose run ttex bash
+# docker-compose -it run jaix bash
+
+# There are three types of containers defined:
+# - Execution containers for jaix (base + one for each extra)
+# - Wandb job containers for jaix (base + one for each extra)
+# - Base images to speed up building
+
+
+### Template definitions
+
+x-jaix-base: &jaix_base # Template for the execution environments
+  env_file: .env
+  volumes:
+    - ../jaix:/jaix
+    - ../tests:/tests
+    - ../experiments:/experiments
+  shm_size: '16gb'
+
+
+x-wandb-base: &wandb_job_base # Template for the job environments
+  env_file: .env
+  volumes:
+    - ../jaix:/jaix/jaix
+    - ../tests:/jaix/tests
+    - ../experiments:/experiments
+  entrypoint: bash
+
+x-wandb-build-base: &wandb_job_build_base # Sub-template for job environments
+  context: ..
+  dockerfile: docker/Dockerfile_job
+  args:
+    BUILDKIT_INLINE_CACHE: "1"
+
 
 services:
 
-  tabrepo:
-    container_name: tabrepo
-    env_file: .env
-    image: taisrc/tabrepo
-    build:
-        context: ../deps/
-        dockerfile: ../docker/Dockerfile_tabrepo
-        shm_size: '4gb'
-        args:
-            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
-        cache_from:
-            - taisrc/tabrepo
-            - type=registry,ref=taisrc/tabrepo:latest
-    shm_size: '16gb'
-
-  jaix_hpo:
-    container_name: jaix_hpo
-    env_file: .env
-    image: taisrc/jaix_hpo${VER:+:}${VER}
-    build:
-        context: ..
-        dockerfile: docker/Dockerfile_hpo
-        args:
-            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
-        cache_from:
-            - taisrc/jaix_hpo
-            - type=registry,ref=taisrc/jaix_hpo:latest
-            - taisrc/jaix
-            - type=registry,ref=taisrc/jaix:latest
-            - taisrc/tabrepo
-            - type=registry,ref=taisrc/tabrepo:latest
-    volumes:
-      - ../jaix:/jaix
-      - ../tests:/tests
-      - ../experiments:/experiments
-    shm_size: '16gb'
-
-  jaix:
-    container_name: jaix
-    env_file: .env
-    image: taisrc/jaix${VER:+:}${VER}
-    build:
-        context: ..
-        dockerfile: docker/Dockerfile
-        args:
-            EXTRAS: ""
-            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
-        cache_from:
-            - taisrc/jaix
-            - type=registry,ref=taisrc/jaix:latest
-            - taisrc/jaix_base
-            - type=registry,ref=taisrc/jaix_base:latest
-    volumes:
-      - ../jaix:/jaix
-      - ../tests:/tests
-      - ../experiments:/experiments
-    shm_size: '16gb'
-
-  jaix_base:
+  jaix_base: # Base image for all jaix - contains just the code, built with a target
     container_name: jaix_base
     env_file: .env
     image: taisrc/jaix_base${VER:+:}${VER}
@@ -76,9 +50,25 @@ services:
             - type=registry,ref=taisrc/jaix_base:latest
     shm_size: '16gb'
 
-  jaix_coco:
+  jaix: # Default jaix execution image
+    <<: *jaix_base
+    container_name: jaix
+    image: taisrc/jaix${VER:+:}${VER}
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
+        args:
+            EXTRAS: ""
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        cache_from:
+            - taisrc/jaix
+            - type=registry,ref=taisrc/jaix:latest
+            - taisrc/jaix_base
+            - type=registry,ref=taisrc/jaix_base:latest
+
+  jaix_coco: # Jaix execution image with coco extra
+    <<: *jaix_base
     container_name: jaix_coco
-    env_file: .env
     image: taisrc/jaix_coco${VER:+:}${VER}
     build:
         context: ..
@@ -91,15 +81,10 @@ services:
             - type=registry,ref=taisrc/jaix_coco:latest
             - taisrc/jaix_base
             - type=registry,ref=taisrc/jaix_base:latest
-    volumes:
-      - ../jaix:/jaix
-      - ../tests:/tests
-      - ../experiments:/experiments
-    shm_size: '16gb'
-  
-  jaix_ase:
+
+  jaix_ase: # Jaix execution image with ase extra
+    <<: *jaix_base
     container_name: jaix_ase
-    env_file: .env
     image: taisrc/jaix_ase${VER:+:}${VER}
     build:
         context: ..
@@ -111,16 +96,40 @@ services:
             - type=registry,ref=taisrc/jaix_ase:latest
             - taisrc/jaix_base
             - type=registry,ref=taisrc/jaix_base:latest
-    volumes:
-      - ../jaix:/jaix
-      - ../tests:/tests
-      - ../experiments:/experiments
+
+  tabrepo: # Base image for hpo extra (contains tabrepo installation)
+    container_name: tabrepo
+    env_file: .env
+    image: taisrc/tabrepo
+    build:
+        context: ../deps/
+        dockerfile: ../docker/Dockerfile_tabrepo
+        shm_size: '4gb'
+        args:
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        cache_from:
+            - taisrc/tabrepo
+            - type=registry,ref=taisrc/tabrepo:latest
     shm_size: '16gb'
-    depends_on:
-        - jaix_base
-  
+
+  jaix_hpo: # Jaix execution image with hpo extra
+    <<: *jaix_base
+    container_name: jaix_hpo
+    image: taisrc/jaix_hpo${VER:+:}${VER}
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile_hpo
+        args:
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        cache_from:
+            - taisrc/jaix_hpo
+            - type=registry,ref=taisrc/jaix_hpo:latest
+            - taisrc/jaix
+            - type=registry,ref=taisrc/jaix:latest
+            - taisrc/tabrepo
+            - type=registry,ref=taisrc/tabrepo:latest 
     
-  wandb_launcher:
+  wandb_launcher: # wandb launcher - wandb jobs are started from here
     container_name: wandb_launcher
     env_file: .env
     image: taisrc/wandb:launcher
@@ -128,23 +137,64 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       
-  wandb_job_jaix:
+
+  wandb_job_jaix: # wandb job with jaix base
+    <<: *wandb_job_base
     container_name: wandb_job_jaix
-    env_file: .env
-    image: taisrc/wandb_job_jaix${VER:+:}${VER}
+    image: taisrc/wandb_job:jaix${VER:+-}${VER}
     build:
-        context: ..
-        dockerfile: docker/Dockerfile_job
-        args:
-            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
-            IMAGE: "taisrc/jaix${VER:+:}${VER}"
-        cache_from:
-            - taisrc/jaix
-            - type=registry,ref=taisrc/jaix:latest
-            - taisrc/wandb_job_jaix
-            - type=registry,ref=taisrc/wandb_job_jaix:latest
-    volumes:
-      - ../jaix:/jaix/jaix
-      - ../tests:/jaix/tests
-      - ../experiments:/experiments
-    entrypoint: bash
+      <<: *wandb_job_build_base
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+        IMAGE: "taisrc/jaix${VER:+:}${VER}"
+      cache_from:
+        - taisrc/jaix
+        - type=registry,ref=taisrc/jaix:latest
+        - taisrc/wandb_job:jaix
+        - type=registry,ref=taisrc/wandb_job:jaix
+
+  wandb_job_jaix_coco: # wandb job with jaix and coco extra
+    <<: *wandb_job_base
+    container_name: wandb_job_jaix_coco
+    image: taisrc/wandb_job:jaix_coco${VER:+-}${VER}
+    build:
+      <<: *wandb_job_build_base
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+        IMAGE: "taisrc/jaix_coco${VER:+:}${VER}"
+      cache_from:
+        - taisrc/jaix_coco
+        - type=registry,ref=taisrc/jaix_coco:latest
+        - taisrc/wandb_job:jaix_coco
+        - type=registry,ref=taisrc/wandb_job:jaix_coco
+
+  wandb_job_jaix_ase:  # wandb job with jaix and ase extra
+    <<: *wandb_job_base
+    container_name: wandb_job_jaix_ase
+    image: taisrc/wandb_job:jaix_ase${VER:+-}${VER}
+    build:
+      <<: *wandb_job_build_base
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+        IMAGE: "taisrc/jaix_ase${VER:+:}${VER}"
+      cache_from:
+        - taisrc/jaix_ase
+        - type=registry,ref=taisrc/jaix_ase:latest
+        - taisrc/wandb_job:jaix_ase
+        - type=registry,ref=taisrc/wandb_job:jaix_ase
+
+  wandb_job_jaix_hpo:  # wandb job with jaix and hpo extra
+    <<: *wandb_job_base
+    container_name: wandb_job_jaix_hpo
+    image: taisrc/wandb_job:jaix_hpo${VER:+-}${VER}
+    build:
+      <<: *wandb_job_build_base
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+        IMAGE: "taisrc/jaix_hpo${VER:+:}${VER}"
+      cache_from:
+        - taisrc/jaix_hpo
+        - type=registry,ref=taisrc/jaix_hpo:latest
+        - taisrc/wandb_job:jaix_hpo
+        - type=registry,ref=taisrc/wandb_job:jaix_hpo
+
