@@ -1,6 +1,6 @@
 # jaix Framework for Jacked-up Artificial Intelligence eXperiments
 
-The jaix framework is a toolkit for running optimisation experiments based on the OpenAI gym framework. It's main goal is versatility, in terms of the possible experimental setups as well as the applicable algorithmic approaches.
+The jaix framework is a toolkit for running optimisation experiments based on the OpenAI gym framework. It's main goal is versatility, in terms of the possible experimental setups as well as the applicable algorithmic approaches. Published on [PyPI](https://pypi.org/project/tai-jaix/).
 
 ## Running an experiment
 
