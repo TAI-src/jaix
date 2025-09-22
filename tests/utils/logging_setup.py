@@ -10,6 +10,7 @@ class TestHandler(logging.Handler):
         super().__init__(level)
 
     def emit(self, record):
+        print(record)
         msg = self.format(record)
         self.last_record = record
         self.record_log.append(copy.copy(record))

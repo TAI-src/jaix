@@ -24,8 +24,6 @@ def test_basic(wef):
 
     check_env(wrapped_env, skip_render_check=True)
 
-    print(test_handler.last_record.getMessage())
-
     msg = ast.literal_eval(test_handler.last_record.getMessage())
     assert "env/r/DummyEnv/0/1" in msg
     steps = msg["env/step"]
