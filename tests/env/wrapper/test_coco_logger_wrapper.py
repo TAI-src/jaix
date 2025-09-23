@@ -5,11 +5,17 @@ from jaix.env.wrapper import (
 )
 from . import DummyEnv, TestHandler
 import pytest
+import shutil
+import os.path as osp
+from cocopp.pproc import DictAlg
+
+algo_name = "test_algo"
 
 
 @pytest.mark.parametrize("wef", [True, False])
 def test_basic(wef):
-    config = COCOLoggerWrapperConfig(algo_name="test_algo")
+    config = COCOLoggerWrapperConfig(algo_name=algo_name)
+    config.setup()
     assert config.passthrough
     env = DummyEnv()
 
@@ -17,23 +23,14 @@ def test_basic(wef):
         wrapped_env = WEF.wrap(env, [(COCOLoggerWrapper, config)])
     else:
         wrapped_env = COCOLoggerWrapper(config, env)
-    wrapped_env.exp_id = "exp_id"  # TODO: how to set this?
-    assert hasattr(wrapped_env, "coco_logger")
-    handlers = [
-        h for h in wrapped_env.coco_logger.handlers if isinstance(h, TestHandler)
-    ]
-    if handlers:
-        test_handler = handlers[0]
-    else:
-        test_handler = TestHandler(level="INFO")
-        wrapped_env.coco_logger.addHandler(test_handler)
-    print(wrapped_env.coco_logger)
-    print(wrapped_env.coco_logger.handlers)
+    assert getattr(wrapped_env, "coco_logger", None) is not None
+
+    test_handler = TestHandler(level="INFO")
+    wrapped_env.coco_logger.addHandler(test_handler)
 
     assert not wrapped_env._started
     wrapped_env.reset()
     msg = test_handler.last_record.getMessage()
-    print(test_handler.record_log)
     assert "% f evaluations" in msg
     assert wrapped_env._started
 
@@ -47,4 +44,16 @@ def test_basic(wef):
 
     wrapped_env.close()
     msg = test_handler.last_record.getMessage()
-    assert "data_0/exp_id_0_d3_i1.tdat" in msg
+    assert "data_1/f1_d3_i1.tdat" in msg
+
+    success = config.teardown()
+    assert success
+    res = config.res
+    assert isinstance(res, DictAlg)
+    result_dict = res[(algo_name, "")]
+    # Check that pproc ran successfully
+    assert len(result_dict) > 0
+
+    assert osp.exists(osp.join(config.exp_id, algo_name))
+    assert osp.exists(osp.join(config.exp_id, "ppdata"))
+    shutil.rmtree(config.exp_id)

@@ -2,7 +2,12 @@ from ttex.config import Config, ConfigurableObjectFactory as COF
 from typing import Type, Optional, Union, Dict, Tuple, List
 from jaix.suite import Suite, AggType
 from jaix.env.composite import CompositeEnvironment
-from jaix.env.wrapper import WrappedEnvFactory as WEF, ClosingWrapper, OnlineWrapper
+from jaix.env.wrapper import (
+    WrappedEnvFactory as WEF,
+    ClosingWrapper,
+    COCOLoggerWrapper,
+    COCOLoggerWrapperConfig,
+)
 import gymnasium as gym
 import logging
 from jaix import LOGGER_NAME
@@ -25,6 +30,7 @@ class CompositeEnvironmentConfig(Config):
 class EnvironmentConfig(Config):
     default_wrappers = [
         (ClosingWrapper, {}),
+        (COCOLoggerWrapper, COCOLoggerWrapperConfig(algo_name="algo")),
     ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
     default_seed = 1337
 
@@ -48,6 +54,20 @@ class EnvironmentConfig(Config):
         self.env_wrappers = tmp_wrappers + EnvironmentConfig.default_wrappers
 
         self.seed = EnvironmentConfig.default_seed if seed is None else seed
+
+    def _setup(self):
+        success = True
+        for _, wrapper_conf in self.env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                success = wrapper_conf.setup() and success
+        return success
+
+    def _teardown(self):
+        success = True
+        for _, wrapper_conf in self.env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                success = wrapper_conf.teardown() and success
+        return success
 
 
 class EnvironmentFactory:

@@ -7,7 +7,12 @@ from importlib.metadata import version
 from typing import Dict, Optional, List, Any, Tuple
 import os
 import wandb
-from jaix.env.wrapper import LoggingWrapper, LoggingWrapperConfig
+from jaix.env.wrapper import (
+    LoggingWrapper,
+    LoggingWrapperConfig,
+    COCOLoggerWrapperConfig,
+    COCOLoggerWrapper,
+)
 from ttex.log import get_logging_config
 import sys
 import logging
@@ -95,7 +100,7 @@ def wandb_init(
 def run_experiment(
     run_config: Dict,
     project: Optional[str] = None,
-    wandb: bool = True,
+    wandb_on: bool = True,
     group_name: Optional[str] = None,
 ):
     """
@@ -112,7 +117,7 @@ def run_experiment(
     run_config = run_config.copy()
     exp_config = CF.from_dict(run_config)
     run = None
-    if wandb:
+    if wandb_on:
         run = wandb_init(run_config, project=project, group=group_name)
         data_dir = run.dir
         exp_config = wandb_logger(exp_config, run)
@@ -132,6 +137,15 @@ def run_experiment(
         logger.error(f"Experiment failed {e}", exc_info=True)
         exit_code = 1
 
+    # Hack for coco_logger output
+    # TODO: make this cleaner
+    coco_exp_dir = None
+    for wrapper_class, wrapper_config in exp_config.env_config.env_wrappers:
+        if wrapper_class == COCOLoggerWrapper and isinstance(
+            wrapper_config, COCOLoggerWrapperConfig
+        ):
+            coco_exp_dir = wrapper_config.exp_id
+
     if run is not None:
         if exit_code == 0:
             run.alert(
@@ -145,6 +159,14 @@ def run_experiment(
                 level=AlertLevel.ERROR,
                 text="Experiment failed",
             )
+        if coco_exp_dir is not None:
+            artifact = wandb.Artifact(
+                name=f"coco_results_{run.id}",
+                type="coco_results",
+                description="COCO results",
+            )
+            artifact.add_dir(coco_exp_dir)
+            run.log_artifact(artifact)
         run.finish(exit_code=exit_code)
 
     return data_dir, exit_code

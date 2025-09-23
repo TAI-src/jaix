@@ -7,11 +7,7 @@ setup(
     name="tai_jaix",
     version=__version__,
     packages=find_packages(),
-    install_requires=[
-        "cma",
-        "gymnasium",
-        "tai-ttex",
-    ],
+    install_requires=["cma", "gymnasium", "tai-ttex", "cocopp"],
     extras_require={
         "ase": ["ase", "kimpy", "requests"],
         "tabrepo": ["tabrepo", "regex"],

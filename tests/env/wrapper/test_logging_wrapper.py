@@ -4,7 +4,7 @@ from jaix.env.wrapper import (
     WrappedEnvFactory as WEF,
     AnyFitWrapper,
 )
-from . import DummyEnv, test_handler, DummyWrapper
+from . import DummyEnv, test_handler, DummyWrapper, DummyWrapperConfig
 from gymnasium.utils.env_checker import check_env
 import ast
 import pytest
@@ -42,7 +42,7 @@ def test_basic(wef):
 def test_additions():
     config = LoggingWrapperConfig(logger_name="DefaultLogger")
     env = AnyFitWrapper(DummyEnv())  # Adds raw_r
-    env = DummyWrapper(env)  # Adds env_step
+    env = DummyWrapper(DummyWrapperConfig(), env)  # Adds env_step
     wrapped_env = LoggingWrapper(config, env)
 
     wrapped_env.reset()
