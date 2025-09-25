@@ -71,6 +71,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         self.steps_counter = 0
         self._stopped = False
         self._set_spaces()
+        self.constant_dim = CompositeEnvironment.const_dim(env_list)
 
     def _set_spaces(self):
         env = self.env_list[self._current_env]
