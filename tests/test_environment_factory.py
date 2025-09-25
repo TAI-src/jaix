@@ -10,7 +10,7 @@ from jaix.env.utils.problem import Sphere, SphereConfig
 import pytest
 from jaix import EnvironmentFactory as EF
 import gymnasium as gym
-from . import DummyWrapper
+from . import DummyWrapper, DummyWrapperConfig
 
 
 @pytest.fixture(scope="function")
@@ -55,9 +55,23 @@ def env_config(ec_config, wrappers=None, comp_config=None, seed=None):
     return env_config
 
 
-def test_wrapper_setup_teardown():
+def test_wrapper_setup_teardown(ec_config):
     # wrappers = [(DummyWrapper, )]
-    pass
+    config = env_config(
+        ec_config,
+        wrappers=[(DummyWrapper, DummyWrapperConfig())],
+        comp_config=None,
+        seed=42,
+    )
+    assert config.setup()
+    for _, wrapper_conf in config.env_wrappers:
+        if isinstance(wrapper_conf, DummyWrapperConfig):
+            assert wrapper_conf._stp
+            assert not wrapper_conf.trdwn
+    assert config.teardown()
+    for _, wrapper_conf in config.env_wrappers:
+        if isinstance(wrapper_conf, DummyWrapperConfig):
+            assert wrapper_conf.trdwn
 
 
 def test_singular(ec_config):

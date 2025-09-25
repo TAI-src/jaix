@@ -91,6 +91,7 @@ class EnvironmentFactory:
                 agg_type=comp_config.agg_type, seed=env_config.seed
             ):
                 logger.debug(f"Got {len(envs)} from suite {suite}")
+                # TODO: should not double-wrap, otherwise might get confusing
                 wrapped_envs = [WEF.wrap(env, env_config.env_wrappers) for env in envs]
                 logger.debug("Wrapped all envs")
                 comp_env = COF.create(

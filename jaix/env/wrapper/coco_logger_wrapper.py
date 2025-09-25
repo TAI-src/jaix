@@ -13,6 +13,12 @@ import logging
 import cocopp
 from uuid import uuid4
 import os.path as osp
+import os
+import contextlib
+from jaix import LOGGER_NAME
+import numpy as np
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class COCOLoggerWrapperConfig(Config):
@@ -32,6 +38,7 @@ class COCOLoggerWrapperConfig(Config):
         self.algo_name = algo_name
         self.exp_id = exp_id if exp_id is not None else str(uuid4())
         self.algo_info = algo_info
+        # TODO: potentially add some env info here too
         self.logger_name = logger_name
         self.passthrough = passthrough
         self.base_evaluation_triggers = base_evaluation_triggers
@@ -55,10 +62,22 @@ class COCOLoggerWrapperConfig(Config):
         # This also triggers writing the files
         teardown_coco_logger(self.logger_name)
 
-        # Trigger cocopp
-        self.res = cocopp.main(
-            f"-o {osp.join(self.exp_id, 'ppdata')} {osp.join(self.exp_id, self.algo_name)}"
-        )
+        # If results are generated, run cocopp post-processing
+        # TODO: set up cocopp
+        """
+        if osp.exists(osp.join(self.exp_id, self.algo_name)):
+            # Run cocopp post-processing on the generated files (but quietly)
+            with open(os.devnull, "w") as devnull:
+                with contextlib.redirect_stdout(devnull):
+                    self.res = cocopp.main(
+                        f"-o {osp.join(self.exp_id, 'ppdata')} {osp.join(self.exp_id, self.algo_name)}"
+                    )
+        else:
+            logger.warning(
+                f"No results found in {osp.join(self.exp_id, self.algo_name)}. Skipping cocopp post-processing."
+            )
+            self.res = None
+        """
         return True
 
 
@@ -73,14 +92,16 @@ class COCOLoggerWrapper(PassthroughWrapper, ConfigurableObject):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, self.passthrough)
         self.coco_logger = logging.getLogger(self.logger_name)
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa")
-        print(self.coco_logger)
-        print(self.coco_logger.handlers)
         self.emit_start()  # Emit start on init
 
     def emit_start(self):
-        print("##############################################")
         # Tell COCO that a new experiment is starting
+        constant_dim = not hasattr(self.env, "constant_dim") or self.env.constant_dim
+        suite_name = (  # Especially important for composite envs
+            self.suite_name
+            if hasattr(self, "suite_name")
+            else type(self.env.unwrapped).__name__
+        )
         coco_start = COCOStart(
             algo=self.algo_name,
             problem=(
@@ -88,21 +109,17 @@ class COCOLoggerWrapper(PassthroughWrapper, ConfigurableObject):
                 if hasattr(self.env.unwrapped, "func_id")
                 else 1
             ),
-            dim=self.action_space.shape[0],
+            dim=np.prod(self.action_space.shape) if constant_dim else 0,
             inst=self.env.unwrapped.inst if hasattr(self.env.unwrapped, "inst") else 1,
-            suite="bbob",  # TODO: testbedsettings needed
+            suite=suite_name,
             exp_id=self.exp_id,  # Get from wandb
             algo_info=self.algo_info,
             fopt=(
                 self.env.unwrapped.fopt if hasattr(self.env.unwrapped, "fopt") else None
             ),
         )
-        print(
-            f"algo: {self.algo_name}, problem: {coco_start.problem}, dim: {coco_start.dim}, inst: {coco_start.inst}, suite: {coco_start.suite}"
-        )
-
         self.coco_logger.info(coco_start)
-        self._started = True
+        logger.debug(f"COCOStart emitted: {coco_start} {self.exp_id}")
         return coco_start
 
     def step(self, action):
@@ -113,8 +130,6 @@ class COCOLoggerWrapper(PassthroughWrapper, ConfigurableObject):
             trunc,
             info,
         ) = self.env.step(action)
-        if not self._started:
-            self.emit_start()
         # COCO logger eval
         raw_r = info["raw_r"] if "raw_r" in info else r
         coco_eval = COCOEval(
@@ -122,9 +137,12 @@ class COCOLoggerWrapper(PassthroughWrapper, ConfigurableObject):
             mf=raw_r,  # TODO raw_r or observation?
         )
         self.coco_logger.info(coco_eval)
+        logger.debug(f"COCOEval emitted: {coco_eval} {self.exp_id}")
         return obs, r, term, trunc, info
 
     def close(self):
         self.env.close()
         # Tell COCO that the experiment is done
         self.coco_logger.info(COCOEnd())
+        logger.debug(f"COCOEnd emitted {self.exp_id}")
+        return True

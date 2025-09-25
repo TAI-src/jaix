@@ -57,13 +57,17 @@ class Experiment:
         # Set up for everything in config, including logging
         exp_config.setup()
         print("HELLOOO________________________----")
-        print(exp_config.env_config.env_wrappers[1][1].__dict__)
+        print(exp_config.env_config.env_wrappers[1][1])
         logger = logging.getLogger(LOGGER_NAME)
 
         runner = COF.create(exp_config.runner_class, exp_config.runner_config)
         logger.debug(f"Runner created {runner}")
         for env in EF.get_envs(exp_config.env_config):
             logger.debug(f"Running on env {env}")
+            if env.stop():
+                logger.warning(f"Environment {env} already stopped, skipping")
+                env.close()
+                continue
             runner.run(
                 env, exp_config.opt_class, exp_config.opt_config, *args, **kwargs
             )

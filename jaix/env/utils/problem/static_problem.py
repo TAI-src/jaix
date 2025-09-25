@@ -3,7 +3,8 @@ import numpy as np
 from collections import defaultdict
 import uuid
 import pickle
-from typing import DefaultDict, List, Optional
+from typing import List, Optional, Tuple, DefaultDict
+import math
 
 
 class StaticProblem:
@@ -41,7 +42,8 @@ class StaticProblem:
         self.current_best = self.max_values
 
     def evalsleft(self, budget_multiplier):
-        return int(self.dimension * budget_multiplier - self.evaluations)
+        # Ensure at least one evaluation is possible
+        return math.ceil(self.dimension * budget_multiplier) - self.evaluations
 
     def final_target_hit(self):
         if self.precision is None or any(np.isinf(self.min_values)):
@@ -58,11 +60,11 @@ class StaticProblem:
             # TODO: should this be all or any?
             return np.array(target_hit).all()
 
-    def stop(self, budget_multiplier):
+    def stop(self, budget_multiplier) -> bool:
         return self.evalsleft(budget_multiplier) <= 0 or self.final_target_hit()
 
     @abstractmethod
-    def _eval(self, x):
+    def _eval(self, x) -> Tuple[List[float], float]:
         """
         Evaluate the objective function.
             :param x: The input vector.
@@ -70,7 +72,7 @@ class StaticProblem:
         """
         pass
 
-    def __call__(self, x):
+    def __call__(self, x) -> Tuple[List[float], float]:
         # TODO validate x
         # As last entry before next evaluation, append the evaluated solution
         # This ensures that there is always at least one recommendation

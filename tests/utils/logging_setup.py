@@ -10,7 +10,6 @@ class TestHandler(logging.Handler):
         super().__init__(level)
 
     def emit(self, record):
-        print(record)
         msg = self.format(record)
         self.last_record = record
         self.record_log.append(copy.copy(record))
@@ -53,3 +52,9 @@ logging.config.dictConfig(logging_config)
 
 logger = logging.getLogger("DefaultLogger")
 test_handler = logger.handlers[0]
+# Suppress DEBUG logs from matplotlib components
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
+logging.getLogger("matplotlib.ticker").setLevel(logging.ERROR)
+logging.getLogger("matplotlib.backends.backend_pdf").setLevel(logging.ERROR)
+logging.getLogger("fontTools.subset").setLevel(logging.WARNING)
+logging.getLogger("fontTools.ttLib").setLevel(logging.WARNING)
