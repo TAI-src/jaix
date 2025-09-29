@@ -61,7 +61,7 @@
         "strategy_config": {
           "jaix.runner.ask_tell.strategy.bandit.ATBanditConfig": {
             "bandit_config": {
-              "jaix.runner.ask_tell.strategy.utils.bandit.BanditConfig": {
+              "jaix.runner.ask_tell.strategy.utils.bandit_model.BanditConfig": {
                 "epsilon": 0.1,
                 "min_tries": 10,
                 "exploit_strategy": "jaix.runner.ask_tell.strategy.utils.bandit_model.BanditExploitStrategy.MAX"
