@@ -78,7 +78,7 @@
             },
             "opt_confs": [
               {
-                "jaix.runner.ask_tell.ATOptimiserConfig": {
+                "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
                   "strategy_class": "jaix.runner.ask_tell.strategy.basic_ea.BasicEA",
                   "strategy_config": {
                     "jaix.runner.ask_tell.strategy.basic_ea.BasicEAConfig": {
