@@ -21,6 +21,7 @@ import json
 from jaix.utils.dict_tools import nested_set
 from copy import deepcopy
 from importlib.metadata import distributions
+from uuid import uuid4
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -120,6 +121,7 @@ def run_experiment(
     if wandb_on:
         run = wandb_init(run_config, project=project, group=group_name)
         data_dir = run.dir
+        run_id = run.id
         exp_config = wandb_logger(exp_config, run)
         run.alert(
             "Experiment started",
@@ -128,40 +130,39 @@ def run_experiment(
         )
     else:
         data_dir = None
-    logger.info(f"Running experiment with config: {exp_config}")
+        run_id = str(uuid4())
+    logger.info(f"Running experiment with run_id: {run_id}")
 
     try:
-        Experiment.run(exp_config)
+        run_id = Experiment.run(exp_config, exp_id=run_id)
+        logger.info(f"Experiment finished with id: {run_id}")
         exit_code = 0
     except Exception as e:
         logger.error(f"Experiment failed {e}", exc_info=True)
         exit_code = 1
 
-    # Hack for coco_logger output
-    # TODO: make this cleaner
-    coco_exp_dir = None
-    for wrapper_class, wrapper_config in exp_config.env_config.env_wrappers:
-        if wrapper_class == COCOLoggerWrapper and isinstance(
-            wrapper_config, COCOLoggerWrapperConfig
-        ):
-            coco_exp_dir = wrapper_config.exp_id
-
     if run is not None:
         if exit_code == 0:
             run.alert(
-                "Experiment ended",
+                f"Experiment {run_id} ended",
                 text="Experiment ended",
                 level=AlertLevel.INFO,
             )
         else:
             run.alert(
-                "Experiment failed",
+                f"Experiment {run_id} failed",
                 level=AlertLevel.ERROR,
                 text="Experiment failed",
             )
-        if coco_exp_dir is not None:
+        # Check if COCO results were generated
+        coco_exp_dir = COCOLoggerWrapperConfig.coco_dir(run_id)
+        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        print(coco_exp_dir)
+        if os.path.exists(coco_exp_dir) and os.listdir(coco_exp_dir):
+            logger.info(f"Logging COCO results from {coco_exp_dir} to wandb")
+            # Log coco results as artifact
             artifact = wandb.Artifact(
-                name=f"coco_results_{run.id}",
+                name=f"coco_results_{run_id}",
                 type="coco_results",
                 description="COCO results",
             )

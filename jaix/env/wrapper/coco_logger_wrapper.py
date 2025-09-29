@@ -11,12 +11,13 @@ from ttex.log.coco import (
 )
 import logging
 import cocopp
-from uuid import uuid4
 import os.path as osp
 import os
 import contextlib
 from jaix import LOGGER_NAME
 import numpy as np
+from uuid import uuid4
+from jaix.utils.exp_id import get_exp_id
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -36,7 +37,7 @@ class COCOLoggerWrapperConfig(Config):
         passthrough: bool = True,
     ):
         self.algo_name = algo_name
-        self.exp_id = exp_id if exp_id is not None else str(uuid4())
+        self.exp_id = COCOLoggerWrapperConfig.coco_dir(exp_id)
         self.algo_info = algo_info
         # TODO: potentially add some env info here too
         self.logger_name = logger_name
@@ -46,6 +47,9 @@ class COCOLoggerWrapperConfig(Config):
         self.improvement_steps = improvement_steps
         self.number_target_triggers = number_target_triggers
         self.target_precision = target_precision
+
+        print(f"COCO results will be saved to {self.exp_id}")
+        print("--------------------------------------------------")
 
     def _setup(self):
         setup_coco_logger(
@@ -57,6 +61,12 @@ class COCOLoggerWrapperConfig(Config):
             target_precision=self.target_precision,
         )
         return True
+
+    @staticmethod
+    def coco_dir(exp_id: Optional[str]) -> str:
+        exp_id = exp_id if exp_id is not None else get_exp_id()
+        assert exp_id is not None, "exp_id must be provided or set globally"
+        return osp.join(exp_id, "coco_exdata")
 
     def _teardown(self):
         # This also triggers writing the files
@@ -112,7 +122,7 @@ class COCOLoggerWrapper(PassthroughWrapper, ConfigurableObject):
             dim=np.prod(self.action_space.shape) if constant_dim else 0,
             inst=self.env.unwrapped.inst if hasattr(self.env.unwrapped, "inst") else 1,
             suite=suite_name,
-            exp_id=self.exp_id,  # Get from wandb
+            exp_id=self.exp_id,
             algo_info=self.algo_info,
             fopt=(
                 self.env.unwrapped.fopt if hasattr(self.env.unwrapped, "fopt") else None

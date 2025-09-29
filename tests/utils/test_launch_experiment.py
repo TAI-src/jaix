@@ -6,6 +6,7 @@ from copy import deepcopy
 import pytest
 import itertools
 import json
+from jaix import get_exp_id
 
 
 def get_config(suite="RBF", comp=False):
@@ -339,6 +340,8 @@ def test_launch_jaix_experiment_wandb():
     )
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
     data_dir = [result["data_dirs"][0] for result in results.values()][0]
+    exp_id = get_exp_id()
+    assert exp_id == data_dir
     # Remove logging files
     shutil.rmtree(data_dir, ignore_errors=True)
     os.environ["WANDB_MODE"] = prev_mode

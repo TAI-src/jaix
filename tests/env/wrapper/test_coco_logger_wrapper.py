@@ -61,9 +61,13 @@ def test_basic(wef):
     assert len(result_dict) > 0
     """
 
-    assert osp.exists(osp.join(config.exp_id, algo_name))
-    assert osp.exists(osp.join(config.exp_id, algo_name, "data_1", "f1_d18_i1.tdat"))
-    assert osp.exists(osp.join(config.exp_id, algo_name, "data_1", "f1_d18_i1.dat"))
-    assert osp.exists(osp.join(config.exp_id, algo_name, "f1_i1.info"))
+    assert osp.exists(osp.join(config.exp_id, "DummyEnv", algo_name))
+    assert osp.exists(
+        osp.join(config.exp_id, "DummyEnv", algo_name, "data_1", "f1_d18_i1.tdat")
+    )
+    assert osp.exists(
+        osp.join(config.exp_id, "DummyEnv", algo_name, "data_1", "f1_d18_i1.dat")
+    )
+    assert osp.exists(osp.join(config.exp_id, "DummyEnv", algo_name, "f1_i1.info"))
     # assert osp.exists(osp.join(config.exp_id, "ppdata"))
     shutil.rmtree(config.exp_id)
