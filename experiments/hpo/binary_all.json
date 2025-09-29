@@ -42,7 +42,7 @@
       "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
         "strategy_class": "jaix.runner.ask_tell.strategy.enumerate.EnumerateATStrat",
         "strategy_config": {
-          "jaix.runner.ask_tell.strategy.EnumerateATStratConfig": {
+          "jaix.runner.ask_tell.strategy.enumerate.EnumerateATStratConfig": {
             "ask_size": 1
           }
         },
