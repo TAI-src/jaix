@@ -8,7 +8,10 @@ from typing import Dict, Optional, List, Any, Tuple
 import os
 import wandb
 from jaix.env.wrapper.logging_wrapper import LoggingWrapper, LoggingWrapperConfig
-from jaix.env.wrapper.coco_logger_wrapper import COCOLoggerWrapper, COCOLoggerWrapperConfig
+from jaix.env.wrapper.coco_logger_wrapper import (
+    COCOLoggerWrapper,
+    COCOLoggerWrapperConfig,
+)
 from ttex.log import get_logging_config
 import sys
 import logging

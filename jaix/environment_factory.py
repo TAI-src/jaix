@@ -5,7 +5,10 @@ from jaix.env.composite.composite_environment import CompositeEnvironment
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from jaix.env.wrapper.closing_wrapper import ClosingWrapper
 from jaix.env.wrapper.online_wrapper import OnlineWrapper
-from jaix.env.wrapper.coco_logger_wrapper import COCOLoggerWrapper, COCOLoggerWrapperConfig
+from jaix.env.wrapper.coco_logger_wrapper import (
+    COCOLoggerWrapper,
+    COCOLoggerWrapperConfig,
+)
 import gymnasium as gym
 import logging
 from jaix.utils.globals import LOGGER_NAME
