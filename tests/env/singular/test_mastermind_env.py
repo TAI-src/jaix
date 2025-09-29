@@ -1,4 +1,7 @@
-from jaix.env.singular import MastermindEnvironmentConfig, MastermindEnvironment
+from jaix.env.singular.mastermind_env import (
+    MastermindEnvironmentConfig,
+    MastermindEnvironment,
+)
 from gymnasium.utils.env_checker import check_env
 import pytest
 import copy

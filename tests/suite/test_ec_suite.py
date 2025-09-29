@@ -1,8 +1,9 @@
 import pytest
 from ttex.config import ConfigurableObjectFactory as COF
-from jaix.env.utils.problem import Sphere, SphereConfig
-from jaix.suite import ECSuite, ECSuiteConfig, AggType
-from jaix.env.singular import ECEnvironmentConfig
+from jaix.env.utils.problem.sphere import Sphere, SphereConfig
+from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
+from jaix.suite.suite import AggType
+from jaix.env.singular.ec_env import ECEnvironmentConfig
 import os
 
 

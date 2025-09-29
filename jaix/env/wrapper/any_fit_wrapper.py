@@ -1,7 +1,7 @@
 import gymnasium as gym
 import numpy as np
 import math
-from jaix.env.wrapper import PassthroughWrapper
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 
 
 class AnyFitWrapper(PassthroughWrapper):

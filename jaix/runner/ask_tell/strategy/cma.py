@@ -1,9 +1,9 @@
 from cma import CMAOptions, CMAEvolutionStrategy
 from ttex.config import Config, ConfigurableObject
-from jaix.runner.ask_tell import ATStrategy
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 import numpy as np
 from typing import Optional
-from jaix.env.composite import CompositeEnvironment
+from jaix.env.composite.composite_environment import CompositeEnvironment
 
 
 class CMAConfig(Config):

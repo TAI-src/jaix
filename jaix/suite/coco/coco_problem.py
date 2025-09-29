@@ -3,7 +3,7 @@ A COCO problem from numbbo coco
 """
 
 from cocoex import Problem
-from jaix.env.utils.problem import StaticProblem
+from jaix.env.utils.problem.static_problem import StaticProblem
 
 
 class COCOProblem(StaticProblem):

@@ -3,9 +3,9 @@ import logging
 import gymnasium as gym
 from typing import Type
 from ttex.config import Config, ConfigurableObject
-from jaix.runner import Optimiser
+from jaix.runner.optimiser import Optimiser
 
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

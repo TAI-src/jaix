@@ -1,4 +1,5 @@
-from jaix.env.utils.problem import Sphere, SphereConfig, StaticProblem
+from jaix.env.utils.problem.sphere import Sphere, SphereConfig
+from jaix.env.utils.problem.static_problem import StaticProblem
 from ttex.config import ConfigurableObjectFactory as COF
 import pickle
 import os

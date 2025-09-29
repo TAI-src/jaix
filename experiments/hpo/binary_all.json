@@ -1,22 +1,22 @@
 {
-  "jaix.ExperimentConfig": {
-    "runner_class": "jaix.runner.ask_tell.ATRunner",
+  "jaix.experiment.ExperimentConfig": {
+    "runner_class": "jaix.runner.ask_tell.ask_tell_runner.ATRunner",
     "runner_config": {
-      "jaix.runner.ask_tell.ATRunnerConfig": {
+      "jaix.runner.ask_tell.ask_tell_runner.ATRunnerConfig": {
         "max_evals": 512,
         "disp_interval": 500
       }
     },
     "logging_config": {
-      "jaix.LoggingConfig": {
+      "jaix.experiment.LoggingConfig": {
         "log_level": 40
       }
     },
     "env_config": {
-      "jaix.EnvironmentConfig": {
-        "suite_class": "jaix.suite.Suite",
+      "jaix.environment_factory.EnvironmentConfig": {
+        "suite_class": "jaix.suite.suite.Suite",
         "suite_config": {
-          "jaix.suite.SuiteConfig": {
+          "jaix.suite.suite.SuiteConfig": {
             "env_class": "jaix.env.singular.HPOEnvironment",
             "env_config": {
               "jaix.env.singular.HPOEnvironmentConfig": {
@@ -31,16 +31,16 @@
         },
         "env_wrappers": [
           [
-            "jaix.env.wrapper.AnyFitWrapper",
+            "jaix.env.wrapper.any_fit_wrapper.AnyFitWrapper",
             {}
           ]
         ]
       }
     },
-    "opt_class": "jaix.runner.ask_tell.ATOptimiser",
+    "opt_class": "jaix.runner.ask_tell.at_optimiser.ATOptimiser",
     "opt_config": {
       "jaix.runner.ask_tell.ATOptimiserConfig": {
-        "strategy_class": "jaix.runner.ask_tell.strategy.EnumerateATStrat",
+        "strategy_class": "jaix.runner.ask_tell.strategy.enumerate.EnumerateATStrat",
         "strategy_config": {
           "jaix.runner.ask_tell.strategy.EnumerateATStratConfig": {
             "ask_size": 1

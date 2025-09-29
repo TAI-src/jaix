@@ -1,4 +1,4 @@
-from jaix.runner.ask_tell.strategy import RandomATStrat, RandomATStratConfig
+from jaix.runner.ask_tell.strategy.random import RandomATStrat, RandomATStratConfig
 from . import DummyEnv, loop
 import pytest
 

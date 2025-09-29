@@ -1,5 +1,5 @@
 import gymnasium as gym
-from jaix.env.wrapper import AnyFitWrapper
+from jaix.env.wrapper.any_fit_wrapper import AnyFitWrapper
 from gymnasium.utils.env_checker import check_env
 from . import DummyEnv
 

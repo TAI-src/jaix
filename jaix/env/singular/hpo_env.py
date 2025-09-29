@@ -4,10 +4,10 @@ import numpy as np
 from tabrepo.repository.evaluation_repository import (
     load_repository,
 )
-from jaix.env.utils.hpo import TaskType, TabrepoAdapter
+from jaix.env.utils.hpo.tabrepo_adapter import TaskType, TabrepoAdapter
 from typing import Optional, List, Tuple, Dict
-from jaix import LOGGER_NAME
-from jaix.env.singular import SingularEnvironment
+from jaix.utils.globals import LOGGER_NAME
+from jaix.env.singular.singular_environment import SingularEnvironment
 from collections import defaultdict
 import json
 

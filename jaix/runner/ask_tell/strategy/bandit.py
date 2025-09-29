@@ -4,11 +4,12 @@ from ttex.config import (
     ConfigurableObjectFactory as COF,
 )
 from typing import List, Dict
-from jaix.runner.ask_tell import ATOptimiser, ATOptimiserConfig, ATStrategy
-from jaix.runner.ask_tell.strategy.utils import BanditConfig, Bandit
+from jaix.runner.ask_tell.at_optimiser import ATOptimiser, ATOptimiserConfig
+from jaix.runner.ask_tell.at_strategy import ATStrategy
+from jaix.runner.ask_tell.strategy.utils.bandit_model import BanditConfig, Bandit
 from gymnasium import Env
 import logging
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 import numpy as np
 
 logger = logging.getLogger(LOGGER_NAME)

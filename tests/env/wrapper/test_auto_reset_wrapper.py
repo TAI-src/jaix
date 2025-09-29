@@ -1,4 +1,4 @@
-from jaix.env.wrapper import AutoResetWrapper, AutoResetWrapperConfig
+from jaix.env.wrapper.auto_reset_wrapper import AutoResetWrapper, AutoResetWrapperConfig
 import gymnasium as gym
 from . import DummyEnv
 import pytest

@@ -1,4 +1,4 @@
-from jaix.env.wrapper import PassthroughWrapper
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 from . import DummyWrapper, DummyEnv
 
 

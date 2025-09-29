@@ -1,4 +1,5 @@
-from jaix.env.utils.problem.rbf import RBFAdapterConfig, RBFAdapter, RBF
+from jaix.env.utils.problem.rbf.rbf_adapter import RBFAdapterConfig, RBFAdapter
+from jaix.env.utils.problem.rbf.rbf import RBF
 import pytest
 from math import isclose
 import numpy as np

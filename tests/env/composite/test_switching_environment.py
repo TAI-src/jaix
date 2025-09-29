@@ -1,11 +1,11 @@
 from ttex.config import (
     ConfigurableObjectFactory as COF,
 )
-from jaix.env.composite import (
+from jaix.env.composite.switching_environment import (
     SwitchingEnvironmentConfig,
     SwitchingEnvironment,
 )
-from jaix.env.utils.switching_pattern import (
+from jaix.env.utils.switching_pattern.switching_pattern import (
     SeqRegSwitchingPatternConfig,
     SeqRegSwitchingPattern,
 )
@@ -13,14 +13,15 @@ import pytest
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-from jaix.env.utils.problem import Sphere, SphereConfig, RBFFit, RBFFitConfig
+from jaix.env.utils.problem.sphere import Sphere, SphereConfig
+from jaix.env.utils.problem.rbf_fit import RBFFit, RBFFitConfig
 from ..utils.problem.rbf.test_rbf_adapter import get_config
-from jaix.env.singular import (
+from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
 import os
-from jaix.env.wrapper import ClosingWrapper
+from jaix.env.wrapper.closing_wrapper import ClosingWrapper
 
 
 @pytest.fixture(scope="function")

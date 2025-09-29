@@ -1,9 +1,9 @@
-from jaix.env.singular import (
+from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
 from ttex.config import ConfigurableObjectFactory as COF, Config
-from jaix.suite import Suite, AggType
+from jaix.suite.suite import Suite, AggType
 from jaix.suite.coco import COCOProblem
 import cocoex as ex
 import regex as re
