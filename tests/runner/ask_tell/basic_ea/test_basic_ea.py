@@ -1,4 +1,4 @@
-from jaix.runner.ask_tell.strategy import BasicEA, BasicEAConfig
+from jaix.runner.ask_tell.strategy.basic_ea import BasicEA, BasicEAConfig
 from jaix.runner.ask_tell.strategy.basic_ea import (
     EAStrategy,
     MutationOp,

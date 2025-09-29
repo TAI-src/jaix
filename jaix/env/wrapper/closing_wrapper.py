@@ -1,5 +1,5 @@
 import gymnasium as gym
-from jaix.env.wrapper import PassthroughWrapper
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 
 
 class ClosingWrapper(PassthroughWrapper):

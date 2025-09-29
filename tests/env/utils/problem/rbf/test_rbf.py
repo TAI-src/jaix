@@ -1,4 +1,4 @@
-from jaix.env.utils.problem.rbf import RBFKernel, RBF
+from jaix.env.utils.problem.rbf.rbf import RBFKernel, RBF
 import numpy as np
 
 

@@ -5,7 +5,7 @@ from typing import Type, List, Tuple, Union, Dict
 import gymnasium as gym
 import logging
 
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

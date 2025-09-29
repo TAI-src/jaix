@@ -1,6 +1,6 @@
 from ttex.config import Config, ConfigurableObject
 from enum import Enum
-from jaix.runner.ask_tell import ATStrategy
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 import numpy as np
 from jaix.runner.ask_tell.strategy.utils.ea_utils import (
     global_flip,
@@ -10,7 +10,7 @@ from jaix.runner.ask_tell.strategy.utils.ea_utils import (
     select,
     ddl_update,
 )
-from jaix.env.composite import CompositeEnvironment
+from jaix.env.composite.composite_environment import CompositeEnvironment
 from typing import Optional
 from gymnasium import Env, spaces
 

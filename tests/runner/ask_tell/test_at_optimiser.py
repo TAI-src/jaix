@@ -1,5 +1,5 @@
-from jaix.runner.ask_tell import ATOptimiserConfig, ATOptimiser
-from jaix.runner.ask_tell.strategy import RandomATStrat, RandomATStratConfig
+from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig, ATOptimiser
+from jaix.runner.ask_tell.strategy.random import RandomATStrat, RandomATStratConfig
 from ttex.config import ConfigurableObjectFactory as COF
 from . import DummyEnv, loop
 import pytest

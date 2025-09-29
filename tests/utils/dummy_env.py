@@ -3,7 +3,7 @@ from gymnasium import spaces
 from typing import Optional
 from gymnasium.utils.env_checker import check_env
 from ttex.config import ConfigurableObject, Config
-from jaix.env.singular import SingularEnvironment
+from jaix.env.singular.singular_environment import SingularEnvironment
 
 
 class DummyEnvConfig(Config):

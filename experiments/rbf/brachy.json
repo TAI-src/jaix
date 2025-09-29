@@ -1,30 +1,30 @@
 {
-  "jaix.ExperimentConfig": {
-    "runner_class": "jaix.runner.ask_tell.ATRunner",
+  "jaix.experiment.ExperimentConfig": {
+    "runner_class": "jaix.runner.ask_tell.ask_tell_runner.ATRunner",
     "runner_config": {
-      "jaix.runner.ask_tell.ATRunnerConfig": {
+      "jaix.runner.ask_tell.ask_tell_runner.ATRunnerConfig": {
         "max_evals": 5000,
         "disp_interval": 1000
       }
     },
     "logging_config": {
-      "jaix.LoggingConfig": {
+      "jaix.experiment.LoggingConfig": {
         "log_level": 40
       }
     },
     "env_config": {
-      "jaix.EnvironmentConfig": {
-        "suite_class": "jaix.suite.ECSuite",
+      "jaix.environment_factory.EnvironmentConfig": {
+        "suite_class": "jaix.suite.ec_suite.ECSuite",
         "suite_config": {
-          "jaix.suite.ECSuiteConfig": {
+          "jaix.suite.ec_suite.ECSuiteConfig": {
             "func_classes": [
-              "jaix.env.utils.problem.RBFFit"
+              "jaix.env.utils.problem.rbf_fit.RBFFit"
             ],
             "func_configs": [
               {
-                "jaix.env.utils.problem.RBFFitConfig": {
+                "jaix.env.utils.problem.rbf_fit.RBFFitConfig": {
                   "rbf_config": {
-                    "jaix.env.utils.problem.rbf.RBFAdapterConfig": {
+                    "jaix.env.utils.problem.rbf.rbf_adapter.RBFAdapterConfig": {
                       "num_rad_range": [
                         15,
                         25
@@ -51,7 +51,7 @@
               }
             ],
             "env_config": {
-              "jaix.env.singular.ECEnvironmentConfig": {
+              "jaix.env.singular.ec_env.ECEnvironmentConfig": {
                 "budget_multiplier": 1000
               }
             },
@@ -60,18 +60,18 @@
         },
         "env_wrappers": [
           [
-            "jaix.env.wrapper.AnyFitWrapper",
+            "jaix.env.wrapper.any_fit_wrapper.AnyFitWrapper",
             {}
           ]
         ]
       }
     },
-    "opt_class": "jaix.runner.ask_tell.ATOptimiser",
+    "opt_class": "jaix.runner.ask_tell.at_optimiser.ATOptimiser",
     "opt_config": {
-      "jaix.runner.ask_tell.ATOptimiserConfig": {
-        "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+      "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+        "strategy_class": "jaix.runner.ask_tell.strategy.cma.CMA",
         "strategy_config": {
-          "jaix.runner.ask_tell.strategy.CMAConfig": {
+          "jaix.runner.ask_tell.strategy.cma.CMAConfig": {
             "sigma0": 2,
             "opts": {
               "popsize_factor": 1

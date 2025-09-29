@@ -1,5 +1,5 @@
-from jaix import Experiment, LOGGER_NAME
-from jaix.experiment import ExperimentConfig
+from jaix.experiment import Experiment, ExperimentConfig
+from jaix.utils.globals import LOGGER_NAME
 from ttex.config import ConfigFactory as CF
 from ttex.log.handler import WandbHandler
 from wandb.sdk import launch, AlertLevel
@@ -7,7 +7,7 @@ from importlib.metadata import version
 from typing import Dict, Optional, List, Any, Tuple
 import os
 import wandb
-from jaix.env.wrapper import LoggingWrapper, LoggingWrapperConfig
+from jaix.env.wrapper.logging_wrapper import LoggingWrapper, LoggingWrapperConfig
 from ttex.log import get_logging_config
 import sys
 import logging

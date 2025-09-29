@@ -1,10 +1,10 @@
 from ttex.config import ConfigurableObject, Config, ConfigurableObjectFactory as COF
 import gymnasium as gym
 import numpy as np
-from jaix.env.singular import SingularEnvironment
+from jaix.env.singular.singular_environment import SingularEnvironment
 from jaix.env.utils.ase import LJClustAdapter, LJClustAdapterConfig
 
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 import logging
 
 logger = logging.getLogger(LOGGER_NAME)

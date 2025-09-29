@@ -1,9 +1,9 @@
 from ttex.config import Config, ConfigurableObject
 from typing import Tuple
 import numpy as np
-from jaix.env.utils.problem.rbf import RBFKernel, RBF
+from jaix.env.utils.problem.rbf.rbf import RBFKernel, RBF
 import logging
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

@@ -1,11 +1,11 @@
 from jaix.suite.coco import COCOSuiteConfig, COCOSuite, COCOProblem
 import pytest
-from jaix.env.singular import ECEnvironmentConfig
+from jaix.env.singular.ec_env import ECEnvironmentConfig
 from ttex.config import (
     ConfigurableObjectFactory as COF,
 )
 import os
-from jaix.suite import AggType
+from jaix.suite.suite import AggType
 
 
 @pytest.fixture(scope="module", autouse=True)

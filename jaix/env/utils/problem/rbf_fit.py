@@ -1,6 +1,6 @@
-from jaix.env.utils.problem import StaticProblem
+from jaix.env.utils.problem.static_problem import StaticProblem
 from ttex.config import Config, ConfigurableObject
-from jaix.env.utils.problem.rbf import RBFAdapter, RBFAdapterConfig
+from jaix.env.utils.problem.rbf.rbf_adapter import RBFAdapter, RBFAdapterConfig
 import numpy as np
 
 

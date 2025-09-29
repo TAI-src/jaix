@@ -1,6 +1,6 @@
 from .rbf.test_rbf_adapter import get_config
-from jaix.env.utils.problem import RBFFitConfig, RBFFit
-from jaix.env.singular import (
+from jaix.env.utils.problem.rbf_fit import RBFFitConfig, RBFFit
+from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )

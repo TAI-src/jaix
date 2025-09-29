@@ -1,9 +1,8 @@
-from jaix.env.wrapper import (
-    LoggingWrapperConfig,
-    LoggingWrapper,
+from jaix.env.wrapper.logging_wrapper import LoggingWrapperConfig, LoggingWrapper
+from jaix.env.wrapper.wrapped_env_factory import (
     WrappedEnvFactory as WEF,
-    AnyFitWrapper,
 )
+from jaix.env.wrapper.any_fit_wrapper import AnyFitWrapper
 from . import DummyEnv, test_handler, DummyWrapper
 from gymnasium.utils.env_checker import check_env
 import ast

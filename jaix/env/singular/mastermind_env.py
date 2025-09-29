@@ -1,10 +1,10 @@
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 import numpy as np
 from typing import Tuple, Optional
 import logging
-from jaix.env.singular import SingularEnvironment
+from jaix.env.singular.singular_environment import SingularEnvironment
 
 logger = logging.getLogger(LOGGER_NAME)
 
