@@ -1,11 +1,11 @@
-from jaix.env.singular import (
+from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
-from jaix.env.utils.problem import StaticProblem
+from jaix.env.utils.problem.static_problem import StaticProblem
 from ttex.config import ConfigurableObjectFactory as COF, Config
 from typing import Type, Optional, List
-from jaix.suite import Suite, SuiteConfig
+from jaix.suite.suite import Suite, SuiteConfig
 
 
 class ECSuiteConfig(SuiteConfig):

@@ -1,4 +1,4 @@
-from jaix.suite import Suite, SuiteConfig, AggType
+from jaix.suite.suite import Suite, SuiteConfig, AggType
 from . import DummyEnvConfig, DummyConfEnv
 from collections.abc import Iterable
 import pytest

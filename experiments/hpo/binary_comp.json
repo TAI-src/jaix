@@ -1,23 +1,23 @@
 {
-  "jaix.ExperimentConfig": {
-    "runner_class": "jaix.runner.ask_tell.ATRunner",
+  "jaix.experiment.ExperimentConfig": {
+    "runner_class": "jaix.runner.ask_tell.ask_tell_runner.ATRunner",
     "runner_config": {
-      "jaix.runner.ask_tell.ATRunnerConfig": {
+      "jaix.runner.ask_tell.ask_tell_runner.ATRunnerConfig": {
         "max_evals": 2560,
         "disp_interval": 500
       }
     },
     "logging_config": {
-      "jaix.LoggingConfig": {
+      "jaix.experiment.LoggingConfig": {
         "log_level": 40
       }
     },
     "env_config": {
-      "jaix.EnvironmentConfig": {
-        "suite_class": "jaix.suite.Suite",
+      "jaix.environment_factory.EnvironmentConfig": {
+        "suite_class": "jaix.suite.suite.Suite",
         "suite_config": {
-          "jaix.suite.SuiteConfig": {
-            "env_class": "jaix.env.singular.HPOEnvironment",
+          "jaix.suite.suite.SuiteConfig": {
+            "env_class": "jaix.env.singular.hpo_env.HPOEnvironment",
             "env_config": {
               "jaix.env.singular.HPOEnvironmentConfig": {
                 "task_type": "jaix.env.utils.hpo.TaskType.C1",
@@ -30,19 +30,19 @@
         },
         "env_wrappers": [
           [
-            "jaix.env.wrapper.AnyFitWrapper",
+            "jaix.env.wrapper.any_fit_wrapper.AnyFitWrapper",
             {}
           ]
         ],
         "comp_config": {
-          "jaix.CompositeEnvironmentConfig": {
-            "agg_type": "jaix.suite.AggType.INST",
-            "comp_env_class": "jaix.env.composite.SwitchingEnvironment",
+          "jaix.environment_factory.CompositeEnvironmentConfig": {
+            "agg_type": "jaix.suite.suite.AggType.INST",
+            "comp_env_class": "jaix.env.composite.switching_environment.SwitchingEnvironment",
             "comp_env_config": {
-              "jaix.env.composite.SwitchingEnvironmentConfig": {
-                "switching_pattern_class": "jaix.env.utils.switching_pattern.SeqRegSwitchingPattern",
+              "jaix.env.composite.switching_environment.SwitchingEnvironmentConfig": {
+                "switching_pattern_class": "jaix.env.utils.switching_pattern.switching_pattern.SeqRegSwitchingPattern",
                 "switching_pattern_config": {
-                  "jaix.env.utils.switching_pattern.SeqRegSwitchingPatternConfig": {
+                  "jaix.env.utils.switching_pattern.switching_pattern.SeqRegSwitchingPatternConfig": {
                     "wait_period": 512,
                     "carry_over": false
                   }
@@ -54,34 +54,34 @@
         }
       }
     },
-    "opt_class": "jaix.runner.ask_tell.ATOptimiser",
+    "opt_class": "jaix.runner.ask_tell.at_optimiser.ATOptimiser",
     "opt_config": {
-      "jaix.runner.ask_tell.ATOptimiserConfig": {
-        "strategy_class": "jaix.runner.ask_tell.strategy.ATBandit",
+      "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+        "strategy_class": "jaix.runner.ask_tell.strategy.bandit.ATBandit",
         "strategy_config": {
-          "jaix.runner.ask_tell.strategy.ATBanditConfig": {
+          "jaix.runner.ask_tell.strategy.bandit.ATBanditConfig": {
             "bandit_config": {
-              "jaix.runner.ask_tell.strategy.utils.BanditConfig": {
+              "jaix.runner.ask_tell.strategy.utils.bandit_model.BanditConfig": {
                 "epsilon": 0.1,
                 "min_tries": 10,
-                "exploit_strategy": "jaix.runner.ask_tell.strategy.utils.BanditExploitStrategy.MAX"
+                "exploit_strategy": "jaix.runner.ask_tell.strategy.utils.bandit_model.BanditExploitStrategy.MAX"
               }
             },
             "opt_confs": [
               {
-                "jaix.runner.ask_tell.ATOptimiserConfig": {
-                  "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                  "strategy_class": "jaix.runner.ask_tell.strategy.basic_ea.BasicEA",
                   "strategy_config": {
-                    "jaix.runner.ask_tell.strategy.BasicEAConfig": {
-                      "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                    "jaix.runner.ask_tell.strategy.basic_ea.BasicEAConfig": {
+                      "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
                       "mu": 1,
                       "lam": 1,
-                      "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                      "mutation_op": "jaix.runner.ask_tell.strategy.basic_ea.MutationOp.FLIP",
                       "crossover_op": null,
                       "mutation_opts": {},
                       "crossover_opts": {},
-                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.WarmStartStrategy.NONE",
-                      "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
+                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.basic_ea.WarmStartStrategy.NONE",
+                      "update_strategy": "jaix.runner.ask_tell.strategy.basic_ea.UpdateStrategy.DDL",
                       "update_opts": {
                         "F": 1.2,
                         "s": 1
@@ -93,19 +93,19 @@
                 }
               },
               {
-                "jaix.runner.ask_tell.ATOptimiserConfig": {
-                  "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                  "strategy_class": "jaix.runner.ask_tell.strategy.basic_ea.BasicEA",
                   "strategy_config": {
-                    "jaix.runner.ask_tell.strategy.BasicEAConfig": {
-                      "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                    "jaix.runner.ask_tell.strategy.basic_ea.BasicEAConfig": {
+                      "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
                       "mu": 1,
                       "lam": 1,
-                      "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                      "mutation_op": "jaix.runner.ask_tell.strategy.basic_ea.MutationOp.FLIP",
                       "crossover_op": null,
                       "mutation_opts": {},
                       "crossover_opts": {},
-                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.WarmStartStrategy.NONE",
-                      "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
+                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.basic_ea.WarmStartStrategy.NONE",
+                      "update_strategy": "jaix.runner.ask_tell.strategy.basic_ea.UpdateStrategy.DDL",
                       "update_opts": {
                         "F": 1.2,
                         "s": 1.718281828459045
@@ -117,19 +117,19 @@
                 }
               },
               {
-                "jaix.runner.ask_tell.ATOptimiserConfig": {
-                  "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                  "strategy_class": "jaix.runner.ask_tell.strategy.basic_ea.BasicEA",
                   "strategy_config": {
-                    "jaix.runner.ask_tell.strategy.BasicEAConfig": {
-                      "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                    "jaix.runner.ask_tell.strategy.basic_ea.BasicEAConfig": {
+                      "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
                       "mu": 1,
                       "lam": 1,
-                      "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                      "mutation_op": "jaix.runner.ask_tell.strategy.basic_ea.MutationOp.FLIP",
                       "crossover_op": null,
                       "mutation_opts": {},
                       "crossover_opts": {},
-                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.WarmStartStrategy.NONE",
-                      "update_strategy": "jaix.runner.ask_tell.strategy.UpdateStrategy.DDL",
+                      "warm_start_strategy": "jaix.runner.ask_tell.strategy.basic_ea.WarmStartStrategy.NONE",
+                      "update_strategy": "jaix.runner.ask_tell.strategy.basic_ea.UpdateStrategy.DDL",
                       "update_opts": {
                         "F": 1.2,
                         "s": 4

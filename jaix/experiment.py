@@ -1,12 +1,10 @@
 from ttex.config import Config, ConfigurableObjectFactory as COF
-from jaix.runner import Runner, Optimiser
+from jaix.runner.runner import Runner
+from jaix.runner.optimiser import Optimiser
 from typing import Type, Optional, Dict
 from ttex.log import initiate_logger, get_logging_config
-from jaix import (
-    EnvironmentConfig,
-    EnvironmentFactory as EF,
-    LOGGER_NAME,
-)
+from jaix.environment_factory import EnvironmentConfig, EnvironmentFactory as EF
+from jaix.utils.globals import LOGGER_NAME
 import logging
 from uuid import uuid4
 from jaix.utils import set_exp_id

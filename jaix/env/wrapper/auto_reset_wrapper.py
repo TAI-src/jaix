@@ -1,6 +1,6 @@
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
-from jaix.env.wrapper import PassthroughWrapper
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 from typing import Optional
 
 

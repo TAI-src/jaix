@@ -6,10 +6,10 @@ import numpy as np
 import logging
 
 from ttex.config import ConfigurableObject, Config
-from jaix.env.utils.problem import StaticProblem
+from jaix.env.utils.problem.static_problem import StaticProblem
 from typing import Optional
-from jaix import LOGGER_NAME
-from jaix.env.singular import SingularEnvironment
+from jaix.utils.globals import LOGGER_NAME
+from jaix.env.singular.singular_environment import SingularEnvironment
 
 logger = logging.getLogger(LOGGER_NAME)
 

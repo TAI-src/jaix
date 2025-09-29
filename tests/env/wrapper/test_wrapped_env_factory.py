@@ -1,4 +1,4 @@
-from jaix.env.wrapper import WrappedEnvFactory as WEF
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from gymnasium.wrappers import RescaleAction
 from . import DummyEnv
 import gymnasium as gym

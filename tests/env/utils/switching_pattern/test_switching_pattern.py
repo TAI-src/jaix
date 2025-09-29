@@ -1,4 +1,4 @@
-from jaix.env.utils.switching_pattern import (
+from jaix.env.utils.switching_pattern.switching_pattern import (
     SeqRegSwitchingPatternConfig,
     SeqRegSwitchingPattern,
     SeqForcedSwitchingPatternConfig,

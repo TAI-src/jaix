@@ -1,12 +1,12 @@
-from jaix.runner import Optimiser
+from jaix.runner.optimiser import Optimiser
 from ttex.config import Config, ConfigurableObject, ConfigurableObjectFactory as COF
 import gymnasium as gym
 from typing import Type
-from jaix.runner.ask_tell import ATStrategy
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 import numpy as np
 
 import logging
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

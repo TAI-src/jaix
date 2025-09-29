@@ -3,22 +3,22 @@ from ttex.config import (
     ConfigurableObjectFactory as COF,
     Config,
 )
-from jaix.env.utils.switching_pattern import (
+from jaix.env.utils.switching_pattern.switching_pattern import (
     SwitchingPattern,
 )
-from jaix.env.wrapper import (
+from jaix.env.wrapper.auto_reset_wrapper import (
     AutoResetWrapper,
     AutoResetWrapperConfig,
-    WrappedEnvFactory as WEF,
 )
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from typing import Dict, Type, List, Optional, Callable, Any, TypeVar, Tuple, Union
 import gymnasium as gym
 from gymnasium import spaces
 from functools import wraps
-from jaix.env.composite import CompositeEnvironment
+from jaix.env.composite.composite_environment import CompositeEnvironment
 
 import logging
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 FuncT = TypeVar("FuncT", bound=Callable[..., Any])

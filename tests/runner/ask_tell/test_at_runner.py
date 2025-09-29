@@ -1,20 +1,19 @@
-from jaix.runner.ask_tell.strategy import (
-    CMAConfig,
-    CMA,
+from jaix.runner.ask_tell.strategy.cma import CMAConfig, CMA
+from jaix.runner.ask_tell.strategy.random import (
     RandomATStrat,
     RandomATStratConfig,
 )
 from . import DummyEnv
-from jaix.runner.ask_tell import ATRunnerConfig, ATRunner
+from jaix.runner.ask_tell.ask_tell_runner import ATRunnerConfig, ATRunner
 import pytest
 from ttex.config import ConfigurableObjectFactory as COF
-from jaix.env.wrapper import (
-    WrappedEnvFactory as WEF,
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
+from jaix.env.wrapper.max_eval_wrapper import (
     MaxEvalWrapper,
     MaxEvalWrapperConfig,
 )
-from jaix import EnvironmentConfig as EC
-from jaix.runner.ask_tell import ATOptimiserConfig, ATOptimiser
+from jaix.environment_factory import EnvironmentConfig as EC
+from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig, ATOptimiser
 
 
 def get_optimiser(opts: str = None):

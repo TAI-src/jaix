@@ -1,4 +1,8 @@
-from jaix.utils import launch_jaix_experiment, wandb_logger, wandb_init
+from jaix.utils.launch_experiment import (
+    launch_jaix_experiment,
+    wandb_logger,
+    wandb_init,
+)
 import os
 import shutil
 from ttex.config import ConfigFactory as CF
@@ -13,29 +17,29 @@ def get_config(suite="RBF", comp=False):
     known_suites = {"cont": ["COCO", "RBF", "ASE"], "disc": ["HPO", "MMind"]}
 
     xconfig = {
-        "jaix.ExperimentConfig": {
-            "runner_class": "jaix.runner.ask_tell.ATRunner",
+        "jaix.experiment.ExperimentConfig": {
+            "runner_class": "jaix.runner.ask_tell.ask_tell_runner.ATRunner",
             "runner_config": {
-                "jaix.runner.ask_tell.ATRunnerConfig": {
+                "jaix.runner.ask_tell.ask_tell_runner.ATRunnerConfig": {
                     "max_evals": 100,
                     "disp_interval": 50,
                 },
             },
             "logging_config": {
-                "jaix.LoggingConfig": {
+                "jaix.experiment.LoggingConfig": {
                     "log_level": 10,
                 }
             },
         },
     }
     if suite == "COCO":
-        xconfig["jaix.ExperimentConfig"]["env_config"] = {
-            "jaix.EnvironmentConfig": {
+        xconfig["jaix.experiment.ExperimentConfig"]["env_config"] = {
+            "jaix.environment_factory.EnvironmentConfig": {
                 "suite_class": "jaix.suite.coco.COCOSuite",
                 "suite_config": {
                     "jaix.suite.coco.COCOSuiteConfig": {
                         "env_config": {
-                            "jaix.env.singular.ECEnvironmentConfig": {
+                            "jaix.env.singular.ec_env.ECEnvironmentConfig": {
                                 "budget_multiplier": 1000,
                             },
                         },
@@ -50,24 +54,24 @@ def get_config(suite="RBF", comp=False):
             },
         }
     elif suite == "RBF":
-        xconfig["jaix.ExperimentConfig"]["env_config"] = {
-            "jaix.EnvironmentConfig": {
-                "suite_class": "jaix.suite.ECSuite",
+        xconfig["jaix.experiment.ExperimentConfig"]["env_config"] = {
+            "jaix.environment_factory.EnvironmentConfig": {
+                "suite_class": "jaix.suite.ec_suite.ECSuite",
                 "suite_config": {
-                    "jaix.suite.ECSuiteConfig": {
-                        "func_classes": ["jaix.env.utils.problem.RBFFit"],
+                    "jaix.suite.ec_suite.ECSuiteConfig": {
+                        "func_classes": ["jaix.env.utils.problem.rbf_fit.RBFFit"],
                         "func_configs": [
                             {
-                                "jaix.env.utils.problem.RBFFitConfig": {
+                                "jaix.env.utils.problem.rbf_fit.RBFFitConfig": {
                                     "rbf_config": {
-                                        "jaix.env.utils.problem.rbf.RBFAdapterConfig": {},
+                                        "jaix.env.utils.problem.rbf.rbf_adapter.RBFAdapterConfig": {},
                                     },
                                     "precision": 1e-3,
                                 },
                             }
                         ],
                         "env_config": {
-                            "jaix.env.singular.ECEnvironmentConfig": {
+                            "jaix.env.singular.ec_env.ECEnvironmentConfig": {
                                 "budget_multiplier": 0.02,
                             },
                         },
@@ -78,14 +82,14 @@ def get_config(suite="RBF", comp=False):
             },
         }
     elif suite == "HPO":
-        xconfig["jaix.ExperimentConfig"]["env_config"] = {
-            "jaix.EnvironmentConfig": {
-                "suite_class": "jaix.suite.Suite",
+        xconfig["jaix.experiment.ExperimentConfig"]["env_config"] = {
+            "jaix.environment_factory.EnvironmentConfig": {
+                "suite_class": "jaix.suite.suite.Suite",
                 "suite_config": {
                     "jaix.suite.SuiteConfig": {
-                        "env_class": "jaix.env.singular.HPOEnvironment",
+                        "env_class": "jaix.env.singular.hpo_env.HPOEnvironment",
                         "env_config": {
-                            "jaix.env.singular.HPOEnvironmentConfig": {
+                            "jaix.env.singular.hpo_env.HPOEnvironmentConfig": {
                                 "training_budget": 10,
                                 "task_type": "jaix.env.utils.hpo.TaskType.C1",
                                 "repo_name": "D244_F3_C1530_30",
@@ -99,14 +103,14 @@ def get_config(suite="RBF", comp=False):
             },
         }
     elif suite == "MMind":
-        xconfig["jaix.ExperimentConfig"]["env_config"] = {
-            "jaix.EnvironmentConfig": {
-                "suite_class": "jaix.suite.Suite",
+        xconfig["jaix.experiment.ExperimentConfig"]["env_config"] = {
+            "jaix.environment_factory.EnvironmentConfig": {
+                "suite_class": "jaix.suite.suite.Suite",
                 "suite_config": {
-                    "jaix.suite.SuiteConfig": {
-                        "env_class": "jaix.env.singular.MastermindEnvironment",
+                    "jaix.suite.suite.SuiteConfig": {
+                        "env_class": "jaix.env.singular.mastermind_env.MastermindEnvironment",
                         "env_config": {
-                            "jaix.env.singular.MastermindEnvironmentConfig": {
+                            "jaix.env.singular.mastermind_env.MastermindEnvironmentConfig": {
                                 "num_slots_range": (4, 6),
                                 "num_colours_range": (2, 3),
                                 "max_guesses": 10,
@@ -119,9 +123,9 @@ def get_config(suite="RBF", comp=False):
             },
         }
     elif suite == "ASE":
-        xconfig["jaix.ExperimentConfig"]["env_config"] = {
-            "jaix.EnvironmentConfig": {
-                "suite_class": "jaix.suite.Suite",
+        xconfig["jaix.experiment.ExperimentConfig"]["env_config"] = {
+            "jaix.environment_factory.EnvironmentConfig": {
+                "suite_class": "jaix.suite.suite.Suite",
                 "suite_config": {
                     "jaix.suite.SuiteConfig": {
                         "env_class": "jaix.env.singular.LJClustEnvironment",
@@ -142,28 +146,28 @@ def get_config(suite="RBF", comp=False):
                 },
             },
         }
-    xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-        "env_wrappers"
-    ] = [("jaix.env.wrapper.AnyFitWrapper", {})]
-    xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-        "seed"
-    ] = None
-    xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-        "comp_config"
-    ] = None
+    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
+        "jaix.environment_factory.EnvironmentConfig"
+    ]["env_wrappers"] = [("jaix.env.wrapper.any_fit_wrapper.AnyFitWrapper", {})]
+    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
+        "jaix.environment_factory.EnvironmentConfig"
+    ]["seed"] = None
+    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
+        "jaix.environment_factory.EnvironmentConfig"
+    ]["comp_config"] = None
 
     if comp:
-        xconfig["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-            "comp_config"
-        ] = {
-            "jaix.CompositeEnvironmentConfig": {
-                "agg_type": "jaix.suite.AggType.INST",
-                "comp_env_class": "jaix.env.composite.SwitchingEnvironment",
+        xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
+            "jaix.environment_factory.EnvironmentConfig"
+        ]["comp_config"] = {
+            "jaix.environment_factory.CompositeEnvironmentConfig": {
+                "agg_type": "jaix.suite.suite.AggType.INST",
+                "comp_env_class": "jaix.env.composite.switching_environment.SwitchingEnvironment",
                 "comp_env_config": {
-                    "jaix.env.composite.SwitchingEnvironmentConfig": {
-                        "switching_pattern_class": "jaix.env.utils.switching_pattern.SeqRegSwitchingPattern",
+                    "jaix.env.composite.switching_environment.SwitchingEnvironmentConfig": {
+                        "switching_pattern_class": "jaix.env.utils.switching_pattern.switching_pattern.SeqRegSwitchingPattern",
                         "switching_pattern_config": {
-                            "jaix.env.utils.switching_pattern.SeqRegSwitchingPatternConfig": {
+                            "jaix.env.utils.switching_pattern.switching_pattern.SeqRegSwitchingPatternConfig": {
                                 "wait_period": 20,
                             },
                         },
@@ -172,19 +176,19 @@ def get_config(suite="RBF", comp=False):
                 },
             }
         }
-        xconfig["jaix.ExperimentConfig"][
+        xconfig["jaix.experiment.ExperimentConfig"][
             "opt_class"
-        ] = "jaix.runner.ask_tell.ATOptimiser"
-        xconfig["jaix.ExperimentConfig"]["opt_config"] = {
-            "jaix.runner.ask_tell.ATOptimiserConfig": {
-                "strategy_class": "jaix.runner.ask_tell.strategy.ATBandit",
+        ] = "jaix.runner.ask_tell.at_optimiser.ATOptimiser"
+        xconfig["jaix.experiment.ExperimentConfig"]["opt_config"] = {
+            "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                "strategy_class": "jaix.runner.ask_tell.strategy.bandit.ATBandit",
                 "strategy_config": {
-                    "jaix.runner.ask_tell.strategy.ATBanditConfig": {
+                    "jaix.runner.ask_tell.strategy.bandit.ATBanditConfig": {
                         "bandit_config": {
-                            "jaix.runner.ask_tell.strategy.utils.BanditConfig": {
+                            "jaix.runner.ask_tell.strategy.utils.bandit_model.BanditConfig": {
                                 "epsilon": 0.1,
                                 "min_tries": 4,
-                                "exploit_strategy": "jaix.runner.ask_tell.strategy.utils.BanditExploitStrategy.MAX",
+                                "exploit_strategy": "jaix.runner.ask_tell.strategy.utils.bandit_model.BanditExploitStrategy.MAX",
                             },
                         },
                     },
@@ -194,16 +198,16 @@ def get_config(suite="RBF", comp=False):
         }
         # Continuous optimisation uses CMA-ES, discrete uses Basic EA
         if suite in known_suites["cont"]:
-            xconfig["jaix.ExperimentConfig"]["opt_config"][
-                "jaix.runner.ask_tell.ATOptimiserConfig"
-            ]["strategy_config"]["jaix.runner.ask_tell.strategy.ATBanditConfig"][
+            xconfig["jaix.experiment.ExperimentConfig"]["opt_config"][
+                "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig"
+            ]["strategy_config"]["jaix.runner.ask_tell.strategy.bandit.ATBanditConfig"][
                 "opt_confs"
             ] = [
                 {
-                    "jaix.runner.ask_tell.ATOptimiserConfig": {
-                        "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+                    "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                        "strategy_class": "jaix.runner.ask_tell.strategy.cma.CMA",
                         "strategy_config": {
-                            "jaix.runner.ask_tell.strategy.CMAConfig": {
+                            "jaix.runner.ask_tell.strategy.cma.CMAConfig": {
                                 "sigma0": 2,
                             },
                         },
@@ -212,10 +216,10 @@ def get_config(suite="RBF", comp=False):
                     }
                 },
                 {
-                    "jaix.runner.ask_tell.ATOptimiserConfig": {
-                        "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+                    "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                        "strategy_class": "jaix.runner.ask_tell.strategy.cma.CMA",
                         "strategy_config": {
-                            "jaix.runner.ask_tell.strategy.CMAConfig": {
+                            "jaix.runner.ask_tell.strategy.cma.CMAConfig": {
                                 "sigma0": 2,
                             },
                         },
@@ -226,20 +230,20 @@ def get_config(suite="RBF", comp=False):
             ]
         else:
             # Discrete optimisation, use Basic EA
-            xconfig["jaix.ExperimentConfig"]["opt_config"][
-                "jaix.runner.ask_tell.ATOptimiserConfig"
-            ]["strategy_config"]["jaix.runner.ask_tell.strategy.ATBanditConfig"][
+            xconfig["jaix.experiment.ExperimentConfig"]["opt_config"][
+                "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig"
+            ]["strategy_config"]["jaix.runner.ask_tell.strategy.bandit.ATBanditConfig"][
                 "opt_confs"
             ] = [
                 {
-                    "jaix.runner.ask_tell.ATOptimiserConfig": {
-                        "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                    "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                        "strategy_class": "jaix.runner.ask_tell.strategy.basic_ea.BasicEA",
                         "strategy_config": {
-                            "jaix.runner.ask_tell.strategy.BasicEAConfig": {
-                                "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                            "jaix.runner.ask_tell.strategy.basic_ea.BasicEAConfig": {
+                                "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
                                 "mu": 1,
                                 "lam": 1,
-                                "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                                "mutation_op": "jaix.runner.ask_tell.strategy.basic_ea.MutationOp.FLIP",
                                 "crossover_op": None,
                                 "mutation_opts": {},
                                 "crossover_opts": {},
@@ -250,15 +254,15 @@ def get_config(suite="RBF", comp=False):
                     }
                 },
                 {
-                    "jaix.runner.ask_tell.ATOptimiserConfig": {
-                        "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+                    "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                        "strategy_class": "jaix.runner.ask_tell.strategy.basic_ea.BasicEA",
                         "strategy_config": {
-                            "jaix.runner.ask_tell.strategy.BasicEAConfig": {
-                                "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                            "jaix.runner.ask_tell.strategy.basic_ea.BasicEAConfig": {
+                                "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
                                 "mu": 2,
                                 "lam": 5,
                                 "mutation_op": None,
-                                "crossover_op": "jaix.runner.ask_tell.strategy.CrossoverOp.UNIFORM",
+                                "crossover_op": "jaix.runner.ask_tell.strategy.basic_ea.CrossoverOp.UNIFORM",
                                 "mutation_opts": {},
                                 "crossover_opts": {},
                             },
@@ -270,16 +274,16 @@ def get_config(suite="RBF", comp=False):
             ]
 
     else:
-        xconfig["jaix.ExperimentConfig"][
+        xconfig["jaix.experiment.ExperimentConfig"][
             "opt_class"
-        ] = "jaix.runner.ask_tell.ATOptimiser"
+        ] = "jaix.runner.ask_tell.at_optimiser.ATOptimiser"
         if suite in known_suites["cont"]:
             # Continuous optimisation, use CMA-ES
-            xconfig["jaix.ExperimentConfig"]["opt_config"] = {
-                "jaix.runner.ask_tell.ATOptimiserConfig": {
-                    "strategy_class": "jaix.runner.ask_tell.strategy.CMA",
+            xconfig["jaix.experiment.ExperimentConfig"]["opt_config"] = {
+                "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                    "strategy_class": "jaix.runner.ask_tell.strategy.cma.CMA",
                     "strategy_config": {
-                        "jaix.runner.ask_tell.strategy.CMAConfig": {
+                        "jaix.runner.ask_tell.strategy.cma.CMAConfig": {
                             "sigma0": 2,
                         },
                     },
@@ -289,15 +293,15 @@ def get_config(suite="RBF", comp=False):
             }
         else:
             # Discrete optimisation, use BasicEA
-            xconfig["jaix.ExperimentConfig"]["opt_config"] = {
-                "jaix.runner.ask_tell.ATOptimiserConfig": {
-                    "strategy_class": "jaix.runner.ask_tell.strategy.BasicEA",
+            xconfig["jaix.experiment.ExperimentConfig"]["opt_config"] = {
+                "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
+                    "strategy_class": "jaix.runner.ask_tell.strategy.basic_ea.BasicEA",
                     "strategy_config": {
-                        "jaix.runner.ask_tell.strategy.BasicEAConfig": {
-                            "strategy": "jaix.runner.ask_tell.strategy.EAStrategy.Plus",
+                        "jaix.runner.ask_tell.strategy.basic_ea.BasicEAConfig": {
+                            "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
                             "mu": 1,
                             "lam": 1,
-                            "mutation_op": "jaix.runner.ask_tell.strategy.MutationOp.FLIP",
+                            "mutation_op": "jaix.runner.ask_tell.strategy.basic_ea.MutationOp.FLIP",
                             "crossover_op": None,
                             "mutation_opts": {"p": 0.2},
                             "crossover_opts": {},
@@ -382,11 +386,11 @@ def test_repeat():
 def test_sweep():
     config = get_config("RBF", False)
     keys = [
-        "jaix.ExperimentConfig",
+        "jaix.experiment.ExperimentConfig",
         "opt_config",
-        "jaix.runner.ask_tell.ATOptimiserConfig",
+        "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig",
         "strategy_config",
-        "jaix.runner.ask_tell.strategy.CMAConfig",
+        "jaix.runner.ask_tell.strategy.cma.CMAConfig",
         "opts",
         "popsize_factor",
     ]
@@ -420,27 +424,27 @@ def test_launch_final(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
     # modify the config for test (shorter, logging)
-    config["jaix.ExperimentConfig"]["runner_config"][
-        "jaix.runner.ask_tell.ATRunnerConfig"
+    config["jaix.experiment.ExperimentConfig"]["runner_config"][
+        "jaix.runner.ask_tell.ask_tell_runner.ATRunnerConfig"
     ]["max_evals"] = 10
-    config["jaix.ExperimentConfig"]["logging_config"]["jaix.LoggingConfig"][
-        "log_level"
-    ] = 10
+    config["jaix.experiment.ExperimentConfig"]["logging_config"][
+        "jaix.experiment.LoggingConfig"
+    ]["log_level"] = 10
     if (
-        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-            "suite_class"
-        ]
-        == "jaix.suite.Suite"
+        config["jaix.experiment.ExperimentConfig"]["env_config"][
+            "jaix.environment_factory.EnvironmentConfig"
+        ]["suite_class"]
+        == "jaix.suite.suite.Suite"
     ):
-        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-            "suite_config"
-        ]["jaix.suite.SuiteConfig"]["functions"] = [0]
-        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-            "suite_config"
-        ]["jaix.suite.SuiteConfig"]["instances"] = [0]
-        config["jaix.ExperimentConfig"]["env_config"]["jaix.EnvironmentConfig"][
-            "suite_config"
-        ]["jaix.suite.SuiteConfig"]["agg_instances"] = 1
+        config["jaix.experiment.ExperimentConfig"]["env_config"][
+            "jaix.environment_factory.EnvironmentConfig"
+        ]["suite_config"]["jaix.suite.suite.SuiteConfig"]["functions"] = [0]
+        config["jaix.experiment.ExperimentConfig"]["env_config"][
+            "jaix.environment_factory.EnvironmentConfig"
+        ]["suite_config"]["jaix.suite.suite.SuiteConfig"]["instances"] = [0]
+        config["jaix.experiment.ExperimentConfig"]["env_config"][
+            "jaix.environment_factory.EnvironmentConfig"
+        ]["suite_config"]["jaix.suite.suite.SuiteConfig"]["agg_instances"] = 1
 
     try:
         results = launch_jaix_experiment(run_config=config, wandb=False)

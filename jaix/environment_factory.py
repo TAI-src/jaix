@@ -1,16 +1,14 @@
 from ttex.config import Config, ConfigurableObjectFactory as COF
 from typing import Type, Optional, Union, Dict, Tuple, List
-from jaix.suite import Suite, AggType
-from jaix.env.composite import CompositeEnvironment
-from jaix.env.wrapper import (
-    WrappedEnvFactory as WEF,
-    ClosingWrapper,
-    COCOLoggerWrapper,
-    COCOLoggerWrapperConfig,
-)
+from jaix.suite.suite import Suite, AggType
+from jaix.env.composite.composite_environment import CompositeEnvironment
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
+from jaix.env.wrapper.closing_wrapper import ClosingWrapper
+from jaix.env.wrapper.online_wrapper import OnlineWrapper
+from jaix.env.wrapper.coco_logger_wrapper import COCOLoggerWrapper, COCOLoggerWrapperConfig
 import gymnasium as gym
 import logging
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

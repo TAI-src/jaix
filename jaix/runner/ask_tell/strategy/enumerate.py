@@ -1,4 +1,4 @@
-from jaix.runner.ask_tell import ATStrategy
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 from ttex.config import Config, ConfigurableObject
 from gymnasium import Env, spaces
 import itertools

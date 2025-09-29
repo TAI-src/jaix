@@ -4,7 +4,7 @@ from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Co
 import gymnasium as gym
 import random as rnd
 import logging
-from jaix import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME
 import itertools
 import math
 import numpy as np

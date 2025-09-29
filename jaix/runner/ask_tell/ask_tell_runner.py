@@ -3,18 +3,16 @@ from ttex.config import (
     ConfigurableObjectFactory as COF,
     Config,
 )  # E501: ignore
-from jaix.runner import Runner, Optimiser
+from jaix.runner.runner import Runner
+from jaix.runner.optimiser import Optimiser
 import logging
 import gymnasium as gym
 from typing import Type, List, Tuple, Union, Dict
-from jaix.env.wrapper import (
-    MaxEvalWrapper,
-    MaxEvalWrapperConfig,
-    WrappedEnvFactory as WEF,
-    OnlineWrapper,
-    PassthroughWrapper,
-)
-from jaix import LOGGER_NAME
+from jaix.env.wrapper.max_eval_wrapper import MaxEvalWrapper, MaxEvalWrapperConfig
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
+
+from jaix.utils.globals import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

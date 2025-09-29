@@ -1,4 +1,4 @@
-from jaix.env.wrapper import MaxEvalWrapper, MaxEvalWrapperConfig
+from jaix.env.wrapper.max_eval_wrapper import MaxEvalWrapper, MaxEvalWrapperConfig
 from . import DummyWrapper, DummyEnv
 import pytest
 

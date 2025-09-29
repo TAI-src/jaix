@@ -1,9 +1,9 @@
-from jaix.env.singular import (
+from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
 from ttex.config import ConfigurableObjectFactory as COF
-from jaix.env.utils.problem import Sphere, SphereConfig
+from jaix.env.utils.problem.sphere import Sphere, SphereConfig
 import pytest
 from . import test_handler
 import numpy as np

@@ -1,5 +1,5 @@
 import numpy as np
-from jaix.env.utils.problem import StaticProblem
+from jaix.env.utils.problem.static_problem import StaticProblem
 from ttex.config import Config, ConfigurableObject
 from typing import List
 

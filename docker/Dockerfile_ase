@@ -26,6 +26,7 @@ RUN git clone https://github.com/openkim/kim-api.git && \
     make -j$(nproc) && make install
 
 # Install specific KIM model
+ENV KIM_API_CONFIG_PATH=/dev/null
 RUN ldconfig && \
     kim-api-collections-management install system LJ_ElliottAkerson_2015_Universal__MO_959249795837_003
 
@@ -51,7 +52,7 @@ COPY --from=taisrc/jaix_base:latest /jaix /jaix
 
 WORKDIR /jaix
 RUN pip install pip-tools && \
-    pip-compile --extra hpo --output-file requirements.txt setup.py && \
+    pip-compile --extra ase --output-file requirements.txt setup.py && \
     pip install --no-cache-dir --no-deps -r requirements.txt
 RUN pip install --no-deps --no-cache-dir -e .[ase]
 

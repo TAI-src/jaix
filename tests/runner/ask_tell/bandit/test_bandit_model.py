@@ -1,5 +1,5 @@
 import numpy as np
-from jaix.runner.ask_tell.strategy.utils import (
+from jaix.runner.ask_tell.strategy.utils.bandit_model import (
     BanditConfig,
     Bandit,
     BanditExploitStrategy,
