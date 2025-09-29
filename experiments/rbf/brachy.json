@@ -14,7 +14,7 @@
     },
     "env_config": {
       "jaix.environment_factory.EnvironmentConfig": {
-        "suite_class": "jaix.suite.suite.ECSuite",
+        "suite_class": "jaix.suite.ec_suite.ECSuite",
         "suite_config": {
           "jaix.suite.suite.ECSuiteConfig": {
             "func_classes": [
