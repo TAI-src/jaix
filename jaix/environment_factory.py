@@ -2,15 +2,11 @@ from ttex.config import Config, ConfigurableObjectFactory as COF
 from typing import Type, Optional, Union, Dict, Tuple, List
 from jaix.suite import Suite, AggType
 from jaix.env.composite import CompositeEnvironment
-from jaix.env.wrapper import (
-    WrappedEnvFactory as WEF,
-    ClosingWrapper,
-    COCOLoggerWrapper,
-    COCOLoggerWrapperConfig,
-)
+from jaix.env.wrapper import WrappedEnvFactory as WEF, ClosingWrapper, OnlineWrapper
 import gymnasium as gym
 import logging
 from jaix import LOGGER_NAME
+
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -30,7 +26,6 @@ class CompositeEnvironmentConfig(Config):
 class EnvironmentConfig(Config):
     default_wrappers = [
         (ClosingWrapper, {}),
-        (COCOLoggerWrapper, COCOLoggerWrapperConfig(algo_name="algo")),
     ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
     default_seed = 1337
 
@@ -55,20 +50,6 @@ class EnvironmentConfig(Config):
 
         self.seed = EnvironmentConfig.default_seed if seed is None else seed
 
-    def _setup(self):
-        success = True
-        for _, wrapper_conf in self.env_wrappers:
-            if isinstance(wrapper_conf, Config):
-                success = wrapper_conf.setup() and success
-        return success
-
-    def _teardown(self):
-        success = True
-        for _, wrapper_conf in self.env_wrappers:
-            if isinstance(wrapper_conf, Config):
-                success = wrapper_conf.teardown() and success
-        return success
-
 
 class EnvironmentFactory:
     @staticmethod
@@ -91,13 +72,10 @@ class EnvironmentFactory:
                 agg_type=comp_config.agg_type, seed=env_config.seed
             ):
                 logger.debug(f"Got {len(envs)} from suite {suite}")
-                # TODO: should not double-wrap, otherwise might get confusing
-                wrapped_envs = [WEF.wrap(env, env_config.env_wrappers) for env in envs]
-                logger.debug("Wrapped all envs")
                 comp_env = COF.create(
                     comp_config.comp_env_class,
                     comp_config.comp_env_config,
-                    wrapped_envs,
+                    envs,
                 )
                 logger.debug(f"Created composite env {comp_env}")
                 wrapped_env = WEF.wrap(comp_env, env_config.env_wrappers)
@@ -105,4 +83,3 @@ class EnvironmentFactory:
                 # TODO: reset with seeding here
                 yield wrapped_env
                 assert wrapped_env.closed
-                assert all([env.closed for env in wrapped_envs])
