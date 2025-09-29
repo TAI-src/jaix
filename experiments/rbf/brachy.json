@@ -16,7 +16,7 @@
       "jaix.environment_factory.EnvironmentConfig": {
         "suite_class": "jaix.suite.ec_suite.ECSuite",
         "suite_config": {
-          "jaix.suite.suite.ECSuiteConfig": {
+          "jaix.suite.ec_suite.ECSuiteConfig": {
             "func_classes": [
               "jaix.env.utils.problem.rbf_fit.RBFFit"
             ],
