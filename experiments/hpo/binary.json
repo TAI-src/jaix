@@ -1,6 +1,6 @@
 {
   "jaix.experiment.ExperimentConfig": {
-    "runner_class": "jaix.runner.ask_tell.ask_tell_runnerATRunner",
+    "runner_class": "jaix.runner.ask_tell.ask_tell_runner.ATRunner",
     "runner_config": {
       "jaix.runner.ask_tell.ask_tell_runner.ATRunnerConfig": {
         "max_evals": 512,
