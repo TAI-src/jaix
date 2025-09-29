@@ -37,7 +37,7 @@
         "comp_config": {
           "jaix.environment_factory.CompositeEnvironmentConfig": {
             "agg_type": "jaix.suite.suite.AggType.INST",
-            "comp_env_class": "jaix.env.composite.switchin_environment.SwitchingEnvironment",
+            "comp_env_class": "jaix.env.composite.switching_environment.SwitchingEnvironment",
             "comp_env_config": {
               "jaix.env.composite.switching_environment.SwitchingEnvironmentConfig": {
                 "switching_pattern_class": "jaix.env.utils.switching_pattern.switching_pattern.SeqRegSwitchingPattern",
