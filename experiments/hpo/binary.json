@@ -41,7 +41,7 @@
       "jaix.runner.ask_tell.at_optimiser.ATOptimiserConfig": {
         "strategy_class": "jaix.runner.ask_tell.strategy.basic_ea.BasicEA",
         "strategy_config": {
-          "jaix.runner.ask_tell.strategy.BasicEAConfig": {
+          "jaix.runner.ask_tell.strategy.basic_ea.BasicEAConfig": {
             "strategy": "jaix.runner.ask_tell.strategy.basic_ea.EAStrategy.Plus",
             "mu": 1,
             "lam": 1,
