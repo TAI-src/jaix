@@ -17,7 +17,7 @@
         "suite_class": "jaix.suite.suite.Suite",
         "suite_config": {
           "jaix.suite.suite.SuiteConfig": {
-            "env_class": "jaix.environment_factory.singular.HPOEnvironment",
+            "env_class": "jaix.env.singular.hpo_env.HPOEnvironment",
             "env_config": {
               "jaix.env.singular.HPOEnvironmentConfig": {
                 "task_type": "jaix.env.utils.hpo.TaskType.C1",
