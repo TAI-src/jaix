@@ -52,7 +52,7 @@ COPY --from=taisrc/jaix_base:latest /jaix /jaix
 
 WORKDIR /jaix
 RUN pip install pip-tools && \
-    pip-compile --extra hpo --output-file requirements.txt setup.py && \
+    pip-compile --extra ase --output-file requirements.txt setup.py && \
     pip install --no-cache-dir --no-deps -r requirements.txt
 RUN pip install --no-deps --no-cache-dir -e .[ase]
 
