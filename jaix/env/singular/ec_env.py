@@ -60,6 +60,10 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         # (corresponds to algorithms restarts +1 )
         self.num_resets = 0
 
+    @property
+    def suite_name(self) -> str:
+        return f"ECEnvironment{type(self.func).__name__}"
+
     def _get_info(self):
         """Simple representation of environment state
         * num_resets: The number of time the environment has been reset

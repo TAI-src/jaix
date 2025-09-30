@@ -4,6 +4,7 @@ import pytest
 from jaix.runner.ask_tell.ask_tell_runner import ATRunnerConfig, ATRunner
 from jaix.runner.ask_tell.at_optimiser import ATOptimiser
 from jaix.experiment import ExperimentConfig, Experiment, LoggingConfig
+import shutil
 
 
 def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
@@ -27,4 +28,6 @@ def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
 @pytest.mark.parametrize("comp", [False, True])
 def test_experiment(ec_config, comp_config, comp):
     config = exp_config(ec_config, comp_config, comp=comp, opts="Random")
-    Experiment.run(config)
+    exp_id = Experiment.run(config)
+    assert exp_id is not None
+    shutil.rmtree(exp_id)

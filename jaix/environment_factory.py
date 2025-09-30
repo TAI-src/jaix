@@ -5,6 +5,10 @@ from jaix.env.composite.composite_environment import CompositeEnvironment
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from jaix.env.wrapper.closing_wrapper import ClosingWrapper
 from jaix.env.wrapper.online_wrapper import OnlineWrapper
+from jaix.env.wrapper.coco_logger_wrapper import (
+    COCOLoggerWrapper,
+    COCOLoggerWrapperConfig,
+)
 import gymnasium as gym
 import logging
 from jaix.utils.globals import LOGGER_NAME
@@ -27,6 +31,7 @@ class CompositeEnvironmentConfig(Config):
 class EnvironmentConfig(Config):
     default_wrappers = [
         (ClosingWrapper, {}),
+        (COCOLoggerWrapper, COCOLoggerWrapperConfig(algo_name="algo")),
     ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
     default_seed = 1337
 
@@ -51,6 +56,20 @@ class EnvironmentConfig(Config):
 
         self.seed = EnvironmentConfig.default_seed if seed is None else seed
 
+    def _setup(self):
+        success = True
+        for _, wrapper_conf in self.env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                success = wrapper_conf.setup() and success
+        return success
+
+    def _teardown(self):
+        success = True
+        for _, wrapper_conf in self.env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                success = wrapper_conf.teardown() and success
+        return success
+
 
 class EnvironmentFactory:
     @staticmethod
@@ -73,6 +92,7 @@ class EnvironmentFactory:
                 agg_type=comp_config.agg_type, seed=env_config.seed
             ):
                 logger.debug(f"Got {len(envs)} from suite {suite}")
+                logger.debug("Wrapped all envs")
                 comp_env = COF.create(
                     comp_config.comp_env_class,
                     comp_config.comp_env_config,
