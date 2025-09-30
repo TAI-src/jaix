@@ -7,7 +7,6 @@ from jaix.experiment import ExperimentConfig, Experiment, LoggingConfig
 import shutil
 
 
-
 def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
     if comp:
         env_conf = env_config(ec_config, comp_config=comp_config)
