@@ -2,22 +2,42 @@ from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 import logging
+from typing import Optional, Dict, List
+from ttex.log import setup_wandb_logger, teardown_wandb_logger
+from jaix.utils.globals import WANDB_LOGGER_NAME
 
 
-class LoggingWrapperConfig(Config):
+class WandbWrapperConfig(Config):
     def __init__(
         self,
-        logger_name: str,
+        custom_metrics: Optional[Dict] = None,
+        snapshot: bool = True,
+        snapshot_sensitive_keys: Optional[List[str]] = None,
         passthrough: bool = True,
     ):
-        self.logger_name = logger_name
         self.passthrough = passthrough
+        self.custom_metrics = custom_metrics
+        self.snapshot = snapshot
+        self.snapshot_sensitive_keys = snapshot_sensitive_keys
+
+    def _setup(self):  # Setup wandb logger
+        setup_wandb_logger(
+            logger_name=WANDB_LOGGER_NAME,
+            custom_metrics=self.custom_metrics,
+            snapshot=self.snapshot,
+            snapshot_sensitive_keys=self.snapshot_sensitive_keys,
+        )
+
+    def _teardown(self):
+        # teardown_wandb_logger(logger_name=WANDB_LOGGER_NAME)
+        # TODO: once we have priorities, we can teardown at the very end
+        pass
 
 
-class LoggingWrapper(PassthroughWrapper, ConfigurableObject):
-    config_class = LoggingWrapperConfig
+class WandbWrapper(PassthroughWrapper, ConfigurableObject):
+    config_class = WandbWrapperConfig
 
-    def __init__(self, config: LoggingWrapperConfig, env: gym.Env):
+    def __init__(self, config: WandbWrapperConfig, env: gym.Env):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, self.passthrough)
         self.logger = logging.getLogger(self.logger_name)

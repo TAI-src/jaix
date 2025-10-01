@@ -2,9 +2,14 @@ from ttex.config import Config, ConfigurableObjectFactory as COF
 from jaix.runner.runner import Runner
 from jaix.runner.optimiser import Optimiser
 from typing import Type, Optional, Dict
-from ttex.log import initiate_logger, get_logging_config
+from ttex.log import (
+    initiate_logger,
+    get_logging_config,
+    log_wandb_init,
+    teardown_wandb_logger,
+)
 from jaix.environment_factory import EnvironmentConfig, EnvironmentFactory as EF
-from jaix.utils.globals import LOGGER_NAME
+from jaix.utils.globals import LOGGER_NAME, WANDB_LOGGER_NAME
 import logging
 
 
@@ -13,7 +18,7 @@ class LoggingConfig(Config):
         self,
         log_level: int = 30,
         logger_name: Optional[str] = None,
-        disable_existing: Optional[bool] = True,
+        disable_existing: Optional[bool] = False,
         dict_config: Optional[Dict] = None,
     ):
         self.log_level = log_level
@@ -24,6 +29,15 @@ class LoggingConfig(Config):
             if dict_config
             else get_logging_config(self.logger_name, self.disable_existing)
         )
+
+    def _setup(self):
+        initiate_logger(
+            log_level=self.log_level,
+            logger_name=LOGGER_NAME,
+            disable_existing=self.disable_existing,
+            logging_config=self.dict_config,
+        )
+        return True
 
 
 class ExperimentConfig(Config):
@@ -47,14 +61,22 @@ class ExperimentConfig(Config):
 class Experiment:
     @staticmethod
     def run(exp_config: ExperimentConfig, *args, **kwargs):
+        exp_config.setup()
+
         # Set up logging
-        initiate_logger(
-            log_level=exp_config.logging_config.log_level,
-            logger_name=LOGGER_NAME,
-            disable_existing=exp_config.logging_config.disable_existing,
-            logging_config=exp_config.logging_config.dict_config,
-        )
         logger = logging.getLogger(LOGGER_NAME)
+
+        # Hacky way of setting up wandb
+        if "exp_config_dict" in kwargs:
+            exp_config_dict = kwargs.pop("exp_config_dict")
+            run = log_wandb_init(
+                run_config=exp_config_dict, logger_name=WANDB_LOGGER_NAME
+            )
+            # TODO: Need a to-dict function
+            if run:
+                logger.info(f"Wandb run initialized: {run.id}")
+            else:
+                logger.info("Wandb not initialized")
 
         runner = COF.create(exp_config.runner_class, exp_config.runner_config)
         logger.debug(f"Runner created {runner}")
@@ -65,3 +87,4 @@ class Experiment:
             )
             logger.debug(f"Environment {env} done")
             env.close()
+        teardown_wandb_logger(logger_name=WANDB_LOGGER_NAME)
