@@ -55,3 +55,8 @@ def test_config_wrap_dict():
     ]
     wrapped_env = WEF.wrap(base_env, wrappers)
     assert wrapped_env.test_value == 9
+
+
+def test_setup_shutdown():
+    # TODO: Implement setup and shutdown tests
+    assert 1 == 3

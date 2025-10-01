@@ -4,13 +4,15 @@ import pytest
 from jaix.runner.ask_tell.ask_tell_runner import ATRunnerConfig, ATRunner
 from jaix.runner.ask_tell.at_optimiser import ATOptimiser
 from jaix.experiment import ExperimentConfig, Experiment, LoggingConfig
+from .utils.dummy_wrapper import DummyWrapper, DummyWrapperConfig
 
 
 def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
+    wrappers = [(DummyWrapper, DummyWrapperConfig(passthrough=True))]
     if comp:
-        env_conf = env_config(ec_config, comp_config=comp_config)
+        env_conf = env_config(ec_config, comp_config=comp_config, wrappers=wrappers)
     else:
-        env_conf = env_config(ec_config)
+        env_conf = env_config(ec_config, wrappers=wrappers)
     opt_config = get_optimiser(opts)
     runner_config = ATRunnerConfig(max_evals=4, disp_interval=50)
     config = ExperimentConfig(
