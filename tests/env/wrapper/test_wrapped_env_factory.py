@@ -37,3 +37,21 @@ def test_config_wrap():
     wrappers = [(DummyWrapper, DummyWrapperConfig(test_value=7))]
     wrapped_env = WEF.wrap(base_env, wrappers)
     assert wrapped_env.test_value == 7
+
+
+def test_config_wrap_dict():
+    base_env = DummyEnv()
+    assert not hasattr(base_env, "test_value")
+
+    wrappers = [
+        (
+            DummyWrapper,
+            {
+                "tests.env.wrapper.test_wrapped_env_factory.DummyWrapperConfig": {
+                    "test_value": 9
+                }
+            },
+        )
+    ]
+    wrapped_env = WEF.wrap(base_env, wrappers)
+    assert wrapped_env.test_value == 9

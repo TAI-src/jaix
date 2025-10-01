@@ -1,7 +1,5 @@
 from jaix.utils.launch_experiment import (
     launch_jaix_experiment,
-    wandb_logger,
-    wandb_init,
 )
 import os
 import shutil
@@ -313,38 +311,24 @@ def get_config(suite="RBF", comp=False):
     return xconfig
 
 
-def test_wandb_logger():
-    exp_config = CF.from_dict(get_config())
-    nexp_config = wandb_logger(exp_config, "dummy_run", "dummy_name")
-    assert "dummy_name" in nexp_config.logging_config.dict_config["loggers"]
-    logger_config = nexp_config.logging_config.dict_config["loggers"]["dummy_name"]
-    assert "wandb_handler" in logger_config["handlers"]
-    assert "wandb_handler" in nexp_config.logging_config.dict_config["handlers"]
-    logging_wrapper_tuple = nexp_config.env_config.env_wrappers[-1]
-    assert logging_wrapper_tuple[1].logger_name == "dummy_name"
-
-
-def test_wandb_init():
-    prev_mode = os.environ.get("WANDB_MODE", "online")
-    os.environ["WANDB_MODE"] = "offline"
-    run = wandb_init(run_config=deepcopy(get_config()), project="ci-cd")
-    assert run.settings.run_mode == "offline-run"
-    shutil.rmtree(run.dir, ignore_errors=True)
-    run.finish()
-
-    os.environ["WANDB_MODE"] = prev_mode
-
-
 def test_launch_jaix_experiment_wandb():
     prev_mode = os.environ.get("WANDB_MODE", "online")
     os.environ["WANDB_MODE"] = "offline"
-    results = launch_jaix_experiment(
-        run_config=deepcopy(get_config()), project="ci-cd", wandb=True
-    )
+
+    xconfig = deepcopy(get_config())
+    # Add wandb wrapper
+    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
+        "jaix.environment_factory.EnvironmentConfig"
+    ]["env_wrappers"] += [
+        (
+            "jaix.env.wrapper.wandb_wrapper.WandbWrapper",
+            {"jaix.env.wrapper.wandb_wrapper.WandbWrapperConfig": {"project": "ci-cd"}},
+        )
+    ]
+
+    results = launch_jaix_experiment(run_config=xconfig)
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
-    data_dir = [result["data_dirs"][0] for result in results.values()][0]
     # Remove logging files
-    shutil.rmtree(data_dir, ignore_errors=True)
     os.environ["WANDB_MODE"] = prev_mode
 
     assert exit_code == 0
@@ -357,25 +341,21 @@ def test_launch_jaix_experiment_wandb():
 def test_launch_jaix_experiment(suite, comp):
     config = get_config(suite, comp)
     try:
-        results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False)
+        results = launch_jaix_experiment(run_config=deepcopy(config))
     except TypeError:
         assert suite in ["COCO", "HPO", "ASE"]  # The others are in the base package
         pytest.skip(
             f"Skipping test for {suite}. Check installed extras if this is unexpected"
         )
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
-    data_dir = [result["data_dirs"][0] for result in results.values()][0]
-    assert data_dir is None
     assert exit_code == 0
 
 
 def test_repeat():
     config = get_config("RBF", False)
-    results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False, repeat=2)
+    results = launch_jaix_experiment(run_config=deepcopy(config), repeat=2)
     exit_codes = [result["exit_codes"] for result in results.values()]
-    data_dirs = [result["data_dirs"] for result in results.values()]
     assert all([len(exit_code) == 2 for exit_code in exit_codes])
-    assert all([len(data_dir) == 2 for data_dir in data_dirs])
     assert all([exit_code == 0 for exit_code in exit_codes[0]])
     assert len(exit_codes) == 1
 
@@ -393,7 +373,6 @@ def test_sweep():
     ]
     results = launch_jaix_experiment(
         run_config=deepcopy(config),
-        wandb=False,
         sweep=(keys, [1, 2]),
     )
     exit_codes = [result["exit_codes"][0] for result in results.values()]
@@ -444,13 +423,11 @@ def test_launch_final(config_file):
         ]["suite_config"]["jaix.suite.suite.SuiteConfig"]["agg_instances"] = 1
 
     try:
-        results = launch_jaix_experiment(run_config=config, wandb=False)
+        results = launch_jaix_experiment(run_config=config)
     except TypeError:
         pytest.skip(
             f"Skipping test for {config_file}. Check installed extras if this is unexpected"
         )
 
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
-    data_dir = [result["data_dirs"][0] for result in results.values()][0]
-    assert data_dir is None
     assert exit_code == 0

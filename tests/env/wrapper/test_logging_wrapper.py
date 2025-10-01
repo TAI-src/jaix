@@ -1,4 +1,4 @@
-from jaix.env.wrapper.logging_wrapper import LoggingWrapperConfig, LoggingWrapper
+from jaix.env.wrapper.wandb_wrapper import WandbWrapper, WandbWrapperConfig
 from jaix.env.wrapper.wrapped_env_factory import (
     WrappedEnvFactory as WEF,
 )
@@ -11,19 +11,17 @@ import pytest
 
 @pytest.mark.parametrize("wef", [True, False])
 def test_basic(wef):
-    config = LoggingWrapperConfig(logger_name="DefaultLogger")
+    config = WandbWrapperConfig(logger_name="DefaultLogger")
     assert config.passthrough
     env = DummyEnv()
 
     if wef:
-        wrapped_env = WEF.wrap(env, [(LoggingWrapper, config)])
+        wrapped_env = WEF.wrap(env, [(WandbWrapper, config)])
     else:
-        wrapped_env = LoggingWrapper(config, env)
+        wrapped_env = WandbWrapper(config, env)
     assert hasattr(wrapped_env, "logger")
 
     check_env(wrapped_env, skip_render_check=True)
-
-    print(test_handler.last_record.getMessage())
 
     msg = ast.literal_eval(test_handler.last_record.getMessage())
     assert "env/r/DummyEnv/0/1" in msg
@@ -41,10 +39,10 @@ def test_basic(wef):
 
 
 def test_additions():
-    config = LoggingWrapperConfig(logger_name="DefaultLogger")
+    config = WandbWrapperConfig(logger_name="DefaultLogger")
     env = AnyFitWrapper(DummyEnv())  # Adds raw_r
     env = DummyWrapper(env)  # Adds env_step
-    wrapped_env = LoggingWrapper(config, env)
+    wrapped_env = WandbWrapper(config, env)
 
     wrapped_env.reset()
     wrapped_env.step(wrapped_env.action_space.sample())
@@ -56,9 +54,9 @@ def test_additions():
 
 
 def test_close():
-    config = LoggingWrapperConfig(logger_name="DefaultLogger")
+    config = WandbWrapperConfig(logger_name="DefaultLogger")
     env = DummyEnv()
-    wrapped_env = LoggingWrapper(config, env)
+    wrapped_env = WandbWrapper(config, env)
 
     wrapped_env.reset()
     wrapped_env.step(wrapped_env.action_space.sample())

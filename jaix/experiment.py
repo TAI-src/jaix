@@ -57,26 +57,35 @@ class ExperimentConfig(Config):
         self.opt_config = opt_config
         self.logging_config = logging_config
 
+    def setup(self):
+        # override to ensure we have a sensible order
+        self.logging_config.setup()
+        self.env_config.setup()
+        self.runner_config.setup()
+        self.opt_config.setup()
+
+        # Init wandb if needed
+        config_dict = self.to_dict()
+        run = log_wandb_init(run_config=config_dict, logger_name=WANDB_LOGGER_NAME)
+        self.run = run
+        return True
+
+    def teardown(self):
+        self.env_config.teardown()
+        self.runner_config.teardown()
+        self.opt_config.teardown()
+        self.logging_config.teardown()
+
+        teardown_wandb_logger(name=WANDB_LOGGER_NAME)
+        return True
+
 
 class Experiment:
     @staticmethod
     def run(exp_config: ExperimentConfig, *args, **kwargs):
+        # Setup experiment
         exp_config.setup()
-
-        # Set up logging
         logger = logging.getLogger(LOGGER_NAME)
-
-        # Hacky way of setting up wandb
-        if "exp_config_dict" in kwargs:
-            exp_config_dict = kwargs.pop("exp_config_dict")
-            run = log_wandb_init(
-                run_config=exp_config_dict, logger_name=WANDB_LOGGER_NAME
-            )
-            # TODO: Need a to-dict function
-            if run:
-                logger.info(f"Wandb run initialized: {run.id}")
-            else:
-                logger.info("Wandb not initialized")
 
         runner = COF.create(exp_config.runner_class, exp_config.runner_config)
         logger.debug(f"Runner created {runner}")
@@ -87,4 +96,7 @@ class Experiment:
             )
             logger.debug(f"Environment {env} done")
             env.close()
-        teardown_wandb_logger(logger_name=WANDB_LOGGER_NAME)
+
+        logger.debug("Experiment done")
+        exp_config.teardown()
+        logger.debug("Experiment torn down")

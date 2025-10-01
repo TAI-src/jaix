@@ -10,28 +10,31 @@ from jaix.utils.globals import WANDB_LOGGER_NAME
 class WandbWrapperConfig(Config):
     def __init__(
         self,
+        logger_name: Optional[str] = None,
         custom_metrics: Optional[Dict] = None,
         snapshot: bool = True,
         snapshot_sensitive_keys: Optional[List[str]] = None,
+        project: Optional[str] = None,
+        group: Optional[str] = None,
         passthrough: bool = True,
     ):
         self.passthrough = passthrough
         self.custom_metrics = custom_metrics
         self.snapshot = snapshot
         self.snapshot_sensitive_keys = snapshot_sensitive_keys
+        self.project = project
+        self.group = group
+        self.logger_name = logger_name if logger_name else WANDB_LOGGER_NAME
 
     def _setup(self):  # Setup wandb logger
         setup_wandb_logger(
-            logger_name=WANDB_LOGGER_NAME,
+            logger_name=self.logger_name,
             custom_metrics=self.custom_metrics,
             snapshot=self.snapshot,
             snapshot_sensitive_keys=self.snapshot_sensitive_keys,
+            project=self.project,
+            group=self.group,
         )
-
-    def _teardown(self):
-        # teardown_wandb_logger(logger_name=WANDB_LOGGER_NAME)
-        # TODO: once we have priorities, we can teardown at the very end
-        pass
 
 
 class WandbWrapper(PassthroughWrapper, ConfigurableObject):
