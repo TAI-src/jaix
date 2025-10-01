@@ -56,6 +56,7 @@ class ExperimentConfig(Config):
         self.opt_class = opt_class
         self.opt_config = opt_config
         self.logging_config = logging_config
+        self.run = None
 
     def setup(self):
         # override to ensure we have a sensible order
@@ -65,9 +66,18 @@ class ExperimentConfig(Config):
         self.opt_config.setup()
 
         # Init wandb if needed
-        config_dict = self.to_dict()
-        run = log_wandb_init(run_config=config_dict, logger_name=WANDB_LOGGER_NAME)
-        self.run = run
+        try:  # TODO: trycatch is tempororary until config._to_dict exists
+            config_dict = self.to_dict()
+            run = log_wandb_init(run_config=config_dict, logger_name=WANDB_LOGGER_NAME)
+            self.run = run
+            if run:
+                logging.getLogger(LOGGER_NAME).info(f"Wandb run {run.id} initialized")
+            else:
+                logging.getLogger(LOGGER_NAME).info("Wandb not initialized")
+        except NotImplementedError:
+            logging.getLogger(LOGGER_NAME).info(
+                "Wandb not installed, skipping wandb logging"
+            )
         return True
 
     def teardown(self):

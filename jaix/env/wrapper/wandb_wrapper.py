@@ -28,7 +28,7 @@ class WandbWrapperConfig(Config):
 
     def _setup(self):  # Setup wandb logger
         setup_wandb_logger(
-            logger_name=self.logger_name,
+            name=self.logger_name,
             custom_metrics=self.custom_metrics,
             snapshot=self.snapshot,
             snapshot_sensitive_keys=self.snapshot_sensitive_keys,

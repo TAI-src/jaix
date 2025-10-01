@@ -28,3 +28,8 @@ def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
 def test_experiment(ec_config, comp_config, comp):
     config = exp_config(ec_config, comp_config, comp=comp, opts="Random")
     Experiment.run(config)
+
+
+def test_experiment_setup_shutdown():
+    # TODO: Add more tests
+    assert 1 == 3

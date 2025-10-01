@@ -1,13 +1,15 @@
+from jaix.utils.globals import WANDB_LOGGER_NAME
 from jaix.utils.launch_experiment import (
     launch_jaix_experiment,
 )
 import os
-import shutil
 from ttex.config import ConfigFactory as CF
 from copy import deepcopy
 import pytest
 import itertools
 import json
+import logging
+from ttex.log import get_wandb_logger
 
 
 def get_config(suite="RBF", comp=False):
@@ -322,7 +324,12 @@ def test_launch_jaix_experiment_wandb():
     ]["env_wrappers"] += [
         (
             "jaix.env.wrapper.wandb_wrapper.WandbWrapper",
-            {"jaix.env.wrapper.wandb_wrapper.WandbWrapperConfig": {"project": "ci-cd"}},
+            {
+                "jaix.env.wrapper.wandb_wrapper.WandbWrapperConfig": {
+                    "project": "ci-cd",
+                    "snapshot": False,
+                }
+            },
         )
     ]
 
@@ -331,6 +338,10 @@ def test_launch_jaix_experiment_wandb():
     # Remove logging files
     os.environ["WANDB_MODE"] = prev_mode
 
+    logger = logging.getLogger(WANDB_LOGGER_NAME)
+    assert hasattr(logger, "_wandb_setup")
+    # This means that the logger was initialised, so everything was activated as planned
+    assert get_wandb_logger() is None  # Wandb should be torn down after experiment
     assert exit_code == 0
 
 
