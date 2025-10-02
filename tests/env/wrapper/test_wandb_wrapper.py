@@ -12,9 +12,19 @@ import logging
 from ttex.log import teardown_wandb_logger
 
 
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    prev_logger_name = globals.WANDB_LOGGER_NAME
+    globals.WANDB_LOGGER_NAME = globals.LOGGER_NAME
+    # we use the root logger just for these tests
+    yield
+    # Code that will run after your test, e.g. teardown
+    globals.WANDB_LOGGER_NAME = prev_logger_name
+
+
 @pytest.mark.parametrize("wef", [True, False])
 def test_basic(wef):
-    config = WandbWrapperConfig(logger_name="DefaultLogger")
+    config = WandbWrapperConfig()
     assert config.passthrough
     env = DummyEnv()
 
@@ -42,7 +52,7 @@ def test_basic(wef):
 
 
 def test_additions():
-    config = WandbWrapperConfig(logger_name="DefaultLogger")
+    config = WandbWrapperConfig()
     env = AnyFitWrapper(DummyEnv())  # Adds raw_r
     env = DummyWrapper(DummyWrapperConfig(), env)  # Adds env_step
     wrapped_env = WandbWrapper(config, env)
@@ -57,7 +67,7 @@ def test_additions():
 
 
 def test_close():
-    config = WandbWrapperConfig(logger_name="DefaultLogger")
+    config = WandbWrapperConfig()
     env = DummyEnv()
     wrapped_env = WandbWrapper(config, env)
 
@@ -70,7 +80,6 @@ def test_close():
 
 
 def test_wandb_config():
-    prev_logger_name = globals.WANDB_LOGGER_NAME
     config = WandbWrapperConfig(
         logger_name="WandbLogger",
         custom_metrics={"test_metric": 42},
@@ -90,5 +99,3 @@ def test_wandb_config():
     assert logger._wandb_setup
     teardown_wandb_logger("WandbLogger")
     assert not logger._wandb_setup
-
-    globals.WANDB_LOGGER_NAME = prev_logger_name

@@ -24,7 +24,17 @@ class WandbWrapperConfig(Config):
         self.snapshot_sensitive_keys = snapshot_sensitive_keys
         self.project = project
         self.group = group
-        self.logger_name = logger_name if logger_name else globals.WANDB_LOGGER_NAME
+        self.logger_name = (
+            logger_name
+            if (
+                logger_name is not None and logger_name != globals.LOGGER_NAME
+            )  # Avoid using root logger
+            else globals.WANDB_LOGGER_NAME
+        )
+        if logger_name is not None and self.logger_name != logger_name:
+            logging.warning(
+                f"WandbWrapperConfig: Overriding logger_name {logger_name} with {self.logger_name} to avoid using root logger."
+            )
         globals.WANDB_LOGGER_NAME = self.logger_name
 
     def _setup(self):  # Setup wandb logger
