@@ -25,7 +25,6 @@ class DummyWrapper(PassthroughWrapper, ConfigurableObject):
     def __init__(self, config: Config, env: gym.Env):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, passthrough=self.passthrough)
-        super().__init__(env, passthrough=True)
         self.stop_dict = {}
         self.env_steps = 0
 

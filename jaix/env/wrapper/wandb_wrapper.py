@@ -36,7 +36,7 @@ class WandbWrapperConfig(Config):
         globals.WANDB_LOGGER_NAME = self.logger_name
 
     def _setup(self):  # Setup wandb logger
-        setup_wandb_logger(
+        logger = setup_wandb_logger(
             name=self.logger_name,
             custom_metrics=self.custom_metrics,
             snapshot=self.snapshot,
@@ -44,6 +44,8 @@ class WandbWrapperConfig(Config):
             project=self.project,
             group=self.group,
         )
+        assert logger is not None
+        return True
 
 
 class WandbWrapper(PassthroughWrapper, ConfigurableObject):

@@ -1,6 +1,5 @@
 """Factory to create environment from config and wrappers"""
 
-from logging import config
 from ttex.config import (
     Config,
     ConfigurableObjectFactory as COF,

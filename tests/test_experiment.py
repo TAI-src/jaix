@@ -10,7 +10,7 @@ from jaix.env.wrapper.closing_wrapper import ClosingWrapper
 
 
 def exp_config(
-    ec_config, comp_config, comp: bool, opts: str = "Randome"
+    ec_config, comp_config, comp: bool, opts: str = "Random"
 ) -> ExperimentConfig:
     wrappers = [
         (DummyWrapper, DummyWrapperConfig(passthrough=True)),

@@ -18,23 +18,19 @@ class LoggingConfig(Config):
         self,
         log_level: int = 30,
         logger_name: Optional[str] = None,
-        disable_existing: Optional[bool] = False,
         dict_config: Optional[Dict] = None,
     ):
         self.log_level = log_level
-        self.disable_existing = disable_existing
         self.logger_name = logger_name if logger_name else globals.LOGGER_NAME
         self.dict_config = (
-            dict_config
-            if dict_config
-            else get_logging_config(self.logger_name, self.disable_existing)
+            dict_config if dict_config else get_logging_config(self.logger_name, False)
         )
 
     def _setup(self):
         initiate_logger(
             log_level=self.log_level,
             logger_name=self.logger_name,
-            disable_existing=self.disable_existing,
+            disable_existing=False,
             logging_config=self.dict_config,
         )
         return True
