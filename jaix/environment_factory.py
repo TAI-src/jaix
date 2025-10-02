@@ -51,6 +51,20 @@ class EnvironmentConfig(Config):
 
         self.seed = EnvironmentConfig.default_seed if seed is None else seed
 
+    def _setup(self):
+        success = True
+        for _, wrapper_conf in self.env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                success = wrapper_conf.setup() and success
+        return success
+
+    def _teardown(self):
+        success = True
+        for _, wrapper_conf in self.env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                success = wrapper_conf.teardown() and success
+        return success
+
 
 class EnvironmentFactory:
     @staticmethod

@@ -2,9 +2,14 @@ from ttex.config import Config, ConfigurableObjectFactory as COF
 from jaix.runner.runner import Runner
 from jaix.runner.optimiser import Optimiser
 from typing import Type, Optional, Dict
-from ttex.log import initiate_logger, get_logging_config
+from ttex.log import (
+    initiate_logger,
+    get_logging_config,
+    log_wandb_init,
+    teardown_wandb_logger,
+)
 from jaix.environment_factory import EnvironmentConfig, EnvironmentFactory as EF
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 import logging
 
 
@@ -13,17 +18,22 @@ class LoggingConfig(Config):
         self,
         log_level: int = 30,
         logger_name: Optional[str] = None,
-        disable_existing: Optional[bool] = True,
         dict_config: Optional[Dict] = None,
     ):
         self.log_level = log_level
-        self.disable_existing = disable_existing
-        self.logger_name = logger_name if logger_name else LOGGER_NAME
+        self.logger_name = logger_name if logger_name else globals.LOGGER_NAME
         self.dict_config = (
-            dict_config
-            if dict_config
-            else get_logging_config(self.logger_name, self.disable_existing)
+            dict_config if dict_config else get_logging_config(self.logger_name, False)
         )
+
+    def _setup(self):
+        initiate_logger(
+            log_level=self.log_level,
+            logger_name=self.logger_name,
+            disable_existing=False,
+            logging_config=self.dict_config,
+        )
+        return True
 
 
 class ExperimentConfig(Config):
@@ -42,19 +52,50 @@ class ExperimentConfig(Config):
         self.opt_class = opt_class
         self.opt_config = opt_config
         self.logging_config = logging_config
+        self.run = None
+
+    def setup(self):
+        # override to ensure we have a sensible order
+        self.logging_config.setup()
+        self.env_config.setup()
+        self.runner_config.setup()
+        self.opt_config.setup()
+
+        # Init wandb if needed
+        try:  # TODO: trycatch is tempororary until config._to_dict exists
+            config_dict = self.to_dict()
+            run = log_wandb_init(
+                run_config=config_dict, logger_name=globals.WANDB_LOGGER_NAME
+            )
+            self.run = run
+            if run:
+                logging.getLogger(globals.LOGGER_NAME).info(
+                    f"Wandb run {run.id} initialized"
+                )
+            else:
+                logging.getLogger(globals.LOGGER_NAME).info("Wandb not initialized")
+        except NotImplementedError:
+            logging.getLogger(globals.LOGGER_NAME).info(
+                "Wandb not installed, skipping wandb logging"
+            )
+        return True
+
+    def teardown(self):
+        self.env_config.teardown()
+        self.runner_config.teardown()
+        self.opt_config.teardown()
+        self.logging_config.teardown()
+
+        teardown_wandb_logger(name=globals.WANDB_LOGGER_NAME)
+        return True
 
 
 class Experiment:
     @staticmethod
     def run(exp_config: ExperimentConfig, *args, **kwargs):
-        # Set up logging
-        initiate_logger(
-            log_level=exp_config.logging_config.log_level,
-            logger_name=LOGGER_NAME,
-            disable_existing=exp_config.logging_config.disable_existing,
-            logging_config=exp_config.logging_config.dict_config,
-        )
-        logger = logging.getLogger(LOGGER_NAME)
+        # Setup experiment
+        exp_config.setup()
+        logger = logging.getLogger(globals.LOGGER_NAME)
 
         runner = COF.create(exp_config.runner_class, exp_config.runner_config)
         logger.debug(f"Runner created {runner}")
@@ -65,3 +106,7 @@ class Experiment:
             )
             logger.debug(f"Environment {env} done")
             env.close()
+
+        logger.debug("Experiment done")
+        exp_config.teardown()
+        logger.debug("Experiment torn down")

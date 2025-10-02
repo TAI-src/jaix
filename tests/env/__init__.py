@@ -1,1 +1,1 @@
-from .. import DummyEnv, DummyWrapper, test_handler
+from .. import DummyEnv, DummyWrapper, test_handler, DummyWrapperConfig

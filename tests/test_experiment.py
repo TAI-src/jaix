@@ -4,13 +4,21 @@ import pytest
 from jaix.runner.ask_tell.ask_tell_runner import ATRunnerConfig, ATRunner
 from jaix.runner.ask_tell.at_optimiser import ATOptimiser
 from jaix.experiment import ExperimentConfig, Experiment, LoggingConfig
+from .utils.dummy_wrapper import DummyWrapper, DummyWrapperConfig
+from jaix.environment_factory import EnvironmentFactory as EF
+from jaix.env.wrapper.closing_wrapper import ClosingWrapper
 
 
-def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
+def exp_config(
+    ec_config, comp_config, comp: bool, opts: str = "Random"
+) -> ExperimentConfig:
+    wrappers = [
+        (DummyWrapper, DummyWrapperConfig(passthrough=True)),
+    ]
     if comp:
-        env_conf = env_config(ec_config, comp_config=comp_config)
+        env_conf = env_config(ec_config, comp_config=comp_config, wrappers=wrappers)
     else:
-        env_conf = env_config(ec_config)
+        env_conf = env_config(ec_config, wrappers=wrappers)
     opt_config = get_optimiser(opts)
     runner_config = ATRunnerConfig(max_evals=4, disp_interval=50)
     config = ExperimentConfig(
@@ -22,6 +30,14 @@ def exp_config(ec_config, comp_config, comp: bool, opts: str = None):
         logging_config=LoggingConfig(log_level=10),
     )
     return config
+
+
+def test_experiment_config(ec_config, comp_config):
+    config = exp_config(ec_config, comp_config, comp=False, opts="Random")
+    assert config.setup()
+    assert config.env_config.env_wrappers[0][1]._stp is True
+    assert config.teardown()
+    assert config.env_config.env_wrappers[0][1].trdwn is True
 
 
 @pytest.mark.parametrize("comp", [False, True])
