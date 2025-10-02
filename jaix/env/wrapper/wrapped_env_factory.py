@@ -1,5 +1,6 @@
 """Factory to create environment from config and wrappers"""
 
+from logging import config
 from ttex.config import (
     Config,
     ConfigurableObjectFactory as COF,
@@ -22,7 +23,7 @@ class WrappedEnvFactory:
         wrappers: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]],
     ):
         wrapped_env = env
-        for wrapper_class, wrapper_config in wrappers:
+        for i, (wrapper_class, wrapper_config) in enumerate(wrappers):
             logger.debug(f"Wrapping {env} with {wrapper_config} of {wrapper_class}")
             if isinstance(wrapper_config, Config):
                 # Wrapper is a configurable object and config is passed as object
@@ -36,10 +37,14 @@ class WrappedEnvFactory:
                 in wrapper_config
             ):
                 # Wrapper is a configurable object and config is passed as dict
-                config_instance = CF.from_dict(wrapper_config, context=globals())
-                wrapped_env = COF.create(wrapper_class, config_instance, wrapped_env)
+                config_object = CF.from_dict(wrapper_config, context=globals())
+                wrapped_env = COF.create(wrapper_class, config_object, wrapped_env)
+                wrappers[i] = (
+                    wrapper_class,
+                    config_object,
+                )  # Update to use config object
             else:
                 # Assume config is a dict of keyword arguments
                 wrapped_env = wrapper_class(wrapped_env, **wrapper_config)
-        logger.debug(f"Wrapped env {wrapped_env}")
+        logger.debug(f"Wrapped env {wrapped_env}")  #
         return wrapped_env

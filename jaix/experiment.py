@@ -9,7 +9,7 @@ from ttex.log import (
     teardown_wandb_logger,
 )
 from jaix.environment_factory import EnvironmentConfig, EnvironmentFactory as EF
-from jaix.utils.globals import LOGGER_NAME, WANDB_LOGGER_NAME
+import jaix.utils.globals as globals
 import logging
 
 
@@ -23,7 +23,7 @@ class LoggingConfig(Config):
     ):
         self.log_level = log_level
         self.disable_existing = disable_existing
-        self.logger_name = logger_name if logger_name else LOGGER_NAME
+        self.logger_name = logger_name if logger_name else globals.LOGGER_NAME
         self.dict_config = (
             dict_config
             if dict_config
@@ -33,7 +33,7 @@ class LoggingConfig(Config):
     def _setup(self):
         initiate_logger(
             log_level=self.log_level,
-            logger_name=LOGGER_NAME,
+            logger_name=self.logger_name,
             disable_existing=self.disable_existing,
             logging_config=self.dict_config,
         )
@@ -68,14 +68,18 @@ class ExperimentConfig(Config):
         # Init wandb if needed
         try:  # TODO: trycatch is tempororary until config._to_dict exists
             config_dict = self.to_dict()
-            run = log_wandb_init(run_config=config_dict, logger_name=WANDB_LOGGER_NAME)
+            run = log_wandb_init(
+                run_config=config_dict, logger_name=globals.WANDB_LOGGER_NAME
+            )
             self.run = run
             if run:
-                logging.getLogger(LOGGER_NAME).info(f"Wandb run {run.id} initialized")
+                logging.getLogger(globals.LOGGER_NAME).info(
+                    f"Wandb run {run.id} initialized"
+                )
             else:
-                logging.getLogger(LOGGER_NAME).info("Wandb not initialized")
+                logging.getLogger(globals.LOGGER_NAME).info("Wandb not initialized")
         except NotImplementedError:
-            logging.getLogger(LOGGER_NAME).info(
+            logging.getLogger(globals.LOGGER_NAME).info(
                 "Wandb not installed, skipping wandb logging"
             )
         return True
@@ -86,7 +90,7 @@ class ExperimentConfig(Config):
         self.opt_config.teardown()
         self.logging_config.teardown()
 
-        teardown_wandb_logger(name=WANDB_LOGGER_NAME)
+        teardown_wandb_logger(name=globals.WANDB_LOGGER_NAME)
         return True
 
 
@@ -95,7 +99,7 @@ class Experiment:
     def run(exp_config: ExperimentConfig, *args, **kwargs):
         # Setup experiment
         exp_config.setup()
-        logger = logging.getLogger(LOGGER_NAME)
+        logger = logging.getLogger(globals.LOGGER_NAME)
 
         runner = COF.create(exp_config.runner_class, exp_config.runner_config)
         logger.debug(f"Runner created {runner}")

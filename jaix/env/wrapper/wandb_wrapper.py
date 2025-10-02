@@ -3,8 +3,8 @@ import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 import logging
 from typing import Optional, Dict, List
-from ttex.log import setup_wandb_logger, teardown_wandb_logger
-from jaix.utils.globals import WANDB_LOGGER_NAME
+from ttex.log import setup_wandb_logger
+import jaix.utils.globals as globals
 
 
 class WandbWrapperConfig(Config):
@@ -24,7 +24,8 @@ class WandbWrapperConfig(Config):
         self.snapshot_sensitive_keys = snapshot_sensitive_keys
         self.project = project
         self.group = group
-        self.logger_name = logger_name if logger_name else WANDB_LOGGER_NAME
+        self.logger_name = logger_name if logger_name else globals.WANDB_LOGGER_NAME
+        globals.WANDB_LOGGER_NAME = self.logger_name
 
     def _setup(self):  # Setup wandb logger
         setup_wandb_logger(
@@ -38,6 +39,12 @@ class WandbWrapperConfig(Config):
 
 
 class WandbWrapper(PassthroughWrapper, ConfigurableObject):
+    """
+    A wrapper that logs environment interactions to wandb.
+    It logs rewards, resets, steps, and other relevant information.
+    It can also log custom metrics and environment info on close.
+    """
+
     config_class = WandbWrapperConfig
 
     def __init__(self, config: WandbWrapperConfig, env: gym.Env):

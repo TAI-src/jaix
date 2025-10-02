@@ -1,14 +1,14 @@
 from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
-from . import DummyWrapper, DummyEnv
+from . import DummyWrapper, DummyEnv, DummyWrapperConfig
 
 
 def test_stopping():
     env = DummyEnv()
-    env = DummyWrapper(env)
+    env = DummyWrapper(DummyWrapperConfig(), env)
     assert not env.stop()
     env.stop_dict = {"wrapper 1": "test"}
-    env = DummyWrapper(env)
-    env = DummyWrapper(env)
+    env = DummyWrapper(DummyWrapperConfig(), env)
+    env = DummyWrapper(DummyWrapperConfig(), env)
     env.stop_dict = {"wrapper 3": "test"}
     assert env.stop()
     assert env.stop() == {"wrapper 1": "test", "wrapper 3": "test"}

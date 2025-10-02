@@ -14,6 +14,7 @@ from jaix.env.utils.problem.sphere import Sphere, SphereConfig
 import pytest
 from jaix.environment_factory import EnvironmentFactory as EF
 import gymnasium as gym
+from . import DummyWrapper, DummyWrapperConfig
 
 
 @pytest.fixture(scope="function")
@@ -76,3 +77,15 @@ def test_composite(ec_config, comp_config):
         action = env.action_space.sample()
         env.step(action)
         env.close()
+
+
+def test_env_config(ec_config):
+    config = env_config(
+        ec_config, wrappers=[(DummyWrapper, DummyWrapperConfig(passthrough=True))]
+    )
+    assert config.setup()
+    wrapper_conf = config.env_wrappers[0][1]
+    assert isinstance(wrapper_conf, DummyWrapperConfig)
+    assert wrapper_conf._stp is True
+    assert config.teardown()
+    assert wrapper_conf.trdwn is True

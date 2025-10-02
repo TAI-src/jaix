@@ -49,7 +49,7 @@ class RBFAdapter(ConfigurableObject):
         self.inst = inst
         np.random.seed(inst)
         self._setup(config)
-        print(
+        logger.debug(
             f"RBFAdapter: {self.box_start}, {self.box_end}, {self.target_val}, {self.centers}, {self.num_rad}"
         )
 

@@ -68,9 +68,8 @@ def launch_jaix_experiment(
             group_names.append(f"{sweep_keys[-1]} {sweep_value}")
     else:
         run_configs.append(run_config)
-        # If no sweep, just use default group_names
-        group_names = ["default"] * len(run_configs)
-        group_names.append(None)
+        # If no sweep, just use no group name
+        group_names = [None] * len(run_configs)
 
     results = {}
 

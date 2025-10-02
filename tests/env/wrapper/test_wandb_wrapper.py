@@ -3,10 +3,13 @@ from jaix.env.wrapper.wrapped_env_factory import (
     WrappedEnvFactory as WEF,
 )
 from jaix.env.wrapper.any_fit_wrapper import AnyFitWrapper
-from . import DummyEnv, test_handler, DummyWrapper
+from . import DummyEnv, test_handler, DummyWrapper, DummyWrapperConfig
 from gymnasium.utils.env_checker import check_env
 import ast
 import pytest
+import jaix.utils.globals as globals
+import logging
+from ttex.log import teardown_wandb_logger
 
 
 @pytest.mark.parametrize("wef", [True, False])
@@ -41,7 +44,7 @@ def test_basic(wef):
 def test_additions():
     config = WandbWrapperConfig(logger_name="DefaultLogger")
     env = AnyFitWrapper(DummyEnv())  # Adds raw_r
-    env = DummyWrapper(env)  # Adds env_step
+    env = DummyWrapper(DummyWrapperConfig(), env)  # Adds env_step
     wrapped_env = WandbWrapper(config, env)
 
     wrapped_env.reset()
@@ -64,3 +67,28 @@ def test_close():
     wrapped_env.close()
     msg = ast.literal_eval(test_handler.last_record.getMessage())
     assert "env/close/DummyEnv/0/1/funcs" in msg
+
+
+def test_wandb_config():
+    prev_logger_name = globals.WANDB_LOGGER_NAME
+    config = WandbWrapperConfig(
+        logger_name="WandbLogger",
+        custom_metrics={"test_metric": 42},
+        snapshot=False,
+        snapshot_sensitive_keys=["secret"],
+        project="test_project",
+        group="test_group",
+    )
+
+    env = DummyEnv()
+    wrapped_env = WandbWrapper(config, env)
+    assert wrapped_env.logger.name == "WandbLogger"
+    assert globals.WANDB_LOGGER_NAME == "WandbLogger"
+
+    config.setup()
+    logger = logging.getLogger("WandbLogger")
+    assert logger._wandb_setup
+    teardown_wandb_logger("WandbLogger")
+    assert not logger._wandb_setup
+
+    globals.WANDB_LOGGER_NAME = prev_logger_name
