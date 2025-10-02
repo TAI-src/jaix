@@ -16,9 +16,11 @@ from ttex.log import teardown_wandb_logger
 def run_around_tests():
     prev_logger_name = globals.WANDB_LOGGER_NAME
     globals.WANDB_LOGGER_NAME = globals.LOGGER_NAME
+    globals.LOGGER_NAME = "root"  # ensure
     # we use the root logger just for these tests
     yield
     # Code that will run after your test, e.g. teardown
+    globals.LOGGER_NAME = globals.WANDB_LOGGER_NAME
     globals.WANDB_LOGGER_NAME = prev_logger_name
 
 
@@ -49,6 +51,11 @@ def test_basic(wef):
     wrapped_env.step(wrapped_env.action_space.sample())
     msg = ast.literal_eval(test_handler.last_record.getMessage())
     assert msg["env/resets/DummyEnv/0/1"] == resets + 1
+
+
+def test_name_conflict():
+    with pytest.raises(ValueError):
+        config = WandbWrapperConfig(logger_name=globals.LOGGER_NAME)
 
 
 def test_additions():

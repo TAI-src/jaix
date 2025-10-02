@@ -26,14 +26,12 @@ class WandbWrapperConfig(Config):
         self.group = group
         self.logger_name = (
             logger_name
-            if (
-                logger_name is not None and logger_name != globals.LOGGER_NAME
-            )  # Avoid using root logger
+            if (logger_name is not None)  # Avoid using root logger
             else globals.WANDB_LOGGER_NAME
         )
-        if logger_name is not None and self.logger_name != logger_name:
-            logging.warning(
-                f"WandbWrapperConfig: Overriding logger_name {logger_name} with {self.logger_name} to avoid using root logger."
+        if self.logger_name == globals.LOGGER_NAME:
+            raise ValueError(
+                "WandbWrapperConfig: logger_name cannot be the root logger name."
             )
         globals.WANDB_LOGGER_NAME = self.logger_name
 
