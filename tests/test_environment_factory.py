@@ -74,6 +74,9 @@ def test_composite(ec_config, comp_config):
     for env in EF.get_envs(config):
         assert isinstance(env, gym.Wrapper)
         assert isinstance(env.unwrapped, SwitchingEnvironment)
+        for single_env in env.unwrapped.env_list:
+            assert isinstance(single_env, gym.Wrapper)
+            assert isinstance(single_env.unwrapped, ECEnvironment)
         action = env.action_space.sample()
         env.step(action)
         env.close()
