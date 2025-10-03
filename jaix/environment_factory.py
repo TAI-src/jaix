@@ -4,7 +4,6 @@ from jaix.suite.suite import Suite, AggType
 from jaix.env.composite.composite_environment import CompositeEnvironment
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from jaix.env.wrapper.closing_wrapper import ClosingWrapper
-from jaix.env.wrapper.online_wrapper import OnlineWrapper
 import gymnasium as gym
 import logging
 from jaix.utils.globals import LOGGER_NAME
@@ -13,15 +12,28 @@ logger = logging.getLogger(LOGGER_NAME)
 
 
 class CompositeEnvironmentConfig(Config):
+    default_wrappers = [
+        (ClosingWrapper, {}),
+    ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+
     def __init__(
         self,
         agg_type: AggType,
         comp_env_class: Type[CompositeEnvironment],
         comp_env_config: Config,
+        comp_env_wrappers: Optional[
+            List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        ] = None,
     ):
         self.agg_type = agg_type
         self.comp_env_class = comp_env_class
         self.comp_env_config = comp_env_config
+
+        # Append default default_wrappers
+        tmp_wrappers = [] if comp_env_wrappers is None else comp_env_wrappers
+        self.comp_env_wrappers = (
+            tmp_wrappers + CompositeEnvironmentConfig.default_wrappers
+        )
 
 
 class EnvironmentConfig(Config):
@@ -87,10 +99,15 @@ class EnvironmentFactory:
                 agg_type=comp_config.agg_type, seed=env_config.seed
             ):
                 logger.debug(f"Got {len(envs)} from suite {suite}")
+                wrapped_envs = [
+                    WEF.wrap(env, comp_config.comp_env_wrappers) for env in envs
+                ]
+                logger.debug(f"Wrapped envs {wrapped_envs}")
+                # Create composite environment
                 comp_env = COF.create(
                     comp_config.comp_env_class,
                     comp_config.comp_env_config,
-                    envs,
+                    wrapped_envs,
                 )
                 logger.debug(f"Created composite env {comp_env}")
                 wrapped_env = WEF.wrap(comp_env, env_config.env_wrappers)
@@ -98,3 +115,4 @@ class EnvironmentFactory:
                 # TODO: reset with seeding here
                 yield wrapped_env
                 assert wrapped_env.closed
+                assert all([env.closed for env in wrapped_envs])
