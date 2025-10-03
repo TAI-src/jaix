@@ -30,6 +30,7 @@ class DummyConfEnv(ConfigurableObject, SingularEnvironment):
         return {
             "funcs": [0, 1],
             "insts": list(range(15)),
+            "val": 13,
         }
 
     def __init__(self, config: DummyEnvConfig, func: int = 0, inst: int = 1):

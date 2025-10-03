@@ -30,14 +30,15 @@ def test_step_non_sequential(seq):
     config = MastermindEnvironmentConfig(max_guesses=2)
     env = MastermindEnvironment(config, func=seq, inst=3)
     obs, r, term, trunc, info = env.step(env._solution)
-    assert obs[0] == r
-    assert r == 0
+    assert len(obs) == 1
+    assert r is None
     assert term
     assert not trunc
 
     all_wrong = env._solution + [1] * env.num_slots
     obs, r, term, trunc, info = env.step(all_wrong)
-    assert r == env.num_slots
+    assert r is None
+    assert obs[0] == env.num_slots
     assert not term
     assert trunc
 
@@ -47,12 +48,13 @@ def test_step_non_sequential(seq):
         one_wrong = copy.deepcopy(env._solution)
         one_wrong[i] += 3
         obs, r, term, trunc, info = env.step(one_wrong)
+        assert len(obs) == 1
         if seq:
             # Fitness depends on which one is wrong
-            assert r == env.num_slots - i
+            assert obs[0] == env.num_slots - i
         else:
             # Only one wrong, so fitness is 1
-            assert r == 1
+            assert obs[0] == 1
         assert not term
         assert trunc
 
@@ -67,8 +69,8 @@ def test_order():
     env._order = list(range(env.num_slots))
     env._order.reverse()
 
-    _, r, _, _, _ = env.step(act)
-    assert r == 1  # Because of reverse order
+    obs, _, _, _, _ = env.step(act)
+    assert obs[0] == 1  # Because of reverse order
 
 
 def test_inst_seeding():

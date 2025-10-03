@@ -147,9 +147,6 @@ def get_config(suite="RBF", comp=False):
         }
     xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
         "jaix.environment_factory.EnvironmentConfig"
-    ]["env_wrappers"] = [("jaix.env.wrapper.any_fit_wrapper.AnyFitWrapper", {})]
-    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
-        "jaix.environment_factory.EnvironmentConfig"
     ]["seed"] = None
     xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
         "jaix.environment_factory.EnvironmentConfig"
@@ -173,6 +170,16 @@ def get_config(suite="RBF", comp=False):
                         "real_time": False,
                     },
                 },
+                "comp_env_wrappers": [
+                    (
+                        "jaix.env.wrapper.improvement_reward_wrapper.ImprovementRewardWrapper",
+                        {
+                            "jaix.env.wrapper.improvement_reward_wrapper.ImprovementRewardWrapperConfig": {
+                                "state_eval": "obs0"
+                            }
+                        },
+                    )
+                ],
             }
         }
         xconfig["jaix.experiment.ExperimentConfig"][
@@ -321,7 +328,7 @@ def test_launch_jaix_experiment_wandb():
     # Add wandb wrapper
     xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
         "jaix.environment_factory.EnvironmentConfig"
-    ]["env_wrappers"] += [
+    ]["env_wrappers"] = [
         (
             "jaix.env.wrapper.wandb_wrapper.WandbWrapper",
             {

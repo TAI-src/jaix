@@ -2,7 +2,10 @@ from jaix.env.wrapper.wandb_wrapper import WandbWrapper, WandbWrapperConfig
 from jaix.env.wrapper.wrapped_env_factory import (
     WrappedEnvFactory as WEF,
 )
-from jaix.env.wrapper.any_fit_wrapper import AnyFitWrapper
+from jaix.env.wrapper.improvement_reward_wrapper import (
+    ImprovementRewardWrapper,
+    ImprovementRewardWrapperConfig,
+)
 from . import DummyEnv, test_handler, DummyWrapper, DummyWrapperConfig
 from gymnasium.utils.env_checker import check_env
 import ast
@@ -60,7 +63,9 @@ def test_name_conflict():
 
 def test_additions():
     config = WandbWrapperConfig()
-    env = AnyFitWrapper(DummyEnv())  # Adds raw_r
+    env = ImprovementRewardWrapper(
+        ImprovementRewardWrapperConfig(state_eval="obs0"), DummyEnv()
+    )  # Adds raw_r
     env = DummyWrapper(DummyWrapperConfig(), env)  # Adds env_step
     wrapped_env = WandbWrapper(config, env)
 
@@ -69,8 +74,8 @@ def test_additions():
 
     msg = ast.literal_eval(test_handler.last_record.getMessage())
     assert msg["env/step"] == msg["env/log_step"] + 1
-    assert "env/raw_r/DummyEnv/0/1" in msg
-    assert "env/best_raw_r/DummyEnv/0/1" in msg
+    assert "env/raw_obs0/DummyEnv/0/1" in msg
+    assert "env/best_raw_obs0/DummyEnv/0/1" in msg
 
 
 def test_close():
@@ -86,6 +91,83 @@ def test_close():
     assert "env/close/DummyEnv/0/1/funcs" in msg
 
 
+# Hacky, but needs to happen before the config test with teardown
+@pytest.mark.parametrize(
+    "state_eval_imp, state_eval_wandb",
+    [("obs0", "obs0"), ("obs0", "r"), ("val", "obs0"), ("val", "r")],
+)
+def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
+
+    env = ImprovementRewardWrapper(
+        ImprovementRewardWrapperConfig(state_eval=state_eval_imp, min=True), DummyEnv()
+    )
+    config = WandbWrapperConfig(state_eval=state_eval_wandb, min=True)
+    wrapped_env = WandbWrapper(config, env)  # Adds raw_obs0
+
+    assert hasattr(wrapped_env, "logger")
+
+    wrapped_env.reset()
+    for _ in range(3):
+        wrapped_env.step(wrapped_env.action_space.sample())
+    obs, r, term, trunc, info = wrapped_env.step(wrapped_env.action_space.sample())
+
+    gmsg = test_handler.last_record.getMessage()
+    msg = ast.literal_eval(gmsg)
+    print(msg)
+
+    if state_eval_imp == state_eval_wandb:
+        assert wrapped_env.last_val == wrapped_env.env.last_val
+    assert info[f"best_raw_{state_eval_imp}"] == wrapped_env.env.best_val
+    assert info[f"raw_{state_eval_imp}"] == wrapped_env.env.last_val
+
+    assert msg[f"env/best_raw_{state_eval_wandb}/DummyEnv/0/1"] == wrapped_env.best_val
+    assert msg[f"env/raw_{state_eval_wandb}/DummyEnv/0/1"] == wrapped_env.last_val
+
+    assert "env/r/DummyEnv/0/1" in msg
+
+    assert r is not None  # should be the improvement reward
+    assert "improvement" in info
+
+
+@pytest.mark.parametrize(
+    "state_eval_imp, state_eval_wandb",
+    [("obs0", "obs0"), ("obs0", "r"), ("r", "obs0"), ("r", "r")],
+)
+def test_wandb_improvement_interaction_v2(state_eval_imp, state_eval_wandb):
+    env = DummyEnv()
+    config = WandbWrapperConfig(state_eval=state_eval_wandb, min=True)
+    wrapped_env = WandbWrapper(config, env)  # Adds raw_obs0
+    assert hasattr(wrapped_env, "logger")
+
+    # Now wrap with ImprovementRewardWrapper
+    imp_config = ImprovementRewardWrapperConfig(state_eval=state_eval_imp, min=True)
+    wrapped_env = ImprovementRewardWrapper(imp_config, wrapped_env)
+
+    wrapped_env.reset()
+    for _ in range(3):
+        wrapped_env.step(wrapped_env.action_space.sample())
+    obs, r, term, trunc, info = wrapped_env.step(wrapped_env.action_space.sample())
+
+    gmsg = test_handler.last_record.getMessage()
+    msg = ast.literal_eval(gmsg)
+    assert "env/r/DummyEnv/0/1" in msg
+    assert msg["env/r/DummyEnv/0/1"] != r
+
+    assert r is not None  # should be the improvement reward
+    assert "improvement" in info
+
+    if state_eval_imp == state_eval_wandb:
+        assert wrapped_env.last_val == wrapped_env.env.last_val
+    assert info[f"best_raw_{state_eval_imp}"] == wrapped_env.best_val
+    assert info[f"raw_{state_eval_imp}"] == wrapped_env.last_val
+
+    assert (
+        msg[f"env/best_raw_{state_eval_wandb}/DummyEnv/0/1"] == wrapped_env.env.best_val
+    )
+    assert msg[f"env/raw_{state_eval_wandb}/DummyEnv/0/1"] == wrapped_env.env.last_val
+
+
+# changes the logger, needs to happen last
 def test_wandb_config():
     config = WandbWrapperConfig(
         logger_name="WandbLogger",

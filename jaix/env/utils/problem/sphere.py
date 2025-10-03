@@ -51,7 +51,7 @@ class Sphere(ConfigurableObject, StaticProblem):
             for xs, ys in zip(self.x_shifts, self.y_shifts)
         ]
         # TODO: proper MO reward
-        return fitness, sum(fitness)
+        return fitness, fitness
 
     def __str__(self):
         return f"Sphere {self.__dict__}"

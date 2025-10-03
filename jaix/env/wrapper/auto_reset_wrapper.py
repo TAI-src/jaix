@@ -18,6 +18,12 @@ class AutoResetWrapperConfig(Config):
 
 
 class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
+    """
+    A wrapper that automatically resets the environment when done.
+    It keeps track of manual and automatic resets, as well as failed resets.
+    It also tracks whether the environment was terminated or truncated.
+    """
+
     config_class = AutoResetWrapperConfig
 
     def __init__(self, config: AutoResetWrapperConfig, env: gym.Env):
