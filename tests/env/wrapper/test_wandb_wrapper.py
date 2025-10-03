@@ -97,7 +97,6 @@ def test_close():
     [("obs0", "obs0"), ("obs0", "r"), ("val", "obs0"), ("val", "r")],
 )
 def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
-
     env = ImprovementRewardWrapper(
         ImprovementRewardWrapperConfig(state_eval=state_eval_imp, min=True), DummyEnv()
     )
