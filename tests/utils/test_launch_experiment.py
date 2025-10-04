@@ -85,7 +85,7 @@ def get_config(suite="RBF", comp=False):
             "jaix.environment_factory.EnvironmentConfig": {
                 "suite_class": "jaix.suite.suite.Suite",
                 "suite_config": {
-                    "jaix.suite.SuiteConfig": {
+                    "jaix.suite.suite.SuiteConfig": {
                         "env_class": "jaix.env.singular.hpo_env.HPOEnvironment",
                         "env_config": {
                             "jaix.env.singular.hpo_env.HPOEnvironmentConfig": {
@@ -126,7 +126,7 @@ def get_config(suite="RBF", comp=False):
             "jaix.environment_factory.EnvironmentConfig": {
                 "suite_class": "jaix.suite.suite.Suite",
                 "suite_config": {
-                    "jaix.suite.SuiteConfig": {
+                    "jaix.suite.suite.SuiteConfig": {
                         "env_class": "jaix.env.singular.LJClustEnvironment",
                         "env_config": {
                             "jaix.env.singular.LJClustEnvironmentConfig": {
