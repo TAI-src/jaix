@@ -3,9 +3,9 @@ from typing import Tuple
 import numpy as np
 from jaix.env.utils.problem.rbf.rbf import RBFKernel, RBF
 import logging
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class RBFAdapterConfig(Config):
@@ -98,12 +98,18 @@ class RBFAdapter(ConfigurableObject):
         ]
         return targets
 
-    def comp_fit(self, w):
+    def comp_fit(self, w) -> Tuple[float, float]:
+        """
+        Compute the fitness of the given weights w.
+        Returns a tuple of (fitness, true_fitness) where fitness is the error on
+        the measurement points and true_fitness is the error on a higher fidelity
+        set of measurement points.
+        """
         logger.debug(
             f"Computing fitness for w of length {len(w)} and num_rad {self.num_rad}"
         )
         assert len(w) == self.num_rad
-        eps = [1] * self.num_rad
+        eps = [1.0] * self.num_rad
         rbf = RBF(self.centers, eps, w, self.kernel)
         targets = self.get_targets(self.num_measure_points)
         d = [rbf.eval(m) - t for (m, t) in targets]

@@ -6,7 +6,7 @@ from tabrepo.repository.evaluation_repository import (
 )
 from jaix.env.utils.hpo.tabrepo_adapter import TaskType, TabrepoAdapter
 from typing import Optional, List, Tuple, Dict
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 from jaix.env.singular.singular_environment import SingularEnvironment
 from collections import defaultdict
 import json
@@ -14,7 +14,7 @@ import json
 # TODO: Introduce ensembles at some point
 import logging
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class HPOEnvironmentConfig(Config):
@@ -121,11 +121,9 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         self.training_time += time_train_s
         terminated = obs < self.target_rank
         truncated = self.stop()
-        if truncated:
-            r = np.float64(self.tabrepo_adapter.max_rank)
-        else:
-            r = np.float64(obs)
-        return [obs], r, terminated, truncated, self._get_info()
+        info = self._get_info()
+        info["time_train_s"] = time_train_s
+        return [obs], None, terminated, truncated, info
 
     def render(self):
         """

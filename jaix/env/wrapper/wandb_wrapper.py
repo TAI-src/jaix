@@ -1,4 +1,4 @@
-from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
+from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 import logging
@@ -17,6 +17,8 @@ class WandbWrapperConfig(Config):
         project: Optional[str] = None,
         group: Optional[str] = None,
         passthrough: bool = True,
+        state_eval: str = "obs0",
+        min: bool = True,
     ):
         self.passthrough = passthrough
         self.custom_metrics = custom_metrics
@@ -24,6 +26,8 @@ class WandbWrapperConfig(Config):
         self.snapshot_sensitive_keys = snapshot_sensitive_keys
         self.project = project
         self.group = group
+        self.state_eval = state_eval
+        self.min = min
         self.logger_name = (
             logger_name
             if (logger_name is not None)  # Avoid using root logger
@@ -48,7 +52,7 @@ class WandbWrapperConfig(Config):
         return True
 
 
-class WandbWrapper(PassthroughWrapper, ConfigurableObject):
+class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
     """
     A wrapper that logs environment interactions to wandb.
     It logs rewards, resets, steps, and other relevant information.
@@ -59,19 +63,23 @@ class WandbWrapper(PassthroughWrapper, ConfigurableObject):
 
     def __init__(self, config: WandbWrapperConfig, env: gym.Env):
         ConfigurableObject.__init__(self, config)
-        PassthroughWrapper.__init__(self, env, self.passthrough)
+        ValueTrackWrapper.__init__(
+            self,
+            env,
+            passthrough=self.passthrough,
+            state_eval=self.state_eval,
+            min=self.min,
+        )
         self.logger = logging.getLogger(self.logger_name)
         self.log_resets = 0
         self.log_env_steps = 0
         self.log_renv_steps = 0
-        self.best_raw_r = None
         self.last_info = {}  # type: dict
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
         self.log_resets += 1
         self.log_renv_steps = 0
-        self.best_raw_r = None
         self.last_info = info
         return obs, info
 
@@ -86,25 +94,42 @@ class WandbWrapper(PassthroughWrapper, ConfigurableObject):
         self.last_info = info
         self.log_env_steps += 1
         self.log_renv_steps += 1
+
+        # Get the value for tracking and update internal state
+        val = self.get_val(obs, r, info, self.state_eval)
+        self.update_vals(val)
+
+        # TODO: Option for log frequency
+
         env_step = info["env_step"] if "env_step" in info else self.log_env_steps
         # Log per reset
         info_dict = {
-            f"env/r/{str(self.env.unwrapped)}": float(r.item()),
             f"env/resets/{self.env.unwrapped}": self.log_resets,
             # f"restarts/r/{self.dim}/{self.env}/{self.log_resets}": r.item(),
             "env/step": env_step,
             "env/log_step": self.log_env_steps,
             # "restarts/step": self.log_renv_steps,
         }
-        if "raw_r" in info:
-            info_dict[f"env/raw_r/{str(self.env.unwrapped)}"] = float(info["raw_r"])
-            new_r = info["raw_r"]
+        if r is not None:
+            info_dict[f"env/r/{str(self.env.unwrapped)}"] = float(r.item())
+        if f"raw_{self.state_eval}" in info:
+            # The original value might have been overwritten, so get it from info if available
+            raw_val = float(info[f"raw_{self.state_eval}"])
+            best_raw_val = (
+                float(info[f"best_raw_{self.state_eval}"])
+                if f"best_raw_{self.state_eval}" in info
+                else raw_val
+            )
         else:
-            new_r = r
-        self.best_raw_r = (
-            new_r if self.best_raw_r is None else min(self.best_raw_r, new_r)
-        )
-        info_dict[f"env/best_raw_r/{str(self.env.unwrapped)}"] = float(self.best_raw_r)
+            # Get the raw value from the current step
+            raw_val = float(val)
+            best_raw_val = float(self.best_val if self.best_val is not None else val)
+
+        info_dict[f"env/raw_{self.state_eval}/{str(self.env.unwrapped)}"] = raw_val
+        info_dict[
+            f"env/best_raw_{self.state_eval}/{str(self.env.unwrapped)}"
+        ] = best_raw_val
+
         if term:
             info_dict[f"env/term/{str(self.env.unwrapped)}"] = float(
                 self.log_renv_steps

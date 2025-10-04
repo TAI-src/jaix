@@ -37,8 +37,8 @@ class RBFFit(ConfigurableObject, StaticProblem):
         )
 
     def _eval(self, x):
-        fitness, r = self.rbf_adapter.comp_fit(x)
-        return [fitness], r
+        fitness, clean_fitness = self.rbf_adapter.comp_fit(x)
+        return [fitness], [clean_fitness]
 
     def __str__(self):
         return f"RBFFit/{self.inst}"
