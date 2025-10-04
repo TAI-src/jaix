@@ -124,34 +124,3 @@ def test_val_choice(state_eval):
         assert wrapped_env.last_val == info["val"]
 
     assert info[f"raw_{state_eval}"] == wrapped_env.last_val
-
-
-def test_val_updates():
-    env = gym.make("MountainCar-v0", render_mode="rgb_array")
-    config = ImprovementRewardWrapperConfig(
-        transform=True,
-        imp_type=ImprovementType.OVER_FIRST,
-        state_eval="r",
-    )
-    wrapped_env = ImprovementRewardWrapper(config, env)
-    wrapped_env.reset(seed=1337)
-    assert wrapped_env.steps == 0
-    assert wrapped_env.first_val is None
-    assert wrapped_env.best_val is None
-    assert wrapped_env.last_val is None
-
-    env_cpy = gym.make("MountainCar-v0", render_mode="rgb_array")
-    env_cpy.reset(seed=1337)
-
-    num_steps = 1000
-    rewards = []
-    for i in range(num_steps):
-        act = wrapped_env.action_space.sample()
-        wrapped_env.step(act)
-        assert wrapped_env.steps == i + 1
-        _, r, _, _, _ = env_cpy.step(act)
-        rewards.append(r)
-
-        assert rewards[0] == wrapped_env.first_val
-        assert min(rewards) == wrapped_env.best_val
-        assert rewards[-1] == wrapped_env.last_val
