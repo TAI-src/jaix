@@ -5,9 +5,14 @@ from ttex.config import ConfigurableObjectFactory as COF
 import json
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def skip_remaining_tests():
-    if HPOEnvironment is None:
+    try:
+        import tabrepo  # noqa: F401
+
+        assert HPOEnvironment is not None
+    except ImportError:
+        assert HPOEnvironment is None
         pytest.skip(
             "Skipping HPO tests. If this is unexpected, check that the tabrepo extra is installed."
         )

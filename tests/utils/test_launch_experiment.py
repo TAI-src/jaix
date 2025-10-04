@@ -352,6 +352,19 @@ def test_launch_jaix_experiment_wandb():
     assert exit_code == 0
 
 
+def check_installed_extras(suite):
+    try:
+        if suite == "COCO":
+            import cocoex  # noqa: F401
+        elif suite == "HPO":
+            import tabrepo  # noqa: F401
+        elif suite == "ASE":
+            import ase  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
 @pytest.mark.parametrize(
     "suite, comp",
     itertools.product(["COCO", "RBF", "HPO", "MMind", "ASE"], [False, True]),
@@ -361,7 +374,7 @@ def test_launch_jaix_experiment(suite, comp):
     try:
         results = launch_jaix_experiment(run_config=deepcopy(config))
     except TypeError:
-        assert suite in ["COCO", "HPO", "ASE"]  # The others are in the base package
+        assert not check_installed_extras(suite)
         pytest.skip(
             f"Skipping test for {suite}. Check installed extras if this is unexpected"
         )
@@ -443,6 +456,19 @@ def test_launch_final(config_file):
     try:
         results = launch_jaix_experiment(run_config=config)
     except TypeError:
+        if "mmind" in config_file:
+            suite = "MMind"
+        elif "coco" in config_file:
+            suite = "COCO"
+        elif "hpo" in config_file:
+            suite = "HPO"
+        elif "rbf" in config_file:
+            suite = "RBF"
+        elif "ase" in config_file:
+            suite = "ASE"
+        else:
+            pytest.fail(f"Unknown suite for {config_file}")
+        assert not check_installed_extras(suite)
         pytest.skip(
             f"Skipping test for {config_file}. Check installed extras if this is unexpected"
         )

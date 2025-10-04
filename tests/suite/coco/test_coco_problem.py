@@ -5,9 +5,14 @@ if COCOProblem is not None:
     import cocoex as ex
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def skip_remaining_tests():
-    if COCOProblem is None:
+    try:
+        import cocoex  # noqa: F401
+
+        assert COCOProblem is not None
+    except ImportError:
+        assert COCOProblem is None
         pytest.skip(
             "Skipping COCO tests. If this is unexpected, check that the coco extra is installed."
         )
