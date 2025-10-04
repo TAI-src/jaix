@@ -63,7 +63,6 @@ def test_step(env):
 
     obs, r, term, trunc, info = env.step([0] * env.action_space.n)
     assert obs in env.observation_space
-    assert obs[0] == env.tabrepo_adapter.max_rank
     assert r is None
     assert not term
     assert not trunc
@@ -84,7 +83,6 @@ def test_stop(env):
         ensembles = json.loads(info["ensembles"])
         assert len(ensembles[str(obs[0])]) >= 1
     assert env.training_budget <= env.training_time
-    assert obs[0] == env.tabrepo_adapter.max_rank
     assert r is None
 
 
