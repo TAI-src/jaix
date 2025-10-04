@@ -47,7 +47,7 @@ def test_compute_imp(min_bool):
 def test__get_improvement():
     env = gym.make("MountainCar-v0", render_mode="rgb_array")
     config = ImprovementRewardWrapperConfig(
-        transform=False, imp_type=ImprovementType.OVER_FIRST, min=min
+        transform=False, imp_type=ImprovementType.OVER_FIRST, min=True
     )
     wrapped_env = ImprovementRewardWrapper(config, env)
     assert wrapped_env.first_val is None

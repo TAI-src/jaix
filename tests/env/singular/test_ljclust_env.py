@@ -64,7 +64,7 @@ def test_step(env):
         assert (
             obs in env.observation_space
         ), "Observation is not in the observation space."
-        assert isinstance(reward, float), "Reward should be a float."
+        assert reward is None, "Reward should be None in this environment."
         assert not done, "Environment should not be done after one step."
         assert not truncated, "Environment should not be truncated after one step."
         assert "species" in info, "Species information is missing in step info."
