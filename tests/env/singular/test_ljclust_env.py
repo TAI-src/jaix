@@ -6,7 +6,12 @@ import numpy as np
 
 @pytest.fixture(scope="session", autouse=True)
 def skip_remaining_tests():
-    if LJClustAdapterConfig is None:
+    try:
+        import ase  # noqa: F401
+
+        assert LJClustAdapterConfig is not None
+    except ImportError:
+        assert LJClustAdapterConfig is None
         pytest.skip(
             "Skipping LJClust tests. If this is unexpected, check that the ase extra is installed."
         )

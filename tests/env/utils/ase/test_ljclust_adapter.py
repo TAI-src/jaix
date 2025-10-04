@@ -13,16 +13,10 @@ import csv
 import pytest
 import numpy as np
 from ttex.config import ConfigFactory, ConfigurableObjectFactory as COF
+from ...singular.test_ljclust_env import skip_remaining_tests
+
 
 target_dir = "./tmp_data"
-
-
-@pytest.fixture(scope="module", autouse=True)
-def skip_remaining_tests():
-    if LJClustAdapter is None:
-        pytest.skip(
-            "Skipping LJCluster tests. If this is unexpected, check that the ase extra is installed."
-        )
 
 
 @pytest.fixture(scope="module", autouse=True)

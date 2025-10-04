@@ -6,14 +6,7 @@ from ttex.config import (
 )
 import os
 from jaix.suite.suite import AggType
-
-
-@pytest.fixture(scope="module", autouse=True)
-def skip_remaining_tests():
-    if COCOProblem is None:
-        pytest.skip(
-            "Skipping COCO tests. If this is unexpected, check that the coco extra is installed."
-        )
+from .test_coco_problem import skip_remaining_tests
 
 
 @pytest.fixture(scope="function")
