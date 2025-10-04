@@ -109,7 +109,7 @@ class RBFAdapter(ConfigurableObject):
             f"Computing fitness for w of length {len(w)} and num_rad {self.num_rad}"
         )
         assert len(w) == self.num_rad
-        eps = [1] * self.num_rad
+        eps = [1.0] * self.num_rad
         rbf = RBF(self.centers, eps, w, self.kernel)
         targets = self.get_targets(self.num_measure_points)
         d = [rbf.eval(m) - t for (m, t) in targets]

@@ -1,5 +1,5 @@
 from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
-from typing import Optional, Any, Dict, Tuple
+from typing import Optional, Any, Dict
 import gymnasium as gym
 
 
@@ -33,7 +33,7 @@ class ValueTrackWrapper(PassthroughWrapper):
     @staticmethod
     def get_val(obs: Any, r: float, info: Dict, state_eval: str) -> float:
         if state_eval == "obs0":
-            if isinstance(obs, Tuple) and len(obs) == 2:
+            if isinstance(obs, tuple) and len(obs) == 2:
                 # This returns a tuple with the current env number and the observation
                 # so we need to extract the observation
                 # (env_num, ob) = obs
