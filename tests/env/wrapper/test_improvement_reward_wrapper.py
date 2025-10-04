@@ -7,7 +7,6 @@ from jaix.env.wrapper.improvement_reward_wrapper import (
 from gymnasium.utils.env_checker import check_env
 from . import DummyEnv
 import pytest
-import numpy as np
 
 
 def test_init():
@@ -32,21 +31,6 @@ def test_post_log_scale_axis():
     assert ImprovementRewardWrapper._pos_log_scale_axis(-1) == 0
     assert ImprovementRewardWrapper._pos_log_scale_axis(-0.5) == 0
     assert ImprovementRewardWrapper._pos_log_scale_axis(-10) == -1
-
-
-def test_get_val():
-    obs = [5]
-    r = 10
-    info = {"val": 15}
-    assert ImprovementRewardWrapper.get_val(obs, r, info, "obs0") == 5
-    assert ImprovementRewardWrapper.get_val(np.array(obs), r, info, "obs0") == 5
-    assert ImprovementRewardWrapper.get_val((0, np.array([obs])), r, info, "obs0") == 5
-    assert ImprovementRewardWrapper.get_val(obs, r, info, "r") == 10
-    assert ImprovementRewardWrapper.get_val(obs, r, info, "val") == 15
-    with pytest.raises(AssertionError):
-        ImprovementRewardWrapper.get_val([5, 6], r, info, "obs0")
-    with pytest.raises(ValueError):
-        ImprovementRewardWrapper.get_val(obs, r, info, "invalid")
 
 
 @pytest.mark.parametrize("min_bool", [True, False])

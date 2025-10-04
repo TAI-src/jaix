@@ -56,7 +56,7 @@ class ValueTrackWrapper(PassthroughWrapper):
             trunc,
             info,
         ) = self.env.step(action)
-        val = self.get_val(obs, r, info, self.config.state_eval)
+        val = self.get_val(obs, r, info, self.state_eval)
         self.update_vals(val)
         return obs, r, term, trunc, info
 
