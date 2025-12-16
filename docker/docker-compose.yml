@@ -101,16 +101,16 @@ services:
     container_name: tabrepo
     env_file: .env
     image: taisrc/tabrepo
-    build:
-        context: ../deps/
-        dockerfile: ../docker/Dockerfile_tabrepo
-        shm_size: '4gb'
-        args:
-            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
-        cache_from:
-            - taisrc/tabrepo
-            - type=registry,ref=taisrc/tabrepo:latest
-    shm_size: '16gb'
+#    build:
+#        context: ../deps/
+#        dockerfile: ../docker/Dockerfile_tabrepo
+#        shm_size: '6gb'
+#        args:
+#            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+#        cache_from:
+#            - taisrc/tabrepo
+#            - type=registry,ref=taisrc/tabrepo:latest
+#    shm_size: '16gb'
 
   jaix_hpo: # Jaix execution image with hpo extra
     <<: *jaix_base
