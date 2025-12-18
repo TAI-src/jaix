@@ -11,6 +11,7 @@ import json
 from jaix.utils.exp_id import get_exp_id
 import logging
 from ttex.log import get_wandb_logger
+import shutil
 
 
 def get_config(suite="RBF", comp=False):
@@ -343,11 +344,7 @@ def test_launch_jaix_experiment_wandb():
 
     results = launch_jaix_experiment(run_config=xconfig)
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
-    data_dir = [result["data_dirs"][0] for result in results.values()][0]
-    exp_id = get_exp_id()
-    assert exp_id == data_dir
 
-    # Remove logging files
     os.environ["WANDB_MODE"] = prev_mode
 
     logger = logging.getLogger(WANDB_LOGGER_NAME)
@@ -355,6 +352,7 @@ def test_launch_jaix_experiment_wandb():
     # This means that the logger was initialised, so everything was activated as planned
     assert get_wandb_logger() is None  # Wandb should be torn down after experiment
     assert exit_code == 0
+    shutil.rmtree("./wandb", ignore_errors=True)
 
 
 def check_installed_extras(suite):

@@ -59,7 +59,6 @@ class CompositeEnvironmentConfig(Config):
 class EnvironmentConfig(Config):
     default_wrappers = [
         (ClosingWrapper, {}),
-        (COCOLoggerWrapper, COCOLoggerWrapperConfig(algo_name="algo")),
     ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
     default_seed = 1337
 

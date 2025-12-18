@@ -46,4 +46,3 @@ def test_experiment(ec_config, comp_config, comp):
     config = exp_config(ec_config, comp_config, comp=comp, opts="Random")
     exp_id = Experiment.run(config)
     assert exp_id is not None
-    shutil.rmtree(exp_id)

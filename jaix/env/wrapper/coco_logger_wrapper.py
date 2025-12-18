@@ -3,12 +3,11 @@ import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 from typing import List, Optional
 from ttex.log.coco import (
-    setup_coco_logger,
     COCOStart,
     COCOEnd,
     COCOEval,
-    teardown_coco_logger,
 )
+from ttex.log import setup_coco_logger, teardown_coco_logger
 import logging
 import cocopp
 import os.path as osp
@@ -17,6 +16,8 @@ import contextlib
 import numpy as np
 from uuid import uuid4
 from jaix.utils.exp_id import get_exp_id
+
+import jaix.utils.globals as globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 

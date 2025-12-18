@@ -1,14 +1,18 @@
-from jaix.env.wrapper import (
+from jaix.env.wrapper.coco_logger_wrapper import (
     COCOLoggerWrapper,
     COCOLoggerWrapperConfig,
-    WrappedEnvFactory as WEF,
 )
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from . import DummyEnv, TestHandler
 import pytest
 import shutil
 import os.path as osp
+import os
 from cocopp.pproc import DictAlg
 import logging
+import jaix.utils.globals as globals
+from jaix.utils.exp_id import set_exp_id
+from uuid import uuid4
 
 algo_name = "test_algo"
 
@@ -19,9 +23,16 @@ def test_basic(wef):
     config.setup()
     assert config.passthrough
 
-    logger = logging.getLogger("coco_logger")
+    # Check that logger exists
+    assert globals.COCO_LOGGER_NAME in logging.Logger.manager.loggerDict
+    # Add test handler to be able to read output
+    logger = logging.getLogger(globals.COCO_LOGGER_NAME)
     test_handler = TestHandler(level="INFO")
     logger.addHandler(test_handler)
+
+    # simulate experiment setting experiment id
+    exp_id = f"test_coco_logger_wrapper_{uuid4()}"
+    set_exp_id(exp_id)
 
     env = DummyEnv(dimension=18)
     if wef:
@@ -61,13 +72,16 @@ def test_basic(wef):
     assert len(result_dict) > 0
     """
 
-    assert osp.exists(osp.join(config.exp_id, "DummyEnv", algo_name))
+    assert osp.exists(osp.join(wrapped_env.exp_id, "DummyEnv", algo_name))
     assert osp.exists(
-        osp.join(config.exp_id, "DummyEnv", algo_name, "data_1", "f1_d18_i1.tdat")
+        osp.join(wrapped_env.exp_id, "DummyEnv", algo_name, "data_1", "f1_d18_i1.tdat")
     )
     assert osp.exists(
-        osp.join(config.exp_id, "DummyEnv", algo_name, "data_1", "f1_d18_i1.dat")
+        osp.join(wrapped_env.exp_id, "DummyEnv", algo_name, "data_1", "f1_d18_i1.dat")
     )
-    assert osp.exists(osp.join(config.exp_id, "DummyEnv", algo_name, "f1_i1.info"))
+    assert osp.exists(osp.join(wrapped_env.exp_id, "DummyEnv", algo_name, "f1_i1.info"))
     # assert osp.exists(osp.join(config.exp_id, "ppdata"))
-    shutil.rmtree(config.exp_id)
+
+    # clean up folder (needs to remove exdata)
+    experiment_dir = wrapped_env.exp_id.split(os.sep)[0]
+    shutil.rmtree(experiment_dir)
