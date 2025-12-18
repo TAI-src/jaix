@@ -2,6 +2,8 @@ from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 import gymnasium as gym
 from ttex.config import Config, ConfigurableObject
 
+from ttex.config import Config, ConfigurableObject
+
 
 class DummyWrapperConfig(Config):
     def __init__(self, passthrough: bool = True):

@@ -28,13 +28,7 @@
             },
             "agg_instances": 1
           }
-        },
-        "env_wrappers": [
-          [
-            "jaix.env.wrapper.any_fit_wrapper.AnyFitWrapper",
-            {}
-          ]
-        ]
+        }
       }
     },
     "opt_class": "jaix.runner.ask_tell.at_optimiser.ATOptimiser",

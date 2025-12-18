@@ -1,16 +1,16 @@
+from jaix.utils.globals import WANDB_LOGGER_NAME
 from jaix.utils.launch_experiment import (
     launch_jaix_experiment,
-    wandb_logger,
-    wandb_init,
 )
 import os
-import shutil
 from ttex.config import ConfigFactory as CF
 from copy import deepcopy
 import pytest
 import itertools
 import json
-from jaix import get_exp_id
+from jaix.utils.exp_id import get_exp_id
+import logging
+from ttex.log import get_wandb_logger
 
 
 def get_config(suite="RBF", comp=False):
@@ -86,7 +86,7 @@ def get_config(suite="RBF", comp=False):
             "jaix.environment_factory.EnvironmentConfig": {
                 "suite_class": "jaix.suite.suite.Suite",
                 "suite_config": {
-                    "jaix.suite.SuiteConfig": {
+                    "jaix.suite.suite.SuiteConfig": {
                         "env_class": "jaix.env.singular.hpo_env.HPOEnvironment",
                         "env_config": {
                             "jaix.env.singular.hpo_env.HPOEnvironmentConfig": {
@@ -127,7 +127,7 @@ def get_config(suite="RBF", comp=False):
             "jaix.environment_factory.EnvironmentConfig": {
                 "suite_class": "jaix.suite.suite.Suite",
                 "suite_config": {
-                    "jaix.suite.SuiteConfig": {
+                    "jaix.suite.suite.SuiteConfig": {
                         "env_class": "jaix.env.singular.LJClustEnvironment",
                         "env_config": {
                             "jaix.env.singular.LJClustEnvironmentConfig": {
@@ -146,9 +146,6 @@ def get_config(suite="RBF", comp=False):
                 },
             },
         }
-    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
-        "jaix.environment_factory.EnvironmentConfig"
-    ]["env_wrappers"] = [("jaix.env.wrapper.any_fit_wrapper.AnyFitWrapper", {})]
     xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
         "jaix.environment_factory.EnvironmentConfig"
     ]["seed"] = None
@@ -174,6 +171,16 @@ def get_config(suite="RBF", comp=False):
                         "real_time": False,
                     },
                 },
+                "comp_env_wrappers": [
+                    (
+                        "jaix.env.wrapper.improvement_reward_wrapper.ImprovementRewardWrapper",
+                        {
+                            "jaix.env.wrapper.improvement_reward_wrapper.ImprovementRewardWrapperConfig": {
+                                "state_eval": "obs0"
+                            }
+                        },
+                    )
+                ],
             }
         }
         xconfig["jaix.experiment.ExperimentConfig"][
@@ -314,43 +321,53 @@ def get_config(suite="RBF", comp=False):
     return xconfig
 
 
-def test_wandb_logger():
-    exp_config = CF.from_dict(get_config())
-    nexp_config = wandb_logger(exp_config, "dummy_run", "dummy_name")
-    assert "dummy_name" in nexp_config.logging_config.dict_config["loggers"]
-    logger_config = nexp_config.logging_config.dict_config["loggers"]["dummy_name"]
-    assert "wandb_handler" in logger_config["handlers"]
-    assert "wandb_handler" in nexp_config.logging_config.dict_config["handlers"]
-    logging_wrapper_tuple = nexp_config.env_config.env_wrappers[-1]
-    assert logging_wrapper_tuple[1].logger_name == "dummy_name"
-
-
-def test_wandb_init():
-    prev_mode = os.environ.get("WANDB_MODE", "online")
-    os.environ["WANDB_MODE"] = "offline"
-    run = wandb_init(run_config=deepcopy(get_config()), project="ci-cd")
-    assert run.settings.run_mode == "offline-run"
-    shutil.rmtree(run.dir, ignore_errors=True)
-    run.finish()
-
-    os.environ["WANDB_MODE"] = prev_mode
-
-
 def test_launch_jaix_experiment_wandb():
     prev_mode = os.environ.get("WANDB_MODE", "online")
     os.environ["WANDB_MODE"] = "offline"
-    results = launch_jaix_experiment(
-        run_config=deepcopy(get_config()), project="ci-cd", wandb=True
-    )
+
+    xconfig = deepcopy(get_config())
+    # Add wandb wrapper
+    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
+        "jaix.environment_factory.EnvironmentConfig"
+    ]["env_wrappers"] = [
+        (
+            "jaix.env.wrapper.wandb_wrapper.WandbWrapper",
+            {
+                "jaix.env.wrapper.wandb_wrapper.WandbWrapperConfig": {
+                    "project": "ci-cd",
+                    "snapshot": False,
+                }
+            },
+        )
+    ]
+
+    results = launch_jaix_experiment(run_config=xconfig)
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
     data_dir = [result["data_dirs"][0] for result in results.values()][0]
     exp_id = get_exp_id()
     assert exp_id == data_dir
+
     # Remove logging files
-    shutil.rmtree(data_dir, ignore_errors=True)
     os.environ["WANDB_MODE"] = prev_mode
 
+    logger = logging.getLogger(WANDB_LOGGER_NAME)
+    assert hasattr(logger, "_wandb_setup")
+    # This means that the logger was initialised, so everything was activated as planned
+    assert get_wandb_logger() is None  # Wandb should be torn down after experiment
     assert exit_code == 0
+
+
+def check_installed_extras(suite):
+    try:
+        if suite == "COCO":
+            import cocoex  # noqa: F401
+        elif suite == "HPO":
+            import tabrepo  # noqa: F401
+        elif suite == "ASE":
+            import ase  # noqa: F401
+    except ImportError:
+        return False
+    return True
 
 
 @pytest.mark.parametrize(
@@ -359,26 +376,21 @@ def test_launch_jaix_experiment_wandb():
 )
 def test_launch_jaix_experiment(suite, comp):
     config = get_config(suite, comp)
-    try:
-        results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False)
-    except TypeError:
-        assert suite in ["COCO", "HPO", "ASE"]  # The others are in the base package
+    if not check_installed_extras(suite):
         pytest.skip(
             f"Skipping test for {suite}. Check installed extras if this is unexpected"
         )
+
+    results = launch_jaix_experiment(run_config=deepcopy(config))
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
-    data_dir = [result["data_dirs"][0] for result in results.values()][0]
-    assert data_dir is None
     assert exit_code == 0
 
 
 def test_repeat():
     config = get_config("RBF", False)
-    results = launch_jaix_experiment(run_config=deepcopy(config), wandb=False, repeat=2)
+    results = launch_jaix_experiment(run_config=deepcopy(config), repeat=2)
     exit_codes = [result["exit_codes"] for result in results.values()]
-    data_dirs = [result["data_dirs"] for result in results.values()]
     assert all([len(exit_code) == 2 for exit_code in exit_codes])
-    assert all([len(data_dir) == 2 for data_dir in data_dirs])
     assert all([exit_code == 0 for exit_code in exit_codes[0]])
     assert len(exit_codes) == 1
 
@@ -396,7 +408,6 @@ def test_sweep():
     ]
     results = launch_jaix_experiment(
         run_config=deepcopy(config),
-        wandb=False,
         sweep=(keys, [1, 2]),
     )
     exit_codes = [result["exit_codes"][0] for result in results.values()]
@@ -421,6 +432,23 @@ def test_sweep():
     ],
 )
 def test_launch_final(config_file):
+    if "mmind" in config_file:
+        suite = "MMind"
+    elif "coco" in config_file:
+        suite = "COCO"
+    elif "hpo" in config_file:
+        suite = "HPO"
+    elif "rbf" in config_file:
+        suite = "RBF"
+    elif "ase" in config_file:
+        suite = "ASE"
+    else:
+        pytest.fail(f"Unknown suite for {config_file}")
+    if not check_installed_extras(suite):
+        pytest.skip(
+            f"Skipping test for {config_file}. Check installed extras if this is unexpected"
+        )
+
     with open(config_file, "r") as f:
         config = json.load(f)
     # modify the config for test (shorter, logging)
@@ -446,14 +474,7 @@ def test_launch_final(config_file):
             "jaix.environment_factory.EnvironmentConfig"
         ]["suite_config"]["jaix.suite.suite.SuiteConfig"]["agg_instances"] = 1
 
-    try:
-        results = launch_jaix_experiment(run_config=config, wandb=False)
-    except TypeError:
-        pytest.skip(
-            f"Skipping test for {config_file}. Check installed extras if this is unexpected"
-        )
+    results = launch_jaix_experiment(run_config=config)
 
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
-    data_dir = [result["data_dirs"][0] for result in results.values()][0]
-    assert data_dir is None
     assert exit_code == 0

@@ -3,7 +3,7 @@ import numpy as np
 from collections import defaultdict
 import uuid
 import pickle
-from typing import List, Optional, Tuple, DefaultDict
+from typing import DefaultDict, List, Optional, Tuple
 import math
 
 
@@ -40,12 +40,13 @@ class StaticProblem:
         )  # type: DefaultDict[int, List[np.ndarray]]
         self.last_recommended_at = 0
         self.current_best = self.max_values
+        self.current_best_nnoise = self.max_values
 
-    def evalsleft(self, budget_multiplier):
+    def evalsleft(self, budget_multiplier) -> int:
         # Ensure at least one evaluation is possible
         return math.ceil(self.dimension * budget_multiplier) - self.evaluations
 
-    def final_target_hit(self):
+    def final_target_hit(self) -> bool:
         if self.precision is None or any(np.isinf(self.min_values)):
             raise ValueError(
                 "Need precision and min values for automatic target detection."
@@ -64,7 +65,7 @@ class StaticProblem:
         return self.evalsleft(budget_multiplier) <= 0 or self.final_target_hit()
 
     @abstractmethod
-    def _eval(self, x) -> Tuple[List[float], float]:
+    def _eval(self, x) -> Tuple[List[float], List[float]]:
         """
         Evaluate the objective function.
             :param x: The input vector.
@@ -72,7 +73,12 @@ class StaticProblem:
         """
         pass
 
-    def __call__(self, x) -> Tuple[List[float], float]:
+    def __call__(self, x) -> Tuple[List[float], List[float]]:
+        """
+        Evaluate the objective function.
+            :param x: The input vector.
+            :return: Tuple of objective function value and noise-free objective value.
+        """
         # TODO validate x
         # As last entry before next evaluation, append the evaluated solution
         # This ensures that there is always at least one recommendation
@@ -90,11 +96,15 @@ class StaticProblem:
             ][1:]
         """
         self.evaluations += 1
-        fitness, r = self._eval(x)
+        raw_fitness, clean_fitness = self._eval(x)
         self.current_best = [
-            f if f < cb else cb for f, cb in zip(fitness, self.current_best)
+            f if f < cb else cb for f, cb in zip(raw_fitness, self.current_best)
         ]
-        return fitness, r
+        self.current_best_nnoise = [
+            f if f < cb else cb
+            for f, cb in zip(clean_fitness, self.current_best_nnoise)
+        ]
+        return raw_fitness, clean_fitness
 
     def recommend(self, x):
         # TODO validate x

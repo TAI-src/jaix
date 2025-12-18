@@ -1,12 +1,12 @@
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 import numpy as np
 from typing import Tuple, Optional
 import logging
 from jaix.env.singular.singular_environment import SingularEnvironment
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class MastermindEnvironmentConfig(Config):
@@ -114,17 +114,17 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
             matches = np.array([x[1] for x in matches_tuple])
             which_match = np.argwhere(matches == 0)
             if len(which_match) == 0:
-                obs = self.num_slots
+                counted_matches = self.num_slots
             else:
-                obs = np.sum(matches[0 : which_match[0][0]])
+                counted_matches = np.sum(matches[0 : which_match[0][0]])
         else:
-            obs = np.sum(matches)
+            counted_matches = np.sum(matches)
         # Minimisation
-        obs = self.num_slots - obs
+        obs = self.num_slots - counted_matches
         terminated = obs == 0
         truncated = self.num_guesses >= self.max_guesses
         # observation, reward, terminated, truncated, info
-        return [obs], obs, terminated, truncated, self._get_info()
+        return [obs], None, terminated, truncated, self._get_info()
 
     def render(self):
         logger.debug(self._get_info())

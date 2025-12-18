@@ -93,6 +93,21 @@ def test_composite(ec_config, comp_config):
     for env in EF.get_envs(config):
         assert isinstance(env, gym.Wrapper)
         assert isinstance(env.unwrapped, SwitchingEnvironment)
+        for single_env in env.unwrapped.env_list:
+            assert isinstance(single_env, gym.Wrapper)
+            assert isinstance(single_env.unwrapped, ECEnvironment)
         action = env.action_space.sample()
         env.step(action)
         env.close()
+
+
+def test_env_config(ec_config):
+    config = env_config(
+        ec_config, wrappers=[(DummyWrapper, DummyWrapperConfig(passthrough=True))]
+    )
+    assert config.setup()
+    wrapper_conf = config.env_wrappers[0][1]
+    assert isinstance(wrapper_conf, DummyWrapperConfig)
+    assert wrapper_conf._stp is True
+    assert config.teardown()
+    assert wrapper_conf.trdwn is True

@@ -4,7 +4,6 @@ The jaix framework is a toolkit for running optimisation experiments based on th
 
 ## Running an experiment
 
-
 Experiments are fully described as a single [experiment configuration](/experiments/config.md) file. Examples, requirements and more details can be found in in the [experiments](experiments/README.md) folder. The required setup and instructions are detailed there, including different options (using Docker, local python, and launching via the wandb.ai web UI). All essentially boil down to a single command that starts the [experiment launcher](jaix/utiils/launch_experiment.py) with the desired config file.
 
 ```
@@ -15,6 +14,7 @@ python jaix/utils/launch_experiment.py --config_file experiments/<path/to/config
 You can either run one of the existing configurations in the [experiments](experiments/README.md) folder, or create your own. For full instructions, follow [experiments](experiments/config.md).
 
 ## Extending the framework
+
 ![modules](https://github.com/user-attachments/assets/aa328c45-9557-4462-aef1-0f7e3e1ac13b)
 
 ### Making additions configurable
@@ -32,6 +32,7 @@ Note that a static problem can also be implemented as [`SingularEnvironment`](ja
 ### Problem Environment (RL/EC)
 
 First decide if you are implementing a [`CompositeEnvironment`](jaix/env/composite/composite_environment.py), [SingularEnvironment](jaix/env/singular/singular_environment.py), or potentially both.
+
 * A composite environment is comprised of multiple singular once and should only be responsible for initialising the corresponding singular environments and switching between them.
 * A singular environment implements the logic and values that are actually passed to the optimisation algorithm.
 
@@ -46,8 +47,27 @@ To add a new environment wrapper, create a class that inherits from the [`Passth
 ## Troubleshooting
 
 Make sure all sub-modules for required dependencies in [`deps`](/deps) are pulled. To do that, navigate to each folder and do:
+
 ```
 git submodule init
 git submodule update
 ```
 
+### Initialisation Order Issues
+
+In case the wrappers need to pass information to each other, it is important to ensure that the initialisation order is correct. This can be done by specifying the order in which the wrappers are applied in the experiment configuration file. Then wrappers are applied in order, that means that the first wrapper in the list is the innermost wrapper.
+
+The easiest way to pass information is via global variables defined in `jaix.utils.globals`. However, this is not ideal and should be avoided if possible.
+
+It can also be helpful to consider the order in how the experiment setup happens:
+
+1. If passed as dict, the [`ExperimentConfig`](jaix/experiment.py) object is created. That means that all nested Config objects are initialised (depth-first recursive strategy) as defined using [`ttex.config.ConfigFactory`](https://github.com/TAI-src/ttex/blob/main/ttex/config/config.py). This happens either in [launch_experiment.py](jaix/utils/launch_experiment.py) or externally.
+2. The experiment is started with the passed config object by calling [`Experiment.run()`](jaix/experiment.py).
+3. Setup is called on the `ExperimentConfig` object, which means that the following is called
+    a. [`logging_config.setup()`](jaix/experiment.py) which creates the main logger and populates `jaix.utils.globals.LOGGER_NAME`
+    b. [`env_config.setup()`](jaix/ennvironment_factory.py) which also calls `setup()` on all wrappers in order.
+    c. [`runner_config.setup()`](jaix/runner/runner.py)
+    d. [`opt_config.setup()`](jaix/runner/optimiser.py)
+    e. Iff a [`WandWrapper`](jaix/env/wrapper/wand_wrapper.py) was passed, wandb is initialised using [ttex.log](https://github.com/TAI-src/ttex/blob/main/ttex/log/utils/wandb_logging_setup.py). This also means that a wandb run object is created.
+4. The experiment id is identified (passed parameter, wandb run id, or newly created uuid) and set as a global variable.
+5. The objects configured by the config are initialised (order depending on runner)

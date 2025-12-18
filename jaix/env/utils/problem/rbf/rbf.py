@@ -30,6 +30,13 @@ class RBF:
         w: List[float],
         kernel: RBFKernel = RBFKernel.GAUSSIAN,
     ):
+        """
+        Radial Basis Function
+        :param c: centers
+        :param eps: shape parameters
+        :param w: weights
+        :param kernel: kernel function
+        """
         self.c = c
         self.eps = eps
         self.w = w

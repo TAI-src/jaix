@@ -6,7 +6,12 @@ import numpy as np
 
 @pytest.fixture(scope="session", autouse=True)
 def skip_remaining_tests():
-    if LJClustAdapterConfig is None:
+    try:
+        import ase  # noqa: F401
+
+        assert LJClustAdapterConfig is not None
+    except ImportError:
+        assert LJClustAdapterConfig is None
         pytest.skip(
             "Skipping LJClust tests. If this is unexpected, check that the ase extra is installed."
         )
@@ -64,7 +69,7 @@ def test_step(env):
         assert (
             obs in env.observation_space
         ), "Observation is not in the observation space."
-        assert isinstance(reward, float), "Reward should be a float."
+        assert reward is None, "Reward should be None in this environment."
         assert not done, "Environment should not be done after one step."
         assert not truncated, "Environment should not be truncated after one step."
         assert "species" in info, "Species information is missing in step info."

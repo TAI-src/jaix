@@ -1,14 +1,6 @@
 from jaix.env.utils.hpo import TaskType, TabrepoAdapter
 import pytest
-import timeit
-
-
-@pytest.fixture(scope="session", autouse=True)
-def skip_remaining_tests():
-    if TabrepoAdapter is None:
-        pytest.skip(
-            "Skipping HPO tests. If this is unexpected, check that the tabrepo extra is installed."
-        )
+from ...singular.test_hpo_environment import skip_remaining_tests
 
 
 @pytest.fixture(scope="session")

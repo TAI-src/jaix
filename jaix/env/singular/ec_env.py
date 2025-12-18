@@ -8,10 +8,10 @@ import logging
 from ttex.config import ConfigurableObject, Config
 from jaix.env.utils.problem.static_problem import StaticProblem
 from typing import Optional
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 from jaix.env.singular.singular_environment import SingularEnvironment
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class ECEnvironmentConfig(Config):
@@ -105,7 +105,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         i.e. metrics, debug info.
         """
         x = np.asarray(x, dtype=self.action_space.dtype)
-        obs, r = self.func(x)
+        raw_fitness, clean_fitness = self.func(x)
         terminated = self.func.final_target_hit()
         truncated = (
             self.func.evalsleft(self.budget_multiplier) <= 0
@@ -117,7 +117,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
 
         # observation, reward, terminated, truncated, info
         # TODO: reward cannot be multi-dimensional
-        return obs, r, terminated, truncated, self._get_info()
+        return raw_fitness, None, terminated, truncated, self._get_info()
 
     def render(self):
         """

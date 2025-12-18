@@ -1,107 +1,22 @@
-from jaix.experiment import Experiment, ExperimentConfig
-from jaix.utils.globals import LOGGER_NAME
+from jaix.experiment import Experiment
 from ttex.config import ConfigFactory as CF
-from ttex.log.handler import WandbHandler
-from wandb.sdk import launch, AlertLevel
-from importlib.metadata import version
+from wandb.sdk import launch
 from typing import Dict, Optional, List, Any, Tuple
 import os
-import wandb
-from jaix.env.wrapper.logging_wrapper import LoggingWrapper, LoggingWrapperConfig
-from jaix.env.wrapper.coco_logger_wrapper import (
-    COCOLoggerWrapper,
-    COCOLoggerWrapperConfig,
-)
-from ttex.log import get_logging_config
 import sys
 import logging
 import argparse
 import json
 from jaix.utils.dict_tools import nested_set
 from copy import deepcopy
-from importlib.metadata import distributions
-from uuid import uuid4
 
-logger = logging.getLogger(LOGGER_NAME)
+import jaix.utils.globals as globals
 
-
-def wandb_logger(
-    exp_config: ExperimentConfig,
-    run: wandb.sdk.wandb_run.Run,
-    wandb_logger_name: str = "jaix_wandb",
-):
-    """
-    Add wandb logging to the experiment configuration
-    Args:
-        exp_config (ExperimentConfig): Experiment configuration
-        run (wandb.sdk.wandb_run.Run): Wandb run
-        wandb_logger_name (str, optional): Logger name for wandb. Defaults to "jaix_wandb".
-    Returns:
-        ExperimentConfig: Experiment configuration with wandb logging
-    """
-    # Adapt LoggingConfig
-    if exp_config.logging_config.dict_config:
-        logging_config = exp_config.logging_config.dict_config
-    else:
-        logging_config = get_logging_config(
-            logger_name=LOGGER_NAME,
-            disable_existing=exp_config.logging_config.disable_existing,
-        )
-    logging_config["loggers"][wandb_logger_name] = {
-        "level": "INFO",
-        "handlers": ["wandb_handler"],
-    }
-    logging_config["handlers"]["wandb_handler"] = {
-        "()": WandbHandler,
-        "wandb_run": run,
-        "custom_metrics": {"env/step": ["env/*"], "restarts/step": ["restarts/*"]},
-        "level": "INFO",
-    }
-    exp_config.logging_config.dict_config = logging_config
-
-    wandb_log_wrapper = (
-        LoggingWrapper,
-        LoggingWrapperConfig(logger_name=wandb_logger_name),
-    )
-
-    if exp_config.env_config.env_wrappers:
-        exp_config.env_config.env_wrappers.append(wandb_log_wrapper)
-    else:
-        exp_config.env_config.env_wrappers = [wandb_log_wrapper]
-    return exp_config
-
-
-def wandb_init(
-    run_config: Dict, project: Optional[str] = None, group: Optional[str] = None
-):
-    """
-    Initialize wandb run
-    Args:
-        run_config (Dict): Run configuration
-        project (Optional[str], optional): Wandb project. Defaults to None.
-        group (Optional[str], optional): Wandb group. Defaults to None.
-    Returns:
-        wandb.sdk.wandb_run.Run: Wandb run
-    """
-    # log versions of all packages
-    packages = {
-        "pkg": {dist.metadata["Name"]: dist.version for dist in distributions()},
-        "repo": "jaix",
-    }
-
-    run_config.update(packages)
-    if not project:
-        run = wandb.init(config=run_config, group=group)
-    else:
-        run = wandb.init(config=run_config, project=project, group=group)
-    return run
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 def run_experiment(
     run_config: Dict,
-    project: Optional[str] = None,
-    wandb_on: bool = True,
-    group_name: Optional[str] = None,
 ):
     """
     Run an experiment
@@ -116,69 +31,23 @@ def run_experiment(
     """
     run_config = run_config.copy()
     exp_config = CF.from_dict(run_config)
-    run = None
-    if wandb_on:
-        run = wandb_init(run_config, project=project, group=group_name)
-        data_dir = run.dir
-        run_id = run.id
-        exp_config = wandb_logger(exp_config, run)
-        run.alert(
-            "Experiment started",
-            text="Experiment started",
-            level=AlertLevel.INFO,
-        )
-    else:
-        data_dir = None
-        run_id = str(uuid4())
-    logger.info(f"Running experiment with run_id: {run_id}")
+    logger.info(f"Running experiment with config: {exp_config}")
 
     try:
-        run_id = Experiment.run(exp_config, exp_id=run_id)
-        logger.info(f"Experiment finished with id: {run_id}")
+        exp_id = Experiment.run(exp_config)
+        logger.info(f"Experiment finished with id: {exp_id}")
         exit_code = 0
     except Exception as e:
         logger.error(f"Experiment failed {e}", exc_info=True)
         exit_code = 1
 
-    if run is not None:
-        if exit_code == 0:
-            run.alert(
-                f"Experiment {run_id} ended",
-                text="Experiment ended",
-                level=AlertLevel.INFO,
-            )
-        else:
-            run.alert(
-                f"Experiment {run_id} failed",
-                level=AlertLevel.ERROR,
-                text="Experiment failed",
-            )
-        # Check if COCO results were generated
-        coco_exp_dir = COCOLoggerWrapperConfig.coco_dir(run_id)
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-        print(coco_exp_dir)
-        if os.path.exists(coco_exp_dir) and os.listdir(coco_exp_dir):
-            logger.info(f"Logging COCO results from {coco_exp_dir} to wandb")
-            # Log coco results as artifact
-            artifact = wandb.Artifact(
-                name=f"coco_results_{run_id}",
-                type="coco_results",
-                description="COCO results",
-            )
-            artifact.add_dir(coco_exp_dir)
-            run.log_artifact(artifact)
-        run.finish(exit_code=exit_code)
-
-    return data_dir, exit_code
+    return exit_code
 
 
 def launch_jaix_experiment(
     run_config: Dict,
-    project: Optional[str] = None,
-    wandb: bool = True,
     repeat: int = 1,
     sweep: Optional[Tuple[List[str], List[Any]]] = None,
-    group_name: Optional[str] = None,
 ):
     """
     Launch a jaix experiment from a run_config dictionary
@@ -201,11 +70,9 @@ def launch_jaix_experiment(
             group_names.append(f"{sweep_keys[-1]} {sweep_value}")
     else:
         run_configs.append(run_config)
-        group_names.append(None)
+        # If no sweep, just use no group name
+        group_names = [None] * len(run_configs)
 
-    # TODO: make nicer, this just overwrites for now
-    if group_name:
-        group_names = [group_name] * len(run_configs)
     results = {}
 
     for run_config, group_name in zip(run_configs, group_names):
@@ -214,21 +81,15 @@ def launch_jaix_experiment(
             "data_dirs": [],
             "exit_codes": [],
         }
+        # TODO: pass group names through, don't just ignore them
         for _ in range(repeat):
-            data_dir, exit_code = run_experiment(run_config, project, wandb, group_name)
-            results[group_name]["data_dirs"].append(data_dir)  # type: ignore
+            exit_code = run_experiment(run_config)
             results[group_name]["exit_codes"].append(exit_code)  # type: ignore
     return results
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Launch a jaix experiment")
-    parser.add_argument(
-        "--project",
-        type=str,
-        default=None,
-        help="Wandb project to log to. If not provided, will not log to wandb",
-    )
     parser.add_argument(
         "--config_file", type=str, help="Path to the configuration file"
     )
@@ -237,7 +98,6 @@ def parse_args():
         "--sweep_keys", nargs="+", type=str, help="Keys to sweep value in config"
     )
     parser.add_argument("--sweep_values", nargs="+", type=float, help="Values to sweep")
-    parser.add_argument("--group", type=str, default=None, help="Wandb group name")
     args = parser.parse_args()
     if args.sweep_values:
         cmp = [int(v) == v for v in args.sweep_values]
@@ -265,17 +125,11 @@ if __name__ == "__main__":
         with open(args.config_file, "r") as f:
             run_config = json.load(f)
         launch_arguments["run_config"] = run_config
-        if args.project:
-            launch_arguments["project"] = args.project
-            launch_arguments["wandb"] = True
-        else:
-            launch_arguments["wandb"] = False
         launch_arguments["repeat"] = args.repeat
         if args.sweep_keys and args.sweep_values:
             sweep_keys = args.sweep_keys  # type: List[str]
             sweep_values = args.sweep_values  # type: List[Any]
             launch_arguments["sweep"] = (sweep_keys, sweep_values)  # type: ignore
-        launch_arguments["group_name"] = args.group
         # TODO: better validation of arguments
     results = launch_jaix_experiment(**launch_arguments)  # type: ignore
     # Aggregate exit codes. If any experiment failed, the script will return something different than 0

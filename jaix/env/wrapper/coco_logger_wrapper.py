@@ -1,4 +1,4 @@
-from jaix.env.wrapper import PassthroughWrapper
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 from typing import List, Optional
@@ -14,12 +14,11 @@ import cocopp
 import os.path as osp
 import os
 import contextlib
-from jaix import LOGGER_NAME
 import numpy as np
 from uuid import uuid4
 from jaix.utils.exp_id import get_exp_id
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class COCOLoggerWrapperConfig(Config):
@@ -27,8 +26,7 @@ class COCOLoggerWrapperConfig(Config):
         self,
         algo_name: str,
         algo_info: str = "",
-        exp_id: Optional[str] = None,
-        logger_name: str = "coco_logger",
+        logger_name: Optional[str] = None,
         base_evaluation_triggers: Optional[List[int]] = None,
         number_evaluation_triggers: int = 20,
         improvement_steps: float = 1e-5,
@@ -37,19 +35,22 @@ class COCOLoggerWrapperConfig(Config):
         passthrough: bool = True,
     ):
         self.algo_name = algo_name
-        self.exp_id = COCOLoggerWrapperConfig.coco_dir(exp_id)
         self.algo_info = algo_info
         # TODO: potentially add some env info here too
-        self.logger_name = logger_name
+        self.logger_name = (
+            logger_name if logger_name is not None else globals.COCO_LOGGER_NAME
+        )
+        if self.logger_name == globals.LOGGER_NAME:
+            raise ValueError(
+                "COCOLoggerWrapperConfig: logger_name cannot be the root logger name."
+            )
+        globals.COCO_LOGGER_NAME = self.logger_name
         self.passthrough = passthrough
         self.base_evaluation_triggers = base_evaluation_triggers
         self.number_evaluation_triggers = number_evaluation_triggers
         self.improvement_steps = improvement_steps
         self.number_target_triggers = number_target_triggers
         self.target_precision = target_precision
-
-        print(f"COCO results will be saved to {self.exp_id}")
-        print("--------------------------------------------------")
 
     def _setup(self):
         setup_coco_logger(
@@ -61,12 +62,6 @@ class COCOLoggerWrapperConfig(Config):
             target_precision=self.target_precision,
         )
         return True
-
-    @staticmethod
-    def coco_dir(exp_id: Optional[str]) -> str:
-        exp_id = exp_id if exp_id is not None else get_exp_id()
-        assert exp_id is not None, "exp_id must be provided or set globally"
-        return osp.join(exp_id, "coco_exdata")
 
     def _teardown(self):
         # This also triggers writing the files
@@ -102,7 +97,16 @@ class COCOLoggerWrapper(PassthroughWrapper, ConfigurableObject):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, self.passthrough)
         self.coco_logger = logging.getLogger(self.logger_name)
+        exp_id = get_exp_id()
+        assert exp_id is not None, "COCOLoggerWrapper: exp_id must be set globally"
+        self.exp_id = COCOLoggerWrapper.coco_dir(exp_id)
         self.emit_start()  # Emit start on init
+
+    @staticmethod
+    def coco_dir(exp_id: Optional[str]) -> str:
+        exp_id = exp_id if exp_id is not None else get_exp_id()
+        assert exp_id is not None, "exp_id must be provided or set globally"
+        return osp.join(exp_id, "coco_exdata")
 
     def emit_start(self):
         # Tell COCO that a new experiment is starting

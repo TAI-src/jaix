@@ -3,7 +3,7 @@ from jaix.env.wrapper.wrapped_env_factory import (
     WrappedEnvFactory as WEF,
 )
 from jaix.env.wrapper.any_fit_wrapper import AnyFitWrapper
-from . import DummyEnv, test_handler, DummyWrapper
+from . import DummyEnv, test_handler, DummyWrapper, DummyWrapperConfig
 from gymnasium.utils.env_checker import check_env
 import ast
 import pytest

@@ -5,9 +5,14 @@ from ttex.config import ConfigurableObjectFactory as COF
 import json
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def skip_remaining_tests():
-    if HPOEnvironment is None:
+    try:
+        import tabrepo  # noqa: F401
+
+        assert HPOEnvironment is not None
+    except ImportError:
+        assert HPOEnvironment is None
         pytest.skip(
             "Skipping HPO tests. If this is unexpected, check that the tabrepo extra is installed."
         )
@@ -63,14 +68,14 @@ def test_step(env):
 
     obs, r, term, trunc, info = env.step([0] * env.action_space.n)
     assert obs in env.observation_space
-    assert r == env.tabrepo_adapter.max_rank
+    assert r is None
     assert not term
     assert not trunc
     assert info["env_step"] == 0
 
     obs, r, term, trunc, info = env.step(env.action_space.sample())
     assert obs in env.observation_space
-    assert r == obs[0]
+    assert r is None
     assert not trunc
     assert info["env_step"] > 0
 
@@ -83,7 +88,7 @@ def test_stop(env):
         ensembles = json.loads(info["ensembles"])
         assert len(ensembles[str(obs[0])]) >= 1
     assert env.training_budget <= env.training_time
-    assert r == env.tabrepo_adapter.max_rank
+    assert r is None
 
 
 def test_instance_seeding():

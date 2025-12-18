@@ -37,12 +37,6 @@
             ]
           }
         },
-        "env_wrappers": [
-          [
-            "jaix.env.wrapper.any_fit_wrapper.AnyFitWrapper",
-            {}
-          ]
-        ],
         "comp_config": {
           "jaix.environment_factory.CompositeEnvironmentConfig": {
             "agg_type": "jaix.suite.suite.AggType.INST",
@@ -58,7 +52,15 @@
                 },
                 "real_time": false
               }
-            }
+            },
+            "comp_env_wrappers": [
+              [
+                "jaix.env.wrapper.improvement_reward_wrapper.ImprovementRewardWrapper",
+                {
+                  "jaix.env.wrapper.improvement_reward_wrapper.ImprovementRewardWrapperConfig": {}
+                }
+              ]
+            ]
           }
         }
       }

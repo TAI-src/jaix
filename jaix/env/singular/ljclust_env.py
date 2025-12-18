@@ -3,11 +3,13 @@ import gymnasium as gym
 import numpy as np
 from jaix.env.singular.singular_environment import SingularEnvironment
 from jaix.env.utils.ase import LJClustAdapter, LJClustAdapterConfig
+from typing import Optional
 
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
+
 import logging
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class LJClustEnvironmentConfig(Config):
@@ -89,13 +91,14 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
         return None, self._get_info()
 
     def step(self, pos):
-        val: float
+        val: Optional[float]
         pos = np.reshape(pos, (self.adapter.num_atoms, 3))
         if not self.adapter.validate(pos):
-            val = np.inf  # TODO: Figure out proper penalties or nan
+            val = None
             add_info = {"invalid": True}
         else:
             val, add_info = self.adapter.evaluate(pos)
+            assert val is not None
             add_info["invalid"] = False
             if val < self.best_so_far:
                 self.best_so_far = val
@@ -104,10 +107,9 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
         logger.debug(f"Step: {pos}, Info: {info}")
         terminated = self.stop()
         truncated = False
-        r = -val
         return (
             np.asarray([val], dtype=self.action_space.dtype),
-            r,
+            None,
             terminated,
             truncated,
             info,
