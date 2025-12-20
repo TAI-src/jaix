@@ -1,0 +1,28 @@
+FROM python:3.12
+
+# Install build tools and dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    git \
+    curl \
+    pkgconf \
+    libblas-dev \
+    liblapack-dev \
+    libfftw3-dev \
+    libtool \
+    gfortran && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build and install KIM API
+WORKDIR /tmp
+RUN git clone https://github.com/openkim/kim-api.git && \
+    cd kim-api && \
+    mkdir build && cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local && \
+    make -j$(nproc) && make install
+
+# Install specific KIM model
+ENV KIM_API_CONFIG_PATH=/dev/null
+RUN ldconfig && \
+    kim-api-collections-management install system LJ_ElliottAkerson_2015_Universal__MO_959249795837_003

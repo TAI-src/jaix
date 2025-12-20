@@ -1,39 +1,4 @@
-# ────────────────────────────────────────────────
-# Stage 1: Build KIM API
-# ────────────────────────────────────────────────
-FROM python:3.12 AS builder
-
-# Install build tools and dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    cmake \
-    git \
-    curl \
-    pkgconf \
-    libblas-dev \
-    liblapack-dev \
-    libfftw3-dev \
-    libtool \
-    gfortran && \
-    rm -rf /var/lib/apt/lists/*
-
-# Build and install KIM API
-WORKDIR /tmp
-RUN git clone https://github.com/openkim/kim-api.git && \
-    cd kim-api && \
-    mkdir build && cd build && \
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local && \
-    make -j$(nproc) && make install
-
-# Install specific KIM model
-ENV KIM_API_CONFIG_PATH=/dev/null
-RUN ldconfig && \
-    kim-api-collections-management install system LJ_ElliottAkerson_2015_Universal__MO_959249795837_003
-
-# ────────────────────────────────────────────────
-# Stage 2: Final runtime image
-# ────────────────────────────────────────────────
-FROM python:3.12 AS final
+FROM python:3.12
 
 # Install only the runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -45,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Copy KIM API and model installation from builder
-COPY --from=builder /usr/local /usr/local
+COPY --from=taisrc/kim /usr/local /usr/local
 
 # Copy jaix from another base image
 COPY --from=taisrc/jaix_base:latest /jaix /jaix
