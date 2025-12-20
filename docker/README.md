@@ -7,17 +7,21 @@ These are:
 - tabrepo
 - kim
 
-If they do need to be rebuilt
+If they do need to be rebuilt, run from this repository
 ```
 DOCKER_BUILDKIT=1 docker build --shm-size=16g \
   -t taisrc/tabrepo \
-  -f ../docker/Dockerfile_tabrepo \
+  -f Dockerfile_tabrepo \
   ../deps/
 ```
 
 ```
 DOCKER_BUILDKIT=1 docker build \
   -t taisrc/kim \
-  -f ../docker/Dockerfile_kim \
+  -f Dockerfile_kim \
   .
 ```
+
+To update the versions:
+- tabrepo: pull changes into subrepo
+- kim: change version tag in Dockerfile_kim
