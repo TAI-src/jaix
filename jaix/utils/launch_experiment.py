@@ -1,5 +1,4 @@
 from jaix.experiment import Experiment
-from jaix.utils.globals import LOGGER_NAME
 from ttex.config import ConfigFactory as CF
 from wandb.sdk import launch
 from typing import Dict, Optional, List, Any, Tuple
@@ -11,7 +10,9 @@ import json
 from jaix.utils.dict_tools import nested_set
 from copy import deepcopy
 
-logger = logging.getLogger(LOGGER_NAME)
+import jaix.utils.globals as globals
+
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 def run_experiment(
@@ -31,15 +32,17 @@ def run_experiment(
     run_config = run_config.copy()
     exp_config = CF.from_dict(run_config)
     logger.info(f"Running experiment with config: {exp_config}")
+    exp_id = None
 
     try:
-        Experiment.run(exp_config)
+        exp_id = Experiment.run(exp_config)
+        logger.info(f"Experiment finished with id: {exp_id}")
         exit_code = 0
     except Exception as e:
         logger.error(f"Experiment failed {e}", exc_info=True)
         exit_code = 1
 
-    return exit_code
+    return exit_code, exp_id
 
 
 def launch_jaix_experiment(
@@ -81,8 +84,9 @@ def launch_jaix_experiment(
         }
         # TODO: pass group names through, don't just ignore them
         for _ in range(repeat):
-            exit_code = run_experiment(run_config)
+            exit_code, exp_id = run_experiment(run_config)
             results[group_name]["exit_codes"].append(exit_code)  # type: ignore
+            results[group_name]["data_dirs"].append(exp_id)  # type: ignore
     return results
 
 

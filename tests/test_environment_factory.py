@@ -59,6 +59,25 @@ def env_config(ec_config, wrappers=None, comp_config=None, seed=None):
     return env_config
 
 
+def test_wrapper_setup_teardown(ec_config):
+    # wrappers = [(DummyWrapper, )]
+    config = env_config(
+        ec_config,
+        wrappers=[(DummyWrapper, DummyWrapperConfig())],
+        comp_config=None,
+        seed=42,
+    )
+    assert config.setup()
+    for _, wrapper_conf in config.env_wrappers:
+        if isinstance(wrapper_conf, DummyWrapperConfig):
+            assert wrapper_conf._stp
+            assert not wrapper_conf.trdwn
+    assert config.teardown()
+    for _, wrapper_conf in config.env_wrappers:
+        if isinstance(wrapper_conf, DummyWrapperConfig):
+            assert wrapper_conf.trdwn
+
+
 def test_singular(ec_config):
     config = env_config(ec_config)
     for env in EF.get_envs(config):

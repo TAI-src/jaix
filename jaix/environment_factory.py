@@ -1,14 +1,14 @@
 from ttex.config import Config, ConfigurableObjectFactory as COF
-from typing import Type, Optional, Union, Dict, Tuple, List
+from typing import Type, Optional, Union, Dict, Tuple, List, Any
 from jaix.suite.suite import Suite, AggType
 from jaix.env.composite.composite_environment import CompositeEnvironment
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from jaix.env.wrapper.closing_wrapper import ClosingWrapper
 import gymnasium as gym
 import logging
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class CompositeEnvironmentConfig(Config):
@@ -22,7 +22,7 @@ class CompositeEnvironmentConfig(Config):
         comp_env_class: Type[CompositeEnvironment],
         comp_env_config: Config,
         comp_env_wrappers: Optional[
-            List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+            List[Tuple[Type[gym.Wrapper], Union[Config, Dict[str, Any]]]]
         ] = None,
     ):
         self.agg_type = agg_type
@@ -34,6 +34,22 @@ class CompositeEnvironmentConfig(Config):
         self.comp_env_wrappers = (
             tmp_wrappers + CompositeEnvironmentConfig.default_wrappers
         )
+
+    def _setup(self):
+        success = True
+        for _, wrapper_conf in self.comp_env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                tmp_config: Config = wrapper_conf  # For pyright
+                success = tmp_config.setup() and success
+        return success
+
+    def _teardown(self):
+        success = True
+        for _, wrapper_conf in self.comp_env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                tmp_config: Config = wrapper_conf  # For pyright
+                success = tmp_config.teardown() and success
+        return success
 
 
 class EnvironmentConfig(Config):
@@ -67,14 +83,16 @@ class EnvironmentConfig(Config):
         success = True
         for _, wrapper_conf in self.env_wrappers:
             if isinstance(wrapper_conf, Config):
-                success = wrapper_conf.setup() and success
+                tmp_config: Config = wrapper_conf  # For pyright
+                success = tmp_config.setup() and success
         return success
 
     def _teardown(self):
         success = True
         for _, wrapper_conf in self.env_wrappers:
             if isinstance(wrapper_conf, Config):
-                success = wrapper_conf.teardown() and success
+                tmp_config: Config = wrapper_conf  # For pyright
+                success = tmp_config.teardown() and success
         return success
 
 

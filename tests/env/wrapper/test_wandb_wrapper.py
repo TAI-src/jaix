@@ -98,9 +98,10 @@ def test_close():
 )
 def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
     env = ImprovementRewardWrapper(
-        ImprovementRewardWrapperConfig(state_eval=state_eval_imp, min=True), DummyEnv()
+        ImprovementRewardWrapperConfig(state_eval=state_eval_imp, is_min=True),
+        DummyEnv(),
     )
-    config = WandbWrapperConfig(state_eval=state_eval_wandb, min=True)
+    config = WandbWrapperConfig(state_eval=state_eval_wandb, is_min=True)
     wrapped_env = WandbWrapper(config, env)  # Adds raw_obs0
 
     assert hasattr(wrapped_env, "logger")
@@ -134,12 +135,12 @@ def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
 )
 def test_wandb_improvement_interaction_v2(state_eval_imp, state_eval_wandb):
     env = DummyEnv()
-    config = WandbWrapperConfig(state_eval=state_eval_wandb, min=True)
+    config = WandbWrapperConfig(state_eval=state_eval_wandb, is_min=True)
     wrapped_env = WandbWrapper(config, env)  # Adds raw_obs0
     assert hasattr(wrapped_env, "logger")
 
     # Now wrap with ImprovementRewardWrapper
-    imp_config = ImprovementRewardWrapperConfig(state_eval=state_eval_imp, min=True)
+    imp_config = ImprovementRewardWrapperConfig(state_eval=state_eval_imp, is_min=True)
     wrapped_env = ImprovementRewardWrapper(imp_config, wrapped_env)
 
     wrapped_env.reset()

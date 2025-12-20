@@ -20,13 +20,13 @@ class ImprovementRewardWrapperConfig(Config):
     def __init__(
         self,
         state_eval: str = "obs0",
-        min: bool = True,
+        is_min: bool = True,
         transform: bool = True,
         passthrough: bool = True,
         imp_type=ImprovementType.BEST_SINCE_FIRST,
     ):
         self.state_eval = state_eval
-        self.min = min
+        self.is_min = is_min
         self.transform = transform
         self.passthrough = passthrough
         self.imp_type = imp_type
@@ -41,7 +41,7 @@ class ImprovementRewardWrapper(ConfigurableObject, ValueTrackWrapper):
     def __init__(self, config: ImprovementRewardWrapperConfig, env: gym.Env):
         ConfigurableObject.__init__(self, config)
         ValueTrackWrapper.__init__(
-            self, env, config.state_eval, config.min, config.passthrough
+            self, env, config.state_eval, config.is_min, config.passthrough
         )
 
     @staticmethod
@@ -52,7 +52,7 @@ class ImprovementRewardWrapper(ConfigurableObject, ValueTrackWrapper):
         return ret
 
     def _compute_imp(self, comp_val: float, val: float) -> float:
-        if self.min:
+        if self.is_min:
             imp = comp_val - val
         else:
             imp = val - comp_val

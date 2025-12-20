@@ -23,7 +23,7 @@ def test_get_val():
 def test_val_updates(state_eval):
     env = gym.make("MountainCar-v0", render_mode="rgb_array")
     env.reset(seed=1337)
-    wrapped_env = ValueTrackWrapper(env, state_eval=state_eval, min=True)
+    wrapped_env = ValueTrackWrapper(env, state_eval=state_eval, is_min=True)
 
     wrapped_env.reset(seed=1337)
     assert wrapped_env.steps == 0
