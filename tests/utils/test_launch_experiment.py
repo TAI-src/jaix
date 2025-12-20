@@ -322,7 +322,7 @@ def get_config(suite="RBF", comp=False):
     return xconfig
 
 
-def test_launch_jaix_experiment_wandb():
+def test_integration_wandb_wrapper():
     prev_mode = os.environ.get("WANDB_MODE", "online")
     os.environ["WANDB_MODE"] = "offline"
 
@@ -353,6 +353,26 @@ def test_launch_jaix_experiment_wandb():
     assert get_wandb_logger() is None  # Wandb should be torn down after experiment
     assert exit_code == 0
     shutil.rmtree("./wandb", ignore_errors=True)
+
+
+def test_integration_coco_wrapper():
+    xconfig = deepcopy(get_config())
+    # Add coco logger wrapper
+    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
+        "jaix.environment_factory.EnvironmentConfig"
+    ]["env_wrappers"] = [
+        (
+            "jaix.env.wrapper.coco_logger_wrapper.COCOLoggerWrapper",
+            {"jaix.env.wrapper.coco_logger_wrapper.COCOLoggerWrapperConfig": {}},
+        )
+    ]
+
+    results = launch_jaix_experiment(run_config=xconfig)
+    exit_code = [result["exit_codes"][0] for result in results.values()][0]
+    assert exit_code == 0
+
+    data_dir = [result["data_dirs"][0] for result in results.values()][0]
+    shutil.rmtree(data_dir, ignore_errors=True)
 
 
 def check_installed_extras(suite):

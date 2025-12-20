@@ -32,6 +32,7 @@ def run_experiment(
     run_config = run_config.copy()
     exp_config = CF.from_dict(run_config)
     logger.info(f"Running experiment with config: {exp_config}")
+    exp_id = None
 
     try:
         exp_id = Experiment.run(exp_config)
@@ -41,7 +42,7 @@ def run_experiment(
         logger.error(f"Experiment failed {e}", exc_info=True)
         exit_code = 1
 
-    return exit_code
+    return exit_code, exp_id
 
 
 def launch_jaix_experiment(
@@ -83,8 +84,9 @@ def launch_jaix_experiment(
         }
         # TODO: pass group names through, don't just ignore them
         for _ in range(repeat):
-            exit_code = run_experiment(run_config)
+            exit_code, exp_id = run_experiment(run_config)
             results[group_name]["exit_codes"].append(exit_code)  # type: ignore
+            results[group_name]["data_dirs"].append(exp_id)  # type: ignore
     return results
 
 

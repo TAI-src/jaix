@@ -14,8 +14,9 @@ import os.path as osp
 import os
 import contextlib
 import numpy as np
-from uuid import uuid4
 from jaix.utils.exp_id import get_exp_id
+from jaix.utils.approach_name import get_approach_name
+from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
 
 import jaix.utils.globals as globals
 
@@ -25,7 +26,7 @@ logger = logging.getLogger(globals.LOGGER_NAME)
 class COCOLoggerWrapperConfig(Config):
     def __init__(
         self,
-        algo_name: str,
+        algo_name: Optional[str] = None,
         algo_info: str = "",
         logger_name: Optional[str] = None,
         base_evaluation_triggers: Optional[List[int]] = None,
@@ -34,8 +35,10 @@ class COCOLoggerWrapperConfig(Config):
         number_target_triggers: int = 20,
         target_precision: float = 1e-8,
         passthrough: bool = True,
+        state_eval: str = "obs0",  # Which value should be logged
+        min: bool = True,  # Whether lower is better for state_eval
     ):
-        self.algo_name = algo_name
+        self.algo_name = algo_name if algo_name is not None else get_approach_name()
         self.algo_info = algo_info
         # TODO: potentially add some env info here too
         self.logger_name = (
@@ -52,6 +55,8 @@ class COCOLoggerWrapperConfig(Config):
         self.improvement_steps = improvement_steps
         self.number_target_triggers = number_target_triggers
         self.target_precision = target_precision
+        self.state_eval = state_eval
+        self.min = min
 
     def _setup(self):
         setup_coco_logger(
@@ -87,7 +92,11 @@ class COCOLoggerWrapperConfig(Config):
         return True
 
 
-class COCOLoggerWrapper(PassthroughWrapper, ConfigurableObject):
+class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
+    """
+    A wrapper that logs environment interactions using COCO format for later postprocessing.
+    """
+
     config_class = COCOLoggerWrapperConfig
 
     def __init__(
@@ -145,11 +154,14 @@ class COCOLoggerWrapper(PassthroughWrapper, ConfigurableObject):
             trunc,
             info,
         ) = self.env.step(action)
-        # COCO logger eval
-        raw_r = info["raw_r"] if "raw_r" in info else r
+
+        # Get the value for tracking and update internal state
+        val = self.get_val(obs, r, info, self.state_eval)
+        self.update_vals(val)
+
         coco_eval = COCOEval(
             x=action,
-            mf=raw_r,  # TODO raw_r or observation?
+            mf=val,  # TODO: should also be logging noisy values
         )
         self.coco_logger.info(coco_eval)
         logger.debug(f"COCOEval emitted: {coco_eval} {self.exp_id}")

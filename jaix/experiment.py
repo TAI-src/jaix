@@ -13,6 +13,8 @@ import jaix.utils.globals as globals
 import logging
 from uuid import uuid4
 from jaix.utils.exp_id import set_exp_id
+from jaix.utils.approach_name import set_approach_name
+from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig
 
 
 class LoggingConfig(Config):
@@ -59,6 +61,12 @@ class ExperimentConfig(Config):
         self.run = None
 
     def setup(self):
+        default_algo_name = f"{self.opt_class.__name__}"
+        # TODO: ugly workaround for a good name
+        if isinstance(self.opt_config, ATOptimiserConfig):
+            default_algo_name = self.opt_config.strategy_class.__name__
+        set_approach_name(default_algo_name)
+
         # override to ensure we have a sensible order
         self.logging_config.setup()
         self.env_config.setup()
@@ -92,6 +100,7 @@ class ExperimentConfig(Config):
         self.logging_config.teardown()
 
         teardown_wandb_logger(name=globals.WANDB_LOGGER_NAME)
+        set_approach_name(None)
         return True
 
 
