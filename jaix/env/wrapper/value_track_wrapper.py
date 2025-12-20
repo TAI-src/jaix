@@ -12,12 +12,12 @@ class ValueTrackWrapper(PassthroughWrapper):
         self,
         env: gym.Env,
         state_eval: str = "obs0",
-        min: bool = True,
+        is_min: bool = True,
         passthrough: bool = True,
     ):
         PassthroughWrapper.__init__(self, env, passthrough)
         self.state_eval = state_eval
-        self.min = min
+        self.is_min = is_min
         self.best_val: Optional[float] = None
         self.steps = 0
         self.first_val: Optional[float] = None
@@ -68,6 +68,8 @@ class ValueTrackWrapper(PassthroughWrapper):
             self.last_val = val
         assert self.best_val is not None
         # Update best and last
-        self.best_val = min(self.best_val, val) if self.min else max(self.best_val, val)
+        self.best_val = (
+            min(self.best_val, val) if self.is_min else max(self.best_val, val)
+        )
         self.last_val = val
         self.steps += 1

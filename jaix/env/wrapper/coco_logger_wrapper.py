@@ -36,7 +36,7 @@ class COCOLoggerWrapperConfig(Config):
         target_precision: float = 1e-8,
         passthrough: bool = True,
         state_eval: str = "obs0",  # Which value should be logged
-        min: bool = True,  # Whether lower is better for state_eval
+        is_min: bool = True,  # Whether lower is better for state_eval
     ):
         self.algo_name = algo_name if algo_name is not None else get_approach_name()
         self.algo_info = algo_info
@@ -56,7 +56,7 @@ class COCOLoggerWrapperConfig(Config):
         self.number_target_triggers = number_target_triggers
         self.target_precision = target_precision
         self.state_eval = state_eval
-        self.min = min
+        self.is_min = is_min
 
     def _setup(self):
         setup_coco_logger(
@@ -105,7 +105,13 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
         env: gym.Env,
     ):
         ConfigurableObject.__init__(self, config)
-        PassthroughWrapper.__init__(self, env, self.passthrough)
+        ValueTrackWrapper.__init__(
+            self,
+            env,
+            passthrough=config.passthrough,
+            state_eval=config.state_eval,
+            is_min=config.is_min,
+        )
         self.coco_logger = logging.getLogger(self.logger_name)
         exp_id = get_exp_id()
         assert exp_id is not None, "COCOLoggerWrapper: exp_id must be set globally"

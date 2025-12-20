@@ -36,7 +36,7 @@ def test_post_log_scale_axis():
 @pytest.mark.parametrize("min_bool", [True, False])
 def test_compute_imp(min_bool):
     env = gym.make("MountainCar-v0", render_mode="rgb_array")
-    config = ImprovementRewardWrapperConfig(min=min_bool, transform=True)
+    config = ImprovementRewardWrapperConfig(is_min=min_bool, transform=True)
     wrapped_env = ImprovementRewardWrapper(config, env)
 
     assert wrapped_env._compute_imp(10, 5) == (5 if min_bool else 0)
@@ -47,7 +47,7 @@ def test_compute_imp(min_bool):
 def test__get_improvement():
     env = gym.make("MountainCar-v0", render_mode="rgb_array")
     config = ImprovementRewardWrapperConfig(
-        transform=False, imp_type=ImprovementType.OVER_FIRST, min=True
+        transform=False, imp_type=ImprovementType.OVER_FIRST, is_min=True
     )
     wrapped_env = ImprovementRewardWrapper(config, env)
     assert wrapped_env.first_val is None
@@ -82,7 +82,7 @@ def test_get_improvement():
         transform=True,
         imp_type=ImprovementType.BEST_SINCE_FIRST,
         state_eval="r",
-        min=True,
+        is_min=True,
     )
     wrapped_env = ImprovementRewardWrapper(config, env)
 

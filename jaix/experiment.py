@@ -101,6 +101,7 @@ class ExperimentConfig(Config):
 
         teardown_wandb_logger(name=globals.WANDB_LOGGER_NAME)
         set_approach_name(None)
+        set_exp_id(None)
         return True
 
 

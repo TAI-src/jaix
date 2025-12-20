@@ -13,6 +13,7 @@ class CompositeEnvironment(gym.Env):
     @staticmethod
     def const_dim(env_list: List[gym.Env]) -> bool:
         """Check if action_space dimension is constant across all environments"""
+        assert len(env_list) > 0, "env_list must not be empty"
         dim_0 = np.prod(env_list[0].action_space.shape)
         for env in env_list:
             if np.prod(env.action_space.shape) != dim_0:
@@ -21,5 +22,6 @@ class CompositeEnvironment(gym.Env):
 
     @property
     def suite_name(self) -> str:
+        assert len(self.env_list) > 0, "env_list must not be empty"
         single_env_name = type(self.env_list[0].unwrapped).__name__
         return f"{type(self).__name__}{len(self.env_list)}{single_env_name}"

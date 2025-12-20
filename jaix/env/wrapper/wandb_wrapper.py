@@ -18,7 +18,7 @@ class WandbWrapperConfig(Config):
         group: Optional[str] = None,
         passthrough: bool = True,
         state_eval: str = "obs0",  # Which value should be logged
-        min: bool = True,  # Whether lower is better for state_eval
+        is_min: bool = True,  # Whether lower is better for state_eval
     ):
         self.passthrough = passthrough
         self.custom_metrics = custom_metrics
@@ -27,7 +27,7 @@ class WandbWrapperConfig(Config):
         self.project = project
         self.group = group
         self.state_eval = state_eval
-        self.min = min
+        self.is_min = is_min
         self.logger_name = (
             logger_name
             if (logger_name is not None)  # Avoid using root logger
@@ -68,7 +68,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
             env,
             passthrough=self.passthrough,
             state_eval=self.state_eval,
-            min=self.min,
+            is_min=self.is_min,
         )
         self.logger = logging.getLogger(self.logger_name)
         self.log_resets = 0

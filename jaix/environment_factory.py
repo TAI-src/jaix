@@ -4,10 +4,6 @@ from jaix.suite.suite import Suite, AggType
 from jaix.env.composite.composite_environment import CompositeEnvironment
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from jaix.env.wrapper.closing_wrapper import ClosingWrapper
-from jaix.env.wrapper.coco_logger_wrapper import (
-    COCOLoggerWrapper,
-    COCOLoggerWrapperConfig,
-)
 import gymnasium as gym
 import logging
 import jaix.utils.globals as globals
