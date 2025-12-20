@@ -4,7 +4,10 @@ from ttex.config import ConfigurableObject, Config
 import logging
 from typing import Optional, Dict, List
 from ttex.log import setup_wandb_logger
-import jaix.utils.globals as globals
+from jaix.utils.experiment_context import ExperimentContext
+from ttex.log import log_wandb_init
+
+DEFAULT_WANDB_LOGGER_NAME = "wandb_logger"
 
 
 class WandbWrapperConfig(Config):
@@ -28,19 +31,21 @@ class WandbWrapperConfig(Config):
         self.group = group
         self.state_eval = state_eval
         self.is_min = is_min
+        self.logger_name = logger_name
+
+    def _setup(self, ctx: ExperimentContext):  # Setup wandb logger
         self.logger_name = (
-            logger_name
-            if (logger_name is not None)  # Avoid using root logger
-            else globals.WANDB_LOGGER_NAME
+            self.logger_name
+            if (self.logger_name is not None)  # Avoid using root logger
+            else DEFAULT_WANDB_LOGGER_NAME
         )
-        if self.logger_name == globals.LOGGER_NAME:
+        if self.logger_name == ctx.get("logger_name"):
             raise ValueError(
                 "WandbWrapperConfig: logger_name cannot be the root logger name."
             )
-        globals.WANDB_LOGGER_NAME = self.logger_name
+        ctx.set("wandb_logger_name", self.logger_name)
 
-    def _setup(self):  # Setup wandb logger
-        logger = setup_wandb_logger(
+        wandb_logger = setup_wandb_logger(
             name=self.logger_name,
             custom_metrics=self.custom_metrics,
             snapshot=self.snapshot,
@@ -48,7 +53,8 @@ class WandbWrapperConfig(Config):
             project=self.project,
             group=self.group,
         )
-        assert logger is not None
+        assert wandb_logger is not None
+
         return True
 
 
@@ -126,9 +132,9 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
             best_raw_val = float(self.best_val if self.best_val is not None else val)
 
         info_dict[f"env/raw_{self.state_eval}/{str(self.env.unwrapped)}"] = raw_val
-        info_dict[
-            f"env/best_raw_{self.state_eval}/{str(self.env.unwrapped)}"
-        ] = best_raw_val
+        info_dict[f"env/best_raw_{self.state_eval}/{str(self.env.unwrapped)}"] = (
+            best_raw_val
+        )
 
         if term:
             info_dict[f"env/term/{str(self.env.unwrapped)}"] = float(

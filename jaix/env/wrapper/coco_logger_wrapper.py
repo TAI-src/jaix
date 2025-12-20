@@ -14,10 +14,12 @@ import numpy as np
 from jaix.utils.exp_id import get_exp_id
 from jaix.utils.approach_name import get_approach_name
 from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
+from jaix.utils.experiment_context import ExperimentContext
 
 import jaix.utils.globals as globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
+DEFAULT_COCO_LOGGER_NAME = "coco_logger"
 
 
 class COCOLoggerWrapperConfig(Config):
@@ -38,14 +40,7 @@ class COCOLoggerWrapperConfig(Config):
         self.algo_name = algo_name if algo_name is not None else get_approach_name()
         self.algo_info = algo_info
         # TODO: potentially add some env info here too
-        self.logger_name = (
-            logger_name if logger_name is not None else globals.COCO_LOGGER_NAME
-        )
-        if self.logger_name == globals.LOGGER_NAME:
-            raise ValueError(
-                "COCOLoggerWrapperConfig: logger_name cannot be the root logger name."
-            )
-        globals.COCO_LOGGER_NAME = self.logger_name
+        self.logger_name = logger_name
         self.passthrough = passthrough
         self.base_evaluation_triggers = base_evaluation_triggers
         self.number_evaluation_triggers = number_evaluation_triggers
@@ -55,7 +50,19 @@ class COCOLoggerWrapperConfig(Config):
         self.state_eval = state_eval
         self.is_min = is_min
 
-    def _setup(self):
+    def _setup(self, ctx: ExperimentContext):  # Setup COCO logger
+
+        self.logger_name = (
+            self.logger_name
+            if self.logger_name is not None
+            else DEFAULT_COCO_LOGGER_NAME
+        )
+        if self.logger_name == ctx.get("logger_name"):
+            raise ValueError(
+                "COCOLoggerWrapperConfig: logger_name cannot be the root logger name."
+            )
+        ctx.set("coco_logger_name", self.logger_name)
+
         setup_coco_logger(
             name=self.logger_name,
             base_evaluation_triggers=self.base_evaluation_triggers,
@@ -110,8 +117,9 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
             is_min=config.is_min,
         )
         self.coco_logger = logging.getLogger(self.logger_name)
-        exp_id = get_exp_id()
-        assert exp_id is not None, "COCOLoggerWrapper: exp_id must be set globally"
+        ctx = config.get_context()
+        exp_id = ctx.get("exp_id")
+        assert exp_id is not None, "COCOLoggerWrapper: exp_id is not set in context"
         self.exp_id = COCOLoggerWrapper.coco_dir(exp_id)
         self.emit_start()  # Emit start on init
 
