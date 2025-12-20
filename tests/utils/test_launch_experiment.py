@@ -8,7 +8,6 @@ from copy import deepcopy
 import pytest
 import itertools
 import json
-from jaix.utils.exp_id import get_exp_id
 import logging
 from ttex.log import get_wandb_logger
 import shutil

@@ -65,9 +65,9 @@ It can also be helpful to consider the order in how the experiment setup happens
 2. The experiment is started with the passed config object by calling [`Experiment.run()`](jaix/experiment.py).
 3. Setup is called on the `ExperimentConfig` object, which means that the following is called
     a. [`logging_config.setup()`](jaix/experiment.py) which creates the main logger and populates `jaix.utils.globals.LOGGER_NAME`
-    b. [`env_config.setup()`](jaix/ennvironment_factory.py) which also calls `setup()` on all wrappers in order.
+    b. [`env_config.setup()`](jaix/environment_factory.py) which also calls `setup()` on all wrappers in order.
     c. [`runner_config.setup()`](jaix/runner/runner.py)
     d. [`opt_config.setup()`](jaix/runner/optimiser.py)
-    e. Iff a [`WandWrapper`](jaix/env/wrapper/wand_wrapper.py) was passed, wandb is initialised using [ttex.log](https://github.com/TAI-src/ttex/blob/main/ttex/log/utils/wandb_logging_setup.py). This also means that a wandb run object is created.
+    e. Iff a [`WandWrapper`](jaix/env/wrapper/wandb_wrapper.py) was passed, wandb is initialised using [ttex.log](https://github.com/TAI-src/ttex/blob/main/ttex/log/utils/wandb_logging_setup.py). This also means that a wandb run object is created.
 4. The experiment id is identified (passed parameter, wandb run id, or newly created uuid) and set as a global variable.
 5. The objects configured by the config are initialised (order depending on runner)
