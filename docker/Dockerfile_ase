@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Copy KIM API and model installation from builder
-COPY --from=taisrc/kim /usr/local /usr/local
+COPY --from=taisrc/kim:latest /usr/local /usr/local
 
 # Copy jaix from another base image
 COPY --from=taisrc/jaix_base:latest /jaix /jaix

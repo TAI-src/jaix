@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Build and install KIM API
 WORKDIR /tmp
-RUN git clone https://github.com/openkim/kim-api.git && \
+RUN git clone --branch v2.4.1 --single-branch https://github.com/openkim/kim-api.git && \
     cd kim-api && \
     mkdir build && cd build && \
     cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local && \

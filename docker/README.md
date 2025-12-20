@@ -19,5 +19,5 @@ DOCKER_BUILDKIT=1 docker build --shm-size=16g \
 DOCKER_BUILDKIT=1 docker build \
   -t taisrc/kim \
   -f ../docker/Dockerfile_kim \
-  ../deps/
+  .
 ```
