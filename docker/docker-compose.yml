@@ -81,6 +81,11 @@ services:
             - type=registry,ref=taisrc/jaix_coco:latest
             - taisrc/jaix_base
             - type=registry,ref=taisrc/jaix_base:latest
+            
+  kim: # image with kim installed (constant)
+    container_name: kim
+    env_file: .env
+    image: taisrc/kim
 
   jaix_ase: # Jaix execution image with ase extra
     <<: *jaix_base
@@ -96,6 +101,8 @@ services:
             - type=registry,ref=taisrc/jaix_ase:latest
             - taisrc/jaix_base
             - type=registry,ref=taisrc/jaix_base:latest
+            - taisrc/kim
+            - type=registry,ref=taisrc/kim:latest
 
   tabrepo: # Base image for hpo extra (contains tabrepo installation)
     container_name: tabrepo
@@ -111,6 +118,7 @@ services:
 #            - taisrc/tabrepo
 #            - type=registry,ref=taisrc/tabrepo:latest
 #    shm_size: '16gb'
+
 
   jaix_hpo: # Jaix execution image with hpo extra
     <<: *jaix_base
