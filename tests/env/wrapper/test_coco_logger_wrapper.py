@@ -8,7 +8,6 @@ import pytest
 import shutil
 import os.path as osp
 import os
-from cocopp.pproc import DictAlg
 import logging
 import jaix.utils.globals as globals
 from jaix.utils.exp_id import set_exp_id

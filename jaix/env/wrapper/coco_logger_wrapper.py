@@ -9,10 +9,7 @@ from ttex.log.coco import (
 )
 from ttex.log import setup_coco_logger, teardown_coco_logger
 import logging
-import cocopp
 import os.path as osp
-import os
-import contextlib
 import numpy as np
 from jaix.utils.exp_id import get_exp_id
 from jaix.utils.approach_name import get_approach_name

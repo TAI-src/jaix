@@ -101,6 +101,7 @@ class ExperimentConfig(Config):
 
         teardown_wandb_logger(name=globals.WANDB_LOGGER_NAME)
         set_approach_name(None)
+        set_exp_id(None)
         return True
 
 
@@ -123,7 +124,7 @@ class Experiment:
         assert exp_id is not None
         set_exp_id(exp_id)
 
-        logger.error(f"Experiment setup with ID {exp_id}")
+        logger.info(f"Experiment setup with ID {exp_id}")
         runner = COF.create(exp_config.runner_class, exp_config.runner_config)
         logger.debug(f"Runner created {runner}")
         for env in EF.get_envs(exp_config.env_config):
