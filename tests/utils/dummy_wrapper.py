@@ -3,7 +3,6 @@ import gymnasium as gym
 from ttex.config import Config, ConfigurableObject
 
 
-
 class DummyWrapperConfig(Config):
     def __init__(self, passthrough: bool = True):
         self.passthrough = passthrough
