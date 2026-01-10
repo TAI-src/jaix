@@ -10,9 +10,9 @@ from typing import Type, List, Tuple, Union, Dict
 import gymnasium as gym
 import logging
 
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globs
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globs.LOGGER_NAME)
 
 
 class WrappedEnvFactory:

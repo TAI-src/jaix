@@ -13,7 +13,7 @@ class Artifact:
 
 class ExperimentContext:
     def __init__(self, exp_id: Optional[str] = None) -> None:
-        self._data: dict[str, Any] = ExperimentContext.default_values(exp_id)
+        self._data: Dict[str, Any] = ExperimentContext.default_values(exp_id)
         self._frozen = False
 
     @staticmethod

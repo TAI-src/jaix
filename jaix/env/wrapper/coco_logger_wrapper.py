@@ -128,10 +128,11 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
             )
         )
         if self.algo_name is None:
-            self.algo_name = ctx.get("approach_name")
+            algo_name = ctx.get("approach_name")
             assert (
-                self.algo_name is not None
+                algo_name is not None
             ), "COCOLoggerWrapper: algo_name must be provided or set in context"
+            self.algo_name = algo_name
         self.emit_start()  # Emit start on init
 
     @staticmethod
