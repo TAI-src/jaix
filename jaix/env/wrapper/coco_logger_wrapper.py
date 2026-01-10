@@ -49,7 +49,6 @@ class COCOLoggerWrapperConfig(Config):
         self.is_min = is_min
 
     def _setup(self, ctx: ExperimentContext):  # Setup COCO logger
-
         self.coco_logger_name = (
             self.coco_logger_name
             if self.coco_logger_name is not None
