@@ -1,4 +1,3 @@
-from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 from typing import List, Optional
@@ -11,10 +10,8 @@ from ttex.log import setup_coco_logger, teardown_coco_logger
 import logging
 import os.path as osp
 import numpy as np
-from jaix.utils.exp_id import get_exp_id
-from jaix.utils.approach_name import get_approach_name
 from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
-from jaix.utils.experiment_context import ExperimentContext
+from jaix.utils.experiment_context import ExperimentContext, Artifact
 
 import jaix.utils.globals as globals
 
@@ -37,7 +34,8 @@ class COCOLoggerWrapperConfig(Config):
         state_eval: str = "obs0",  # Which value should be logged
         is_min: bool = True,  # Whether lower is better for state_eval
     ):
-        self.algo_name = algo_name if algo_name is not None else get_approach_name()
+        Config.__init__(self)
+        self.algo_name = algo_name
         self.algo_info = algo_info
         # TODO: potentially add some env info here too
         self.logger_name = logger_name
@@ -73,7 +71,7 @@ class COCOLoggerWrapperConfig(Config):
         )
         return True
 
-    def _teardown(self):
+    def _teardown(self, ctx: ExperimentContext):
         # This also triggers writing the files
         teardown_coco_logger(self.logger_name)
 
@@ -118,15 +116,29 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
         )
         self.coco_logger = logging.getLogger(self.logger_name)
         ctx = config.get_context()
+        print(ctx)
+        print("here")
+        print(config)
         exp_id = ctx.get("exp_id")
         assert exp_id is not None, "COCOLoggerWrapper: exp_id is not set in context"
         self.exp_id = COCOLoggerWrapper.coco_dir(exp_id)
+        config.get_context().add_artifact(
+            Artifact(
+                name="coco_exdata",
+                local_path=self.exp_id,
+                artifact_type="results",
+                description="COCO experiment data",
+            )
+        )
+        if self.algo_name is None:
+            self.algo_name = ctx.get("approach_name")
+            assert (
+                self.algo_name is not None
+            ), "COCOLoggerWrapper: algo_name must be provided or set in context"
         self.emit_start()  # Emit start on init
 
     @staticmethod
-    def coco_dir(exp_id: Optional[str]) -> str:
-        exp_id = exp_id if exp_id is not None else get_exp_id()
-        assert exp_id is not None, "exp_id must be provided or set globally"
+    def coco_dir(exp_id: str) -> str:
         return osp.join(exp_id, "coco_exdata")
 
     def emit_start(self):

@@ -2,16 +2,10 @@ from ttex.config import Config, ConfigurableObjectFactory as COF
 from jaix.runner.runner import Runner
 from jaix.runner.optimiser import Optimiser
 from typing import Type, Optional, Dict
-from ttex.log import (
-    teardown_wandb_logger,
-)
 from jaix.environment_factory import EnvironmentConfig, EnvironmentFactory as EF
-import jaix.utils.globals as globals
 import logging
-from jaix.utils.exp_id import set_exp_id
-from jaix.utils.approach_name import set_approach_name
 from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig
-from jaix.experiment_context import ExperimentContext
+from jaix.utils.experiment_context import ExperimentContext
 from jaix.utils.logging_config import LoggingConfig
 from jaix.utils.wandb_session import WandbSession
 

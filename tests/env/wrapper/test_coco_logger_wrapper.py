@@ -10,28 +10,34 @@ import os.path as osp
 import os
 import logging
 import jaix.utils.globals as globals
-from jaix.utils.exp_id import set_exp_id
 from uuid import uuid4
+from jaix.utils.experiment_context import ExperimentContext
+
 
 algo_name = "test_algo"
 
 
 @pytest.mark.parametrize("wef", [True, False])
 def test_basic(wef):
+    ctx = ExperimentContext()
     config = COCOLoggerWrapperConfig(algo_name=algo_name)
-    config.setup()
+    config.setup(ctx)
     assert config.passthrough
 
     # Check that logger exists
-    assert globals.COCO_LOGGER_NAME in logging.Logger.manager.loggerDict
+    coco_logger_name = ctx.get("coco_logger_name")
+    assert coco_logger_name in logging.Logger.manager.loggerDict
     # Add test handler to be able to read output
-    logger = logging.getLogger(globals.COCO_LOGGER_NAME)
+    logger = logging.getLogger(coco_logger_name)
     test_handler = TestHandler(level="INFO")
     logger.addHandler(test_handler)
 
     # simulate experiment setting experiment id
     exp_id = f"test_coco_logger_wrapper_{uuid4()}"
-    set_exp_id(exp_id)
+    ctx.set("exp_id", exp_id)
+    config.set_context(ctx)
+    print("hello")
+    print(config.get_context())
 
     env = DummyEnv(dimension=18)
     if wef:
@@ -60,7 +66,7 @@ def test_basic(wef):
     msg = test_handler.last_record.getMessage()
     assert "data_1/f1_d18_i1.tdat" in msg
 
-    success = config.teardown()
+    success = config.teardown(ctx)
     assert success
     # TODO: cocopp
     """

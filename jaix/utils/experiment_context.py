@@ -41,8 +41,6 @@ class ExperimentContext:
         return self._data.get(key, default)
 
     def add_artifact(self, artifact: Artifact) -> None:
-        if self._frozen:
-            raise RuntimeError("Cannot modify frozen context")
         if "artifacts" not in self._data:
             self._data["artifacts"] = []
         self._data["artifacts"].append(artifact)

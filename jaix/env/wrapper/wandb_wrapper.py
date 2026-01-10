@@ -5,7 +5,6 @@ import logging
 from typing import Optional, Dict, List
 from ttex.log import setup_wandb_logger
 from jaix.utils.experiment_context import ExperimentContext
-from ttex.log import log_wandb_init
 
 DEFAULT_WANDB_LOGGER_NAME = "wandb_logger"
 

@@ -1,4 +1,3 @@
-from jaix.utils.globals import WANDB_LOGGER_NAME
 from jaix.utils.launch_experiment import (
     launch_jaix_experiment,
 )
@@ -345,8 +344,9 @@ def test_integration_wandb_wrapper():
     exit_code = [result["exit_codes"][0] for result in results.values()][0]
 
     os.environ["WANDB_MODE"] = prev_mode
+    from jaix.env.wrapper.wandb_wrapper import DEFAULT_WANDB_LOGGER_NAME
 
-    logger = logging.getLogger(WANDB_LOGGER_NAME)
+    logger = logging.getLogger(DEFAULT_WANDB_LOGGER_NAME)
     assert hasattr(logger, "_wandb_setup")
     # This means that the logger was initialised, so everything was activated as planned
     assert get_wandb_logger() is None  # Wandb should be torn down after experiment

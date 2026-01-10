@@ -26,6 +26,8 @@ class WrappedEnvFactory:
             logger.debug(f"Wrapping {env} with {wrapper_config} of {wrapper_class}")
             if isinstance(wrapper_config, Config):
                 # Wrapper is a configurable object and config is passed as object
+                print("hello")
+                print(wrapper_config.get_context())
                 wrapped_env = COF.create(wrapper_class, wrapper_config, wrapped_env)
             elif (
                 issubclass(wrapper_class, ConfigurableObject)

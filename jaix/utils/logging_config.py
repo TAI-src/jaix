@@ -1,5 +1,5 @@
 from jaix.utils.experiment_context import ExperimentContext
-from ttex.configs.config import Config
+from ttex.config.config import Config
 from ttex.log import initiate_logger, get_logging_config
 from typing import Optional, Dict
 
