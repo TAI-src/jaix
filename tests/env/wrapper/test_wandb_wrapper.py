@@ -56,7 +56,7 @@ def prep_config(**kwargs):
 
 @pytest.mark.parametrize("wef", [True, False])
 def test_basic(wef):
-    config, test_handler = prep_config()
+    config, test_handler = prep_config(snapshot=False)
     env = DummyEnv()
 
     if wef:
@@ -92,7 +92,7 @@ def test_name_conflict():
 
 
 def test_additions():
-    config, test_handler = prep_config()
+    config, test_handler = prep_config(snapshot=False)
     env = ImprovementRewardWrapper(
         ImprovementRewardWrapperConfig(state_eval="obs0"), DummyEnv()
     )  # Adds raw_r
@@ -109,7 +109,7 @@ def test_additions():
 
 
 def test_close():
-    config, test_handler = prep_config()
+    config, test_handler = prep_config(snapshot=False)
     env = DummyEnv()
     wrapped_env = WandbWrapper(config, env)
 
@@ -131,7 +131,9 @@ def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
         ImprovementRewardWrapperConfig(state_eval=state_eval_imp, is_min=True),
         DummyEnv(),
     )
-    config, test_handler = prep_config(state_eval=state_eval_wandb, is_min=True)
+    config, test_handler = prep_config(
+        snapshot=False, state_eval=state_eval_wandb, is_min=True
+    )
     wrapped_env = WandbWrapper(config, env)  # Adds raw_obs0
 
     assert hasattr(wrapped_env, "wandb_logger")
@@ -165,7 +167,9 @@ def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
 )
 def test_wandb_improvement_interaction_v2(state_eval_imp, state_eval_wandb):
     env = DummyEnv()
-    config, test_handler = prep_config(state_eval=state_eval_wandb, is_min=True)
+    config, test_handler = prep_config(
+        snapshot=False, state_eval=state_eval_wandb, is_min=True
+    )
     wrapped_env = WandbWrapper(config, env)  # Adds raw_obs0
     assert hasattr(wrapped_env, "wandb_logger")
 

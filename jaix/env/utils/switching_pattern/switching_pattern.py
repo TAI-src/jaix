@@ -27,6 +27,7 @@ class SeqRegSwitchingPatternConfig(Config):
         wait_period: float,
         carry_over: bool = False,
     ):
+        Config.__init__(self)
         self.wait_period = wait_period
         self.carry_over = carry_over
         self.offset = 0
@@ -63,6 +64,7 @@ class SeqForcedSwitchingPatternConfig(Config):
     def __init__(
         self,
     ):
+        Config.__init__(self)
         self.current = 0
 
 

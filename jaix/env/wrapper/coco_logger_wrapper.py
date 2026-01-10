@@ -24,7 +24,7 @@ class COCOLoggerWrapperConfig(Config):
         self,
         algo_name: Optional[str] = None,
         algo_info: str = "",
-        logger_name: Optional[str] = None,
+        coco_logger_name: Optional[str] = None,
         base_evaluation_triggers: Optional[List[int]] = None,
         number_evaluation_triggers: int = 20,
         improvement_steps: float = 1e-5,
@@ -38,7 +38,7 @@ class COCOLoggerWrapperConfig(Config):
         self.algo_name = algo_name
         self.algo_info = algo_info
         # TODO: potentially add some env info here too
-        self.logger_name = logger_name
+        self.coco_logger_name = coco_logger_name
         self.passthrough = passthrough
         self.base_evaluation_triggers = base_evaluation_triggers
         self.number_evaluation_triggers = number_evaluation_triggers
@@ -50,19 +50,19 @@ class COCOLoggerWrapperConfig(Config):
 
     def _setup(self, ctx: ExperimentContext):  # Setup COCO logger
 
-        self.logger_name = (
-            self.logger_name
-            if self.logger_name is not None
+        self.coco_logger_name = (
+            self.coco_logger_name
+            if self.coco_logger_name is not None
             else DEFAULT_COCO_LOGGER_NAME
         )
-        if self.logger_name == ctx.get("logger_name"):
+        if self.coco_logger_name == ctx.get("logger_name"):
             raise ValueError(
                 "COCOLoggerWrapperConfig: logger_name cannot be the root logger name."
             )
-        ctx.set("coco_logger_name", self.logger_name)
+        ctx.set("coco_logger_name", self.coco_logger_name)
 
         setup_coco_logger(
-            name=self.logger_name,
+            name=self.coco_logger_name,
             base_evaluation_triggers=self.base_evaluation_triggers,
             number_evaluation_triggers=self.number_evaluation_triggers,
             improvement_steps=self.improvement_steps,
@@ -73,7 +73,7 @@ class COCOLoggerWrapperConfig(Config):
 
     def _teardown(self, ctx: ExperimentContext):
         # This also triggers writing the files
-        teardown_coco_logger(self.logger_name)
+        teardown_coco_logger(self.coco_logger_name)
 
         # If results are generated, run cocopp post-processing
         # TODO: set up cocopp
@@ -114,7 +114,7 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
             state_eval=config.state_eval,
             is_min=config.is_min,
         )
-        self.coco_logger = logging.getLogger(self.logger_name)
+        self.coco_logger = logging.getLogger(self.coco_logger_name)
         ctx = config.get_context()
         exp_id = ctx.get("exp_id")
         assert exp_id is not None, "COCOLoggerWrapper: exp_id is not set in context"

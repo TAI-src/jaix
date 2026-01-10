@@ -1,6 +1,7 @@
 from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 import gymnasium as gym
 from ttex.config import Config, ConfigurableObject
+from jaix.utils.experiment_context import ExperimentContext
 
 
 class DummyWrapperConfig(Config):
@@ -10,11 +11,11 @@ class DummyWrapperConfig(Config):
         self._stp = False
         self.trdwn = False
 
-    def _setup(self):
+    def _setup(self, ctx: ExperimentContext):
         self._stp = True
         return self._stp
 
-    def _teardown(self):
+    def _teardown(self, ctx: ExperimentContext):
         self.trdwn = True
         return self.trdwn
 
