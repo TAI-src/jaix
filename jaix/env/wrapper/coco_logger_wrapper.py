@@ -99,6 +99,7 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
     """
 
     config_class = COCOLoggerWrapperConfig
+    algo_name: str | None
 
     def __init__(
         self,
