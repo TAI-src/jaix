@@ -12,6 +12,7 @@ class LoggingConfig(Config):
         disable_existing: Optional[bool] = False,
         dict_config: Optional[Dict] = None,
     ):
+        Config.__init__(self)
         self.log_level = log_level
         self.logger_name = logger_name
         self.disable_existing = disable_existing

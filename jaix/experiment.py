@@ -20,6 +20,7 @@ class ExperimentConfig(Config):
         opt_config: Config,
         logging_config: LoggingConfig,
     ):
+        Config.__init__(self)
         self.env_config = env_config
         self.runner_class = runner_class
         self.runner_config = runner_config

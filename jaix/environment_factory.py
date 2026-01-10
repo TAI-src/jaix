@@ -25,6 +25,7 @@ class CompositeEnvironmentConfig(Config):
             List[Tuple[Type[gym.Wrapper], Union[Config, Dict[str, Any]]]]
         ] = None,
     ):
+        Config.__init__(self)
         self.agg_type = agg_type
         self.comp_env_class = comp_env_class
         self.comp_env_config = comp_env_config

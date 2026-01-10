@@ -19,6 +19,7 @@ logger = logging.getLogger(LOGGER_NAME)
 
 class ATRunnerConfig(Config):
     def __init__(self, max_evals: int, disp_interval: int = 20):
+        Config.__init__(self)
         self.disp_interval = disp_interval
         self.max_evals = max_evals
 

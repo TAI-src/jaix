@@ -10,6 +10,7 @@ class RBFFitConfig(Config):
         rbf_config: RBFAdapterConfig,
         precision: float,
     ):
+        Config.__init__(self)
         self.rbf_config = rbf_config
         self.precision = precision
 

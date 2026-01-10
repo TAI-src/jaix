@@ -33,6 +33,7 @@ class LJClustAdapterConfig(Config):
             dict
         ] = None,  # Parameters for the optimizer run, including fmax and steps
     ):
+        Config.__init__(self)
         self.target_dir = target_dir
         self.opt_alg = opt_alg
         self.opt_alg_params = {} if opt_alg_params is None else opt_alg_params

@@ -22,6 +22,7 @@ class COCOSuiteConfig(Config):
         current_batch: int = 0,
         output_folder: str = "",
     ):
+        Config.__init__(self)
         self.suite_name = suite_name
         self.suite_instance = suite_instance
         self.suite_options = suite_options

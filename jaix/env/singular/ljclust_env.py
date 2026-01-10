@@ -19,6 +19,7 @@ class LJClustEnvironmentConfig(Config):
         target_accuracy: float = 1e-5,
         by_species: bool = True,  # If True, function is species index, instance is number of atoms; otherwise, vice versa.
     ):
+        Config.__init__(self)
         self.ljclust_adapter_config = ljclust_adapter_config
         self.target_accuracy = target_accuracy
         self.by_species = by_species

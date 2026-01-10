@@ -6,6 +6,7 @@ from typing import Optional
 
 class MaxEvalWrapperConfig(Config):
     def __init__(self, max_evals: int, passthrough: bool = True):
+        Config.__init__(self)
         self.max_evals = max_evals
         self.passthrough = passthrough
 

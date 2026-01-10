@@ -6,6 +6,7 @@ import itertools
 
 class EnumerateATStratConfig(Config):
     def __init__(self, ask_size: int):
+        Config.__init__(self)
         self.ask_size = ask_size
 
 

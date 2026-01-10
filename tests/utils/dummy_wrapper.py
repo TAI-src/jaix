@@ -5,6 +5,7 @@ from ttex.config import Config, ConfigurableObject
 
 class DummyWrapperConfig(Config):
     def __init__(self, passthrough: bool = True):
+        Config.__init__(self)
         self.passthrough = passthrough
         self._stp = False
         self.trdwn = False

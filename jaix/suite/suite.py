@@ -28,6 +28,7 @@ class SuiteConfig(Config):
         agg_instances: Optional[Union[List[int], List[Tuple[int, ...]], int]] = None,
         seed: Optional[int] = None,
     ):
+        Config.__init__(self)
         logger.debug("Creating SuiteConfig")
         self.env_class = env_class
         self.env_config = env_config

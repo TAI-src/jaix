@@ -16,12 +16,13 @@ class WandbSession:
             self.config_dict = self.config.to_dict()
         except AttributeError:
             pass
-        if len(self.config_dict) > 0:
-            # actually init wandb
-            self.run = log_wandb_init(
-                run_config=self.config_dict, logger_name=ctx.get("wandb_logger_name")
-            )
-            ctx.set("exp_id", self.run.id)
+        except NotImplementedError:
+            pass
+        # actually init wandb
+        self.run = log_wandb_init(
+            run_config=self.config_dict, logger_name=ctx.get("wandb_logger_name")
+        )
+        ctx.set("exp_id", self.run.id)
 
     def end(self, ctx: ExperimentContext):
         if len(self.config_dict) == 0:

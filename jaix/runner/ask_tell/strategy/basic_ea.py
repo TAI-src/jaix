@@ -72,6 +72,7 @@ class BasicEAConfig(Config):
         update_strategy: Optional[UpdateStrategy] = None,  # update strategy
         update_opts={},  # update strategy options
     ):
+        Config.__init__(self)
         self.strategy = strategy
         self.mu = mu
         self.lam = lam

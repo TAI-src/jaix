@@ -21,6 +21,7 @@ class ECEnvironmentConfig(Config):
         """
         * budget_multiplier (int): Function budget = n*budget_multiplier
         """
+        Config.__init__(self)
         self.budget_multiplier = budget_multiplier
 
 

@@ -116,9 +116,6 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
         )
         self.coco_logger = logging.getLogger(self.logger_name)
         ctx = config.get_context()
-        print(ctx)
-        print("here")
-        print(config)
         exp_id = ctx.get("exp_id")
         assert exp_id is not None, "COCOLoggerWrapper: exp_id is not set in context"
         self.exp_id = COCOLoggerWrapper.coco_dir(exp_id)

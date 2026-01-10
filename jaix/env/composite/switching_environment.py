@@ -32,6 +32,7 @@ class SwitchingEnvironmentConfig(Config):
         real_time: bool,
         auto_reset_wrapper_config: Optional[AutoResetWrapperConfig] = None,
     ):
+        Config.__init__(self)
         self.switching_pattern_class = switching_pattern_class
         self.switching_pattern_config = switching_pattern_config
         self.real_time = real_time

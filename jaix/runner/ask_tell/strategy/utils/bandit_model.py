@@ -14,6 +14,7 @@ class BanditConfig(Config):
         min_tries: int = 10,
         exploit_strategy: BanditExploitStrategy = BanditExploitStrategy.MAX,
     ):
+        Config.__init__(self)
         self.epsilon = epsilon
         # Choices are tried at least min_tries times before exploiting
         self.min_tries = min_tries

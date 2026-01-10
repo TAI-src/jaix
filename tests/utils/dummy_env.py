@@ -15,6 +15,7 @@ class DummyEnvConfig(Config):
         observation_space=None,
         reward_space=None,
     ):
+        Config.__init__(self)
         self.dimension = dimension
         self.num_objectives = num_objectives
         self.action_space = action_space

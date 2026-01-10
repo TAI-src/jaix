@@ -36,8 +36,6 @@ def test_basic(wef):
     exp_id = f"test_coco_logger_wrapper_{uuid4()}"
     ctx.set("exp_id", exp_id)
     config.set_context(ctx)
-    print("hello")
-    print(config.get_context())
 
     env = DummyEnv(dimension=18)
     if wef:

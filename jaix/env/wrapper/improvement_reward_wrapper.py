@@ -25,6 +25,7 @@ class ImprovementRewardWrapperConfig(Config):
         passthrough: bool = True,
         imp_type=ImprovementType.BEST_SINCE_FIRST,
     ):
+        Config.__init__(self)
         self.state_eval = state_eval
         self.is_min = is_min
         self.transform = transform

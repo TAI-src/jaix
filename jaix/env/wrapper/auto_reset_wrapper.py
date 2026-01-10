@@ -11,6 +11,7 @@ class AutoResetWrapperConfig(Config):
         passthrough: bool = True,
         failed_resets_thresh: int = 1,
     ):
+        Config.__init__(self)
         self.min_steps = min_steps
         self.passthrough = passthrough
         self.failed_resets_thresh = failed_resets_thresh
