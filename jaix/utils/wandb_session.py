@@ -4,7 +4,6 @@ from ttex.config import Config
 
 
 class WandbSession:
-
     def __init__(self, config: Config):
         self.config = config
 
