@@ -97,7 +97,7 @@ def test_robustness():
     # Test with a config that does not implement to_dict
     class EmptyConfig(Config):
         def __init__(self):
-            pass
+            Config.__init__(self)
 
     config = EmptyConfig()
     # Test with experiment context without wandblogger

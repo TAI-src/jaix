@@ -56,7 +56,7 @@ class COCOLoggerWrapperConfig(Config):
         )
         if self.coco_logger_name == ctx.get("logger_name"):
             raise ValueError(
-                "COCOLoggerWrapperConfig: logger_name cannot be the root logger name."
+                "COCOLoggerWrapperConfig: coco_logger_name cannot be the root logger name."
             )
         ctx.set("coco_logger_name", self.coco_logger_name)
 

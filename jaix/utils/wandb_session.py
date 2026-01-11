@@ -14,9 +14,9 @@ class WandbSession:
             # configs have to_dict method
             self.config_dict = self.config.to_dict()
         except AttributeError:
-            pass
+            pass  # config has no to_dict method
         except NotImplementedError:
-            pass
+            pass  # to_dict not implemented
         # actually init wandb
         self.run = log_wandb_init(
             run_config=self.config_dict, logger_name=ctx.get("wandb_logger_name")
