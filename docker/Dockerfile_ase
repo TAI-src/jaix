@@ -13,13 +13,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=taisrc/kim:latest /usr/local/lib/libkim* /usr/local/lib/
 COPY --from=taisrc/kim:latest /usr/local/include/kim* /usr/local/include/
 COPY --from=taisrc/kim:latest /usr/local/bin/kim-* /usr/local/bin/
-COPY --from=taisrc/kim:latest /usr/local/lib/kim-api /usr/local/lib/
+COPY --from=taisrc/kim:latest /usr/local/lib/kim-api /usr/local/lib/kim-api
 COPY --from=taisrc/kim:latest /usr/local/lib/pkgconfig /usr/local/lib/pkgconfig
 COPY --from=taisrc/kim:latest /wheels /wheels
+COPY --from=taisrc/kim:latest /usr/local/libexec/kim-api /usr/local/libexec/kim-api
+
 
 RUN ldconfig
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-
+ENV KIM_API_CONFIG_PATH=/usr/local/lib/kim-api
 
 # Copy jaix from another base image
 COPY --from=taisrc/jaix_base:latest /jaix /jaix
