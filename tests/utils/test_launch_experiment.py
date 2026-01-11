@@ -371,6 +371,49 @@ def test_integration_coco_wrapper():
     assert exit_code == 0
 
     data_dir = [result["data_dirs"][0] for result in results.values()][0]
+    assert os.path.exists(data_dir)
+    shutil.rmtree(data_dir, ignore_errors=True)
+
+
+def test_coco_wandb_artifact():
+    prev_mode = os.environ.get("WANDB_MODE", "online")
+    os.environ["WANDB_MODE"] = "offline"
+
+    xconfig = deepcopy(get_config())
+    # Add coco logger wrapper
+    xconfig["jaix.experiment.ExperimentConfig"]["env_config"][
+        "jaix.environment_factory.EnvironmentConfig"
+    ]["env_wrappers"] = [
+        (
+            "jaix.env.wrapper.coco_logger_wrapper.COCOLoggerWrapper",
+            {"jaix.env.wrapper.coco_logger_wrapper.COCOLoggerWrapperConfig": {}},
+        ),
+        (
+            "jaix.env.wrapper.wandb_wrapper.WandbWrapper",
+            {
+                "jaix.env.wrapper.wandb_wrapper.WandbWrapperConfig": {
+                    "project": "ci-cd",
+                    "snapshot": False,
+                }
+            },
+        ),
+    ]
+
+    results = launch_jaix_experiment(run_config=xconfig)
+    exit_code = [result["exit_codes"][0] for result in results.values()][0]
+
+    os.environ["WANDB_MODE"] = prev_mode
+    from jaix.env.wrapper.wandb_wrapper import DEFAULT_WANDB_LOGGER_NAME
+
+    logger = logging.getLogger(DEFAULT_WANDB_LOGGER_NAME)
+    assert hasattr(logger, "_wandb_setup")
+    # This means that the logger was initialised, so everything was activated as planned
+    assert get_wandb_logger() is None  # Wandb should be torn down after experiment
+    assert exit_code == 0
+    shutil.rmtree("./wandb", ignore_errors=True)
+
+    data_dir = [result["data_dirs"][0] for result in results.values()][0]
+    assert os.path.exists(data_dir)
     shutil.rmtree(data_dir, ignore_errors=True)
 
 

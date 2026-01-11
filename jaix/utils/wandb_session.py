@@ -21,7 +21,8 @@ class WandbSession:
         self.run = log_wandb_init(
             run_config=self.config_dict, logger_name=ctx.get("wandb_logger_name")
         )
-        ctx.set("exp_id", self.run.id)
+        if self.run is not None:
+            ctx.set("exp_id", self.run.id)
 
     def end(self, ctx: ExperimentContext):
         if len(self.config_dict) == 0:
@@ -29,7 +30,7 @@ class WandbSession:
 
         wandb_logger_name = ctx.get("wandb_logger_name")
 
-        for artifact in ctx.get("artifact_paths", []):
+        for artifact in ctx.get("artifacts", []):
             log_wandb_artifact(
                 logger_name=wandb_logger_name,
                 artifact_name=artifact.name,
