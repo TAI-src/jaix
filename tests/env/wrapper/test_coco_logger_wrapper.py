@@ -12,7 +12,7 @@ import logging
 import jaix.utils.globals as globals
 from uuid import uuid4
 from jaix.utils.experiment_context import ExperimentContext
-
+from cocopp.pproc import DictAlg
 
 algo_name = "test_algo"
 
@@ -67,13 +67,12 @@ def test_basic(wef):
     success = config.teardown(ctx)
     assert success
     # TODO: cocopp
-    """
+
     res = config.res
     assert isinstance(res, DictAlg)
     result_dict = res[(algo_name, "")]
     # Check that pproc ran successfully
     assert len(result_dict) > 0
-    """
 
     assert osp.exists(osp.join(wrapped_env.exp_id, "DummyEnv", algo_name))
     assert osp.exists(

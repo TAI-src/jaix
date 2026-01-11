@@ -12,6 +12,10 @@ import os.path as osp
 import numpy as np
 from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
 from jaix.utils.experiment_context import ExperimentContext, Artifact
+import cocopp
+import os
+import contextlib
+
 
 import jaix.utils.globals as globals
 
@@ -76,20 +80,23 @@ class COCOLoggerWrapperConfig(Config):
 
         # If results are generated, run cocopp post-processing
         # TODO: set up cocopp
-        """
-        if osp.exists(osp.join(self.exp_id, self.algo_name)):
+        assert isinstance(ctx.get("exp_id"), str)
+        result_dir = COCOLoggerWrapper.coco_dir(ctx.get("exp_id"))
+        assert isinstance(self.algo_name, str)
+
+        if osp.exists(result_dir):
             # Run cocopp post-processing on the generated files (but quietly)
             with open(os.devnull, "w") as devnull:
                 with contextlib.redirect_stdout(devnull):
                     self.res = cocopp.main(
-                        f"-o {osp.join(self.exp_id, 'ppdata')} {osp.join(self.exp_id, self.algo_name)}"
+                        f"-o {osp.join(result_dir, 'ppdata')} {result_dir}"
                     )
         else:
             logger.warning(
-                f"No results found in {osp.join(self.exp_id, self.algo_name)}. Skipping cocopp post-processing."
+                f"No results found in {result_dir}. Skipping cocopp post-processing."
             )
             self.res = None
-        """
+
         return True
 
 
