@@ -26,3 +26,6 @@ RUN git clone --branch v2.4.1 --single-branch https://github.com/openkim/kim-api
 ENV KIM_API_CONFIG_PATH=/dev/null
 RUN ldconfig && \
     kim-api-collections-management install system LJ_ElliottAkerson_2015_Universal__MO_959249795837_003
+    
+RUN pip install kimpy
+RUN pip wheel kimpy -w /wheels
