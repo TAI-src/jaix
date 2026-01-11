@@ -64,6 +64,7 @@ class Experiment:
     ):
         ctx = ExperimentContext(exp_id)
 
+        wandb_session: Optional[WandbSession] = None
         try:
             # Set up for everything in config, including logging
             exp_config.setup(ctx)
@@ -77,7 +78,7 @@ class Experiment:
         finally:
             exp_config.teardown(ctx)
             # End wandb session if needed
-            if ctx.get("wandb_logger_name") is not None:
+            if ctx.get("wandb_logger_name") is not None and wandb_session is not None:
                 wandb_session.end(ctx)
         return ctx.get("exp_id")
 
