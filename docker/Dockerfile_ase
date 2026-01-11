@@ -10,7 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Copy KIM API and model installation from builder
-COPY --from=taisrc/kim:latest /usr/local /usr/local
+COPY --from=taisrc/kim:latest /usr/local/lib/libkim* /usr/local/lib/
+COPY --from=taisrc/kim:latest /usr/local/include/kim* /usr/local/include/
+COPY --from=taisrc/kim:latest /usr/local/bin/kim-* /usr/local/bin/
+COPY --from=taisrc/kim:latest /usr/local/lib/kim-api /usr/local/lib/
+COPY --from=taisrc/kim:latest /usr/local/lib/pkgconfig /usr/local/lib/pkgconfig
+COPY --from=taisrc/kim:latest /wheels /wheels
+
+RUN ldconfig
+ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+
 
 # Copy jaix from another base image
 COPY --from=taisrc/jaix_base:latest /jaix /jaix
@@ -18,8 +27,8 @@ COPY --from=taisrc/jaix_base:latest /jaix /jaix
 WORKDIR /jaix
 RUN pip install pip-tools && \
     pip-compile --extra ase --output-file requirements.txt setup.py && \
-    pip install --no-cache-dir --no-deps -r requirements.txt
-RUN pip install --no-deps --no-cache-dir -e .[ase]
+    pip install --no-cache-dir --no-deps --find-links=/wheels -r requirements.txt
+RUN pip install --no-deps --no-cache-dir -e .[ase] 
 
 # Set working directory for testing
 WORKDIR /tests
