@@ -54,8 +54,8 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         
   release-docker:
-    if: github.triggering_actor == 'auto-cid'
-    uses: TAI-src/.github/.github/workflows/release-docker.yml@main
+    #if: github.triggering_actor == 'auto-cid'
+    uses: TAI-src/.github/.github/workflows/release-docker.yml@feat/one_build
     permissions:
         contents: read
     with:
