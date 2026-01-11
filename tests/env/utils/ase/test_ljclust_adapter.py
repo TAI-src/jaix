@@ -262,7 +262,7 @@ def test_init_advanced():
     # Test that we can pass optimizer as a string
     tdir = "./tmp_data2"
     config = get_config(def_vals=False)
-    adapter_params = config.__dict__
+    adapter_params = {k: v for k, v in config.__dict__.items() if not k.startswith("_")}
     adapter_params["target_dir"] = tdir
     adapter_params["opt_alg"] = "ase.optimize.LBFGS"
     config_dict = {"jaix.env.utils.ase.LJClustAdapterConfig": adapter_params}

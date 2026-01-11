@@ -10,9 +10,9 @@ from typing import Type, List, Tuple, Union, Dict
 import gymnasium as gym
 import logging
 
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globs
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globs.LOGGER_NAME)
 
 
 class WrappedEnvFactory:
@@ -45,5 +45,5 @@ class WrappedEnvFactory:
             else:
                 # Assume config is a dict of keyword arguments
                 wrapped_env = wrapper_class(wrapped_env, **wrapper_config)
-        logger.debug(f"Wrapped env {wrapped_env}")  #
+        logger.debug(f"Wrapped env {str(wrapped_env)}")  #
         return wrapped_env

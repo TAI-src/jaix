@@ -26,6 +26,7 @@ class HPOEnvironmentConfig(Config):
         cache: bool = True,
         target_rank: int = 1,
     ):
+        Config.__init__(self)
         self.training_budget = training_budget
         self.repo = load_repository(repo_name, load_predictions=True, cache=cache)
         self.task_type = task_type

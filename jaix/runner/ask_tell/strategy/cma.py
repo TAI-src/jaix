@@ -13,6 +13,7 @@ class CMAConfig(Config):
         opts: Optional[dict] = None,
         warm_start_best: bool = True,
     ):
+        Config.__init__(self)
         self.sigma0 = sigma0
         self.opts = CMAOptions(opts)
         self.warm_start_best = warm_start_best

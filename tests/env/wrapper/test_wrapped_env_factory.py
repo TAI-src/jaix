@@ -19,6 +19,7 @@ def test_plain_wrap():
 
 class DummyWrapperConfig(Config):
     def __init__(self, test_value):
+        Config.__init__(self)
         self.test_value = test_value
 
 

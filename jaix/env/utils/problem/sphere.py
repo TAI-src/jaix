@@ -14,6 +14,7 @@ class SphereConfig(Config):
         y_shifts: List[float],
         precision: float,
     ):
+        Config.__init__(self)
         self.dimension = dimension
         self.num_objectives = num_objectives
         self.mult = mult

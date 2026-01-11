@@ -4,13 +4,15 @@ from ttex.config import ConfigurableObject, Config
 import logging
 from typing import Optional, Dict, List
 from ttex.log import setup_wandb_logger
-import jaix.utils.globals as globals
+from jaix.utils.experiment_context import ExperimentContext
+
+DEFAULT_WANDB_LOGGER_NAME = "wandb_logger"
 
 
 class WandbWrapperConfig(Config):
     def __init__(
         self,
-        logger_name: Optional[str] = None,
+        wandb_logger_name: Optional[str] = None,
         custom_metrics: Optional[Dict] = None,
         snapshot: bool = True,
         snapshot_sensitive_keys: Optional[List[str]] = None,
@@ -20,6 +22,7 @@ class WandbWrapperConfig(Config):
         state_eval: str = "obs0",  # Which value should be logged
         is_min: bool = True,  # Whether lower is better for state_eval
     ):
+        Config.__init__(self)
         self.passthrough = passthrough
         self.custom_metrics = custom_metrics
         self.snapshot = snapshot
@@ -28,27 +31,30 @@ class WandbWrapperConfig(Config):
         self.group = group
         self.state_eval = state_eval
         self.is_min = is_min
-        self.logger_name = (
-            logger_name
-            if (logger_name is not None)  # Avoid using root logger
-            else globals.WANDB_LOGGER_NAME
-        )
-        if self.logger_name == globals.LOGGER_NAME:
-            raise ValueError(
-                "WandbWrapperConfig: logger_name cannot be the root logger name."
-            )
-        globals.WANDB_LOGGER_NAME = self.logger_name
+        self.wandb_logger_name = wandb_logger_name
 
-    def _setup(self):  # Setup wandb logger
-        logger = setup_wandb_logger(
-            name=self.logger_name,
+    def _setup(self, ctx: ExperimentContext):  # Setup wandb logger
+        self.wandb_logger_name = (
+            self.wandb_logger_name
+            if (self.wandb_logger_name is not None)  # Avoid using root logger
+            else DEFAULT_WANDB_LOGGER_NAME
+        )
+        if self.wandb_logger_name == ctx.get("logger_name"):
+            raise ValueError(
+                "WandbWrapperConfig: wandb_logger_name cannot be the root logger name."
+            )
+        ctx.set("wandb_logger_name", self.wandb_logger_name)
+
+        wandb_logger = setup_wandb_logger(
+            name=self.wandb_logger_name,
             custom_metrics=self.custom_metrics,
             snapshot=self.snapshot,
             snapshot_sensitive_keys=self.snapshot_sensitive_keys,
             project=self.project,
             group=self.group,
         )
-        assert logger is not None
+        assert wandb_logger is not None
+
         return True
 
 
@@ -70,7 +76,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
             state_eval=self.state_eval,
             is_min=self.is_min,
         )
-        self.logger = logging.getLogger(self.logger_name)
+        self.wandb_logger = logging.getLogger(self.wandb_logger_name)
         self.log_resets = 0
         self.log_env_steps = 0
         self.log_renv_steps = 0
@@ -135,7 +141,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
                 self.log_renv_steps
             )
 
-        self.logger.info(info_dict)
+        self.wandb_logger.info(info_dict)
         # TODO: Figure out what info would be helpful from all the sub-wrappers etc
         return obs, r, term, trunc, info
 
@@ -156,5 +162,5 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
                 continue
             closing_info[f"env/close/{str(self.env.unwrapped)}/{key}"] = value
 
-        self.logger.info(closing_info)
+        self.wandb_logger.info(closing_info)
         self.env.close()

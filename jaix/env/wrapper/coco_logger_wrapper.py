@@ -1,4 +1,3 @@
-from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 import gymnasium as gym
 from ttex.config import ConfigurableObject, Config
 from typing import List, Optional
@@ -11,13 +10,13 @@ from ttex.log import setup_coco_logger, teardown_coco_logger
 import logging
 import os.path as osp
 import numpy as np
-from jaix.utils.exp_id import get_exp_id
-from jaix.utils.approach_name import get_approach_name
 from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
+from jaix.utils.experiment_context import ExperimentContext, Artifact
 
 import jaix.utils.globals as globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
+DEFAULT_COCO_LOGGER_NAME = "coco_logger"
 
 
 class COCOLoggerWrapperConfig(Config):
@@ -25,7 +24,7 @@ class COCOLoggerWrapperConfig(Config):
         self,
         algo_name: Optional[str] = None,
         algo_info: str = "",
-        logger_name: Optional[str] = None,
+        coco_logger_name: Optional[str] = None,
         base_evaluation_triggers: Optional[List[int]] = None,
         number_evaluation_triggers: int = 20,
         improvement_steps: float = 1e-5,
@@ -35,17 +34,11 @@ class COCOLoggerWrapperConfig(Config):
         state_eval: str = "obs0",  # Which value should be logged
         is_min: bool = True,  # Whether lower is better for state_eval
     ):
-        self.algo_name = algo_name if algo_name is not None else get_approach_name()
+        Config.__init__(self)
+        self.algo_name = algo_name
         self.algo_info = algo_info
         # TODO: potentially add some env info here too
-        self.logger_name = (
-            logger_name if logger_name is not None else globals.COCO_LOGGER_NAME
-        )
-        if self.logger_name == globals.LOGGER_NAME:
-            raise ValueError(
-                "COCOLoggerWrapperConfig: logger_name cannot be the root logger name."
-            )
-        globals.COCO_LOGGER_NAME = self.logger_name
+        self.coco_logger_name = coco_logger_name
         self.passthrough = passthrough
         self.base_evaluation_triggers = base_evaluation_triggers
         self.number_evaluation_triggers = number_evaluation_triggers
@@ -55,9 +48,20 @@ class COCOLoggerWrapperConfig(Config):
         self.state_eval = state_eval
         self.is_min = is_min
 
-    def _setup(self):
+    def _setup(self, ctx: ExperimentContext):  # Setup COCO logger
+        self.coco_logger_name = (
+            self.coco_logger_name
+            if self.coco_logger_name is not None
+            else DEFAULT_COCO_LOGGER_NAME
+        )
+        if self.coco_logger_name == ctx.get("logger_name"):
+            raise ValueError(
+                "COCOLoggerWrapperConfig: coco_logger_name cannot be the root logger name."
+            )
+        ctx.set("coco_logger_name", self.coco_logger_name)
+
         setup_coco_logger(
-            name=self.logger_name,
+            name=self.coco_logger_name,
             base_evaluation_triggers=self.base_evaluation_triggers,
             number_evaluation_triggers=self.number_evaluation_triggers,
             improvement_steps=self.improvement_steps,
@@ -66,9 +70,9 @@ class COCOLoggerWrapperConfig(Config):
         )
         return True
 
-    def _teardown(self):
+    def _teardown(self, ctx: ExperimentContext):
         # This also triggers writing the files
-        teardown_coco_logger(self.logger_name)
+        teardown_coco_logger(self.coco_logger_name)
 
         # If results are generated, run cocopp post-processing
         # TODO: set up cocopp
@@ -95,6 +99,7 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
     """
 
     config_class = COCOLoggerWrapperConfig
+    algo_name: Optional[str] = None
 
     def __init__(
         self,
@@ -109,16 +114,29 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
             state_eval=config.state_eval,
             is_min=config.is_min,
         )
-        self.coco_logger = logging.getLogger(self.logger_name)
-        exp_id = get_exp_id()
-        assert exp_id is not None, "COCOLoggerWrapper: exp_id must be set globally"
+        self.coco_logger = logging.getLogger(self.coco_logger_name)
+        ctx = config.get_context()
+        exp_id = ctx.get("exp_id")
+        assert exp_id is not None, "COCOLoggerWrapper: exp_id is not set in context"
         self.exp_id = COCOLoggerWrapper.coco_dir(exp_id)
+        config.get_context().add_artifact(
+            Artifact(
+                name="coco_exdata",
+                local_path=self.exp_id,
+                artifact_type="results",
+                description="COCO experiment data",
+            )
+        )
+        if self.algo_name is None:
+            algo_name = ctx.get("approach_name")
+            assert (
+                algo_name is not None
+            ), "COCOLoggerWrapper: algo_name must be provided or set in context"
+            self.algo_name = algo_name
         self.emit_start()  # Emit start on init
 
     @staticmethod
-    def coco_dir(exp_id: Optional[str]) -> str:
-        exp_id = exp_id if exp_id is not None else get_exp_id()
-        assert exp_id is not None, "exp_id must be provided or set globally"
+    def coco_dir(exp_id: str) -> str:
         return osp.join(exp_id, "coco_exdata")
 
     def emit_start(self):

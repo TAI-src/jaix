@@ -3,12 +3,13 @@ from .runner.ask_tell.test_at_runner import get_optimiser
 import pytest
 from jaix.runner.ask_tell.ask_tell_runner import ATRunnerConfig, ATRunner
 from jaix.runner.ask_tell.at_optimiser import ATOptimiser
-from jaix.experiment import ExperimentConfig, Experiment, LoggingConfig
+from jaix.experiment import ExperimentConfig, Experiment
+from jaix.utils.logging_config import LoggingConfig
 import shutil
 from .utils.dummy_wrapper import DummyWrapper, DummyWrapperConfig
 from jaix.environment_factory import EnvironmentFactory as EF
 from jaix.env.wrapper.closing_wrapper import ClosingWrapper
-from jaix.utils.approach_name import get_approach_name
+from jaix.utils.experiment_context import ExperimentContext
 
 
 def exp_config(
@@ -35,19 +36,18 @@ def exp_config(
 
 
 def test_experiment_config(ec_config, comp_config):
+    ctx = ExperimentContext()
     config = exp_config(ec_config, comp_config, comp=False, opts="Random")
-    assert get_approach_name() is None
+    assert ctx.get("approach_name") is None
 
-    assert config.setup()
+    assert config.setup(ctx)
     assert config.env_config.env_wrappers[0][1]._stp is True
 
-    default_algo_name = get_approach_name()
+    default_algo_name = ctx.get("approach_name")
     assert default_algo_name is not None
 
-    assert config.teardown()
+    assert config.teardown(ctx)
     assert config.env_config.env_wrappers[0][1].trdwn is True
-
-    assert get_approach_name() is None
 
 
 @pytest.mark.parametrize("comp", [False, True])

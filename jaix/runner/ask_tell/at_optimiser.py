@@ -19,6 +19,7 @@ class ATOptimiserConfig(Config):
         init_pop_size: int,
         stop_after: int = np.iinfo(np.int32).max,
     ):
+        Config.__init__(self)
         self.strategy_class = strategy_class
         self.strategy_config = strategy_config
         self.init_pop_size = init_pop_size

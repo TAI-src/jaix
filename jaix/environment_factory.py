@@ -7,6 +7,7 @@ from jaix.env.wrapper.closing_wrapper import ClosingWrapper
 import gymnasium as gym
 import logging
 import jaix.utils.globals as globals
+from jaix.utils.experiment_context import ExperimentContext
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -25,6 +26,7 @@ class CompositeEnvironmentConfig(Config):
             List[Tuple[Type[gym.Wrapper], Union[Config, Dict[str, Any]]]]
         ] = None,
     ):
+        Config.__init__(self)
         self.agg_type = agg_type
         self.comp_env_class = comp_env_class
         self.comp_env_config = comp_env_config
@@ -35,21 +37,28 @@ class CompositeEnvironmentConfig(Config):
             tmp_wrappers + CompositeEnvironmentConfig.default_wrappers
         )
 
-    def _setup(self):
+    def _setup(self, ctx: ExperimentContext):
         success = True
         for _, wrapper_conf in self.comp_env_wrappers:
             if isinstance(wrapper_conf, Config):
                 tmp_config: Config = wrapper_conf  # For pyright
-                success = tmp_config.setup() and success
+                success = tmp_config.setup(ctx) and success
         return success
 
-    def _teardown(self):
+    def _teardown(self, ctx: ExperimentContext):
         success = True
         for _, wrapper_conf in self.comp_env_wrappers:
             if isinstance(wrapper_conf, Config):
                 tmp_config: Config = wrapper_conf  # For pyright
-                success = tmp_config.teardown() and success
+                success = tmp_config.teardown(ctx) and success
         return success
+
+    def set_context(self, ctx: ExperimentContext):
+        for _, wrapper_conf in self.comp_env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                tmp_config: Config = wrapper_conf  # For pyright
+                tmp_config.set_context(ctx)
+        super().set_context(ctx)
 
 
 class EnvironmentConfig(Config):
@@ -79,21 +88,28 @@ class EnvironmentConfig(Config):
 
         self.seed = EnvironmentConfig.default_seed if seed is None else seed
 
-    def _setup(self):
+    def _setup(self, ctx: ExperimentContext):
         success = True
         for _, wrapper_conf in self.env_wrappers:
             if isinstance(wrapper_conf, Config):
                 tmp_config: Config = wrapper_conf  # For pyright
-                success = tmp_config.setup() and success
+                success = tmp_config.setup(ctx) and success
         return success
 
-    def _teardown(self):
+    def _teardown(self, ctx: ExperimentContext):
         success = True
         for _, wrapper_conf in self.env_wrappers:
             if isinstance(wrapper_conf, Config):
                 tmp_config: Config = wrapper_conf  # For pyright
-                success = tmp_config.teardown() and success
+                success = tmp_config.teardown(ctx) and success
         return success
+
+    def set_context(self, ctx: ExperimentContext):
+        for _, wrapper_conf in self.env_wrappers:
+            if isinstance(wrapper_conf, Config):
+                tmp_config: Config = wrapper_conf  # For pyright
+                tmp_config.set_context(ctx)
+        super().set_context(ctx)
 
 
 class EnvironmentFactory:

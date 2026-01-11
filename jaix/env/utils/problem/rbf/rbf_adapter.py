@@ -24,6 +24,7 @@ class RBFAdapterConfig(Config):
         noisy: bool = True,
         # max_min_points: Optional[int] = 5,
     ):
+        Config.__init__(self)
         self.num_rad_range = num_rad_range
         self.ratio_x_range = ratio_x_range
         self.num_measure_points = num_measure_points

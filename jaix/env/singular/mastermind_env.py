@@ -16,6 +16,7 @@ class MastermindEnvironmentConfig(Config):
         num_colours_range: Tuple[int, int] = (3, 5),
         max_guesses: int = np.iinfo(np.int32).max,
     ):
+        Config.__init__(self)
         self.num_slots_range = num_slots_range
         self.num_colours_range = num_colours_range
         # Ensure correct rng format

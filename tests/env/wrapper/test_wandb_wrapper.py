@@ -6,38 +6,64 @@ from jaix.env.wrapper.improvement_reward_wrapper import (
     ImprovementRewardWrapper,
     ImprovementRewardWrapperConfig,
 )
-from . import DummyEnv, test_handler, DummyWrapper, DummyWrapperConfig
+from . import DummyEnv, DummyWrapper, DummyWrapperConfig, TestHandler
 from gymnasium.utils.env_checker import check_env
 import ast
 import pytest
-import jaix.utils.globals as globals
 import logging
 from ttex.log import teardown_wandb_logger
+from jaix.utils.experiment_context import ExperimentContext
+from jaix.utils.wandb_session import WandbSession
+import os
+from shutil import rmtree
+
+WANDB_LOGGER_TEST_NAME = "WandbLoggerTest"
 
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
-    prev_logger_name = globals.WANDB_LOGGER_NAME
-    globals.WANDB_LOGGER_NAME = globals.LOGGER_NAME
-    globals.LOGGER_NAME = "root"  # ensure
-    # we use the root logger just for these tests
+    # ensure wandb offline mode
+    prev_mode = os.environ.get("WANDB_MODE", "online")
+    os.environ["WANDB_MODE"] = "offline"
     yield
     # Code that will run after your test, e.g. teardown
-    globals.LOGGER_NAME = globals.WANDB_LOGGER_NAME
-    globals.WANDB_LOGGER_NAME = prev_logger_name
+    os.environ["WANDB_MODE"] = prev_mode
+
+
+@pytest.fixture(scope="module", autouse=True)
+def after_all_tests():
+    # remove wandb logs
+    # setup (optional)
+    yield
+    # this runs once after all tests in the file
+    teardown_wandb_logger(WANDB_LOGGER_TEST_NAME)
+    rmtree("wandb", ignore_errors=True)
+
+
+def prep_config(**kwargs):
+    config = WandbWrapperConfig(wandb_logger_name=WANDB_LOGGER_TEST_NAME, **kwargs)
+    ctx = ExperimentContext()
+    config.setup(ctx)
+    wandb_session = WandbSession(config)
+    wandb_session.start(ctx)
+    ctx.freeze()
+    config.set_context(ctx)
+    test_handler = TestHandler(level="INFO")
+    logger = logging.getLogger(WANDB_LOGGER_TEST_NAME)
+    logger.addHandler(test_handler)
+    return config, test_handler
 
 
 @pytest.mark.parametrize("wef", [True, False])
 def test_basic(wef):
-    config = WandbWrapperConfig()
-    assert config.passthrough
+    config, test_handler = prep_config(snapshot=False)
     env = DummyEnv()
 
     if wef:
         wrapped_env = WEF.wrap(env, [(WandbWrapper, config)])
     else:
         wrapped_env = WandbWrapper(config, env)
-    assert hasattr(wrapped_env, "logger")
+    assert hasattr(wrapped_env, "wandb_logger")
 
     check_env(wrapped_env, skip_render_check=True)
 
@@ -57,12 +83,16 @@ def test_basic(wef):
 
 
 def test_name_conflict():
+    double_name = "test_logger"
+    ctx = ExperimentContext()
+    ctx.set("logger_name", double_name)
+    config = WandbWrapperConfig(wandb_logger_name=double_name)
     with pytest.raises(ValueError):
-        config = WandbWrapperConfig(logger_name=globals.LOGGER_NAME)
+        config.setup(ctx)
 
 
 def test_additions():
-    config = WandbWrapperConfig()
+    config, test_handler = prep_config(snapshot=False)
     env = ImprovementRewardWrapper(
         ImprovementRewardWrapperConfig(state_eval="obs0"), DummyEnv()
     )  # Adds raw_r
@@ -79,7 +109,7 @@ def test_additions():
 
 
 def test_close():
-    config = WandbWrapperConfig()
+    config, test_handler = prep_config(snapshot=False)
     env = DummyEnv()
     wrapped_env = WandbWrapper(config, env)
 
@@ -101,10 +131,12 @@ def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
         ImprovementRewardWrapperConfig(state_eval=state_eval_imp, is_min=True),
         DummyEnv(),
     )
-    config = WandbWrapperConfig(state_eval=state_eval_wandb, is_min=True)
+    config, test_handler = prep_config(
+        snapshot=False, state_eval=state_eval_wandb, is_min=True
+    )
     wrapped_env = WandbWrapper(config, env)  # Adds raw_obs0
 
-    assert hasattr(wrapped_env, "logger")
+    assert hasattr(wrapped_env, "wandb_logger")
 
     wrapped_env.reset()
     for _ in range(3):
@@ -135,9 +167,11 @@ def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
 )
 def test_wandb_improvement_interaction_v2(state_eval_imp, state_eval_wandb):
     env = DummyEnv()
-    config = WandbWrapperConfig(state_eval=state_eval_wandb, is_min=True)
+    config, test_handler = prep_config(
+        snapshot=False, state_eval=state_eval_wandb, is_min=True
+    )
     wrapped_env = WandbWrapper(config, env)  # Adds raw_obs0
-    assert hasattr(wrapped_env, "logger")
+    assert hasattr(wrapped_env, "wandb_logger")
 
     # Now wrap with ImprovementRewardWrapper
     imp_config = ImprovementRewardWrapperConfig(state_eval=state_eval_imp, is_min=True)
@@ -170,7 +204,7 @@ def test_wandb_improvement_interaction_v2(state_eval_imp, state_eval_wandb):
 # changes the logger, needs to happen last
 def test_wandb_config():
     config = WandbWrapperConfig(
-        logger_name="WandbLogger",
+        wandb_logger_name="WandbLogger",
         custom_metrics={"test_metric": 42},
         snapshot=False,
         snapshot_sensitive_keys=["secret"],
@@ -178,12 +212,13 @@ def test_wandb_config():
         group="test_group",
     )
 
+    ctx = ExperimentContext()
+    config.setup(ctx)
     env = DummyEnv()
     wrapped_env = WandbWrapper(config, env)
-    assert wrapped_env.logger.name == "WandbLogger"
-    assert globals.WANDB_LOGGER_NAME == "WandbLogger"
+    assert wrapped_env.wandb_logger.name == "WandbLogger"
+    assert ctx.get("wandb_logger_name") == "WandbLogger"
 
-    config.setup()
     logger = logging.getLogger("WandbLogger")
     assert logger._wandb_setup
     teardown_wandb_logger("WandbLogger")

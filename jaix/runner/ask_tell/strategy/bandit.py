@@ -21,6 +21,7 @@ class ATBanditConfig(Config):
         opt_confs: List[ATOptimiserConfig],
         bandit_config: BanditConfig,
     ):
+        Config.__init__(self)
         self.opt_confs = opt_confs
         self.bandit_config = bandit_config
         self.init_pop_size = opt_confs[0].get("init_pop_size")

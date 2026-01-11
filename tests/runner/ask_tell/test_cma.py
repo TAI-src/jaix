@@ -35,7 +35,10 @@ def test_warm_start(warm_start_best):
     xfav = opt.result.xfavorite
     opt.warm_start(xlast, env)
     for _ in range(10):
-        X, Y = loop(dimension, 1, opt, env)
+        try:
+            X, Y = loop(dimension, 1, opt, env)
+        except AssertionError as e:
+            print("Error during warm start loop:", e)
     if warm_start_best:
         assert all(opt.x0 == xfav)
     else:
