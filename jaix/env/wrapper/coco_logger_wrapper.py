@@ -7,6 +7,8 @@ from ttex.log.coco import (
     COCOEval,
 )
 from ttex.log import setup_coco_logger, teardown_coco_logger
+from ttex.log.coco.run_cocopp import run_cocopp
+from ttex.log.coco.postp.info import SuiteInfo, Func
 import logging
 import os.path as osp
 import numpy as np
