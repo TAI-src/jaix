@@ -13,6 +13,7 @@ setup(
         "tabrepo": ["tabrepo", "regex"],
         "coco": ["coco-experiment", "regex"],
         "test": ["pytest", "mypy", "pylint", "black"],
+        "exp_design": ["botorch"],
     },
     license="GPL3",
     long_description="jaix",
