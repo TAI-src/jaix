@@ -63,5 +63,5 @@ def test_get_score_func():
     score_func = ModelImprovementEvaluator.get_score_func(
         model, candidate_set, AcqFunc.MAX_VALUE_ENTROPY
     )
-    scores = score_func(torch.tensor([-5.0, 0.0], dtype=torch.float32))
+    scores = score_func([-5.0, 0.0])
     print(scores)
