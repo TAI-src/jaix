@@ -48,9 +48,10 @@ class StaticProblem:
 
     def final_target_hit(self) -> bool:
         if self.precision is None or any(np.isinf(self.min_values)):
-            raise ValueError(
-                "Need precision and min values for automatic target detection."
-            )
+            return False
+            # raise ValueError(
+            #    "Need precision and min values for automatic target detection."
+            # )
         if self.current_best is None:
             return False
         else:

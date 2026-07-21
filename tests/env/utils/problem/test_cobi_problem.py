@@ -1,6 +1,8 @@
 from . import CobiProblem, CobiProblemConfig
 import numpy as np
 import pytest
+from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
+from ttex.config import ConfigurableObjectFactory as COF
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -37,3 +39,21 @@ def test_cobi_feasible():
     x_infeasible = [5, 5, 5]  # Outside the domain, should be infeasible
     f, _ = problem(x_infeasible)
     assert all(np.isnan(f))  # Check that the infeasible point returns NaN values
+
+
+def test_env_integration():
+    config = CobiProblemConfig(n_var=3)
+    func = COF.create(CobiProblem, config, 1)
+    env_config = ECEnvironmentConfig(budget_multiplier=1)
+    env = COF.create(ECEnvironment, env_config, func, 0, 1)
+
+    for _ in range(3):  # Test a few steps
+        random_point = env.action_space.sample()
+        obs, reward, _, truncated, info = env.step(random_point)
+        assert len(obs) == func.num_objectives
+        assert isinstance(info, dict)
+        assert reward is None
+    assert truncated
+
+
+# TODO: Check for wrapper with reward what happens with Nones

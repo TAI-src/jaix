@@ -85,6 +85,7 @@ class CobiProblemConfig(Config):
             int
         ] = None,  # If not None, rounds all generated numbers to this number of digits.
     ):
+        Config.__init__(self)
         self.n_var = n_var
         self.domain = domain
         self.n_peaks = n_peaks
