@@ -59,7 +59,7 @@ class StaticProblem:
                 for cb, mv in zip(self.current_best, self.min_values)
             ]
             # TODO: should this be all or any?
-            return np.array(target_hit).all()
+            return bool(np.array(target_hit).all())
 
     def stop(self, budget_multiplier) -> bool:
         return self.evalsleft(budget_multiplier) <= 0 or self.final_target_hit()
@@ -69,7 +69,7 @@ class StaticProblem:
         """
         Evaluate the objective function.
             :param x: The input vector.
-            :return: Tuple of objective function value and reward.
+            :return: Tuple of objective function value (clean and noisy).
         """
         pass
 

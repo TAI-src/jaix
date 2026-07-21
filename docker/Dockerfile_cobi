@@ -1,0 +1,29 @@
+FROM python:3.12 AS cobi
+
+# Set working directory
+WORKDIR /cobi
+
+# Copy only requirements first (for better caching if setup.py doesn't change often)
+COPY cobi/pyproject.toml .
+COPY cobi/requirements.txt .
+COPY cobi/src src
+
+RUN pip install -r requirements.txt
+RUN pip install .
+
+FROM python:3.12
+
+COPY --from=taisrc/jaix_base:latest /jaix /jaix
+WORKDIR /jaix
+
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -e .
+
+COPY --from=taisrc/cobi /cobi /cobi
+WORKDIR /cobi
+RUN pip install -r requirements.txt
+RUN pip install .
+
+WORKDIR /tests
+
+

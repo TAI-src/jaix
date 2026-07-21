@@ -1,3 +1,6 @@
 [submodule "deps/tabrepo"]
 	path = deps/tabrepo
 	url = https://github.com/autogluon/tabrepo.git
+[submodule "deps/cobi"]
+	path = deps/cobi
+	url = https://github.com/numbbo/cobi-problem-generator.git
