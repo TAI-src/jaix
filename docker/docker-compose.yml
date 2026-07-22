@@ -81,7 +81,38 @@ services:
             - type=registry,ref=taisrc/jaix_coco:latest
             - taisrc/jaix_base
             - type=registry,ref=taisrc/jaix_base:latest
-            
+ 
+  cobi: # Base image for cobi (https://github.com/numbbo/cobi-problem-generator)
+    container_name: cobi
+    env_file: .env
+    image: taisrc/cobi
+#    build:
+#      context: ../deps
+#      dockerfile: ../docker/Dockerfile_cobi
+#      target: cobi
+#      args:
+#        BUILDKIT_INLINE_CACHE: "1"
+#      cache_from:
+#        - taisrc/cobi
+#        - type=registry,ref=taisrc/cobi:latest
+        
+  jaix_cobi:
+    <<: *jaix_base
+    container_name: jaix_cobi      
+    image: taisrc/jaix_cobi${VER:+:}${VER}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile_cobi
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+      cache_from:
+          - taisrc/jaix_cobi
+          - type=registry,ref=taisrc/jaix_cobi:latest
+          - taisrc/jaix
+          - type=registry,ref=taisrc/jaix:latest
+          - taisrc/cobi
+          - type=registry,ref=taisrc/cobi:latest 
+ 
   kim: # image with kim installed (constant)
     container_name: kim
     env_file: .env
@@ -118,6 +149,8 @@ services:
 #            - taisrc/tabrepo
 #            - type=registry,ref=taisrc/tabrepo:latest
 #    shm_size: '16gb'
+
+
 
 
   jaix_hpo: # Jaix execution image with hpo extra
