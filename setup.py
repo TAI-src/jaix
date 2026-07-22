@@ -3,11 +3,26 @@ from setuptools import find_packages
 
 __version__ = "0.1.1.69"
 
+archive_packages = [
+    "seaborn",
+    "pandas",
+    "matplotlib",
+    "pymoo",
+    "scikit-learn",
+]
+
 setup(
     name="tai_jaix",
     version=__version__,
     packages=find_packages(),
-    install_requires=["cma", "gymnasium", "tai-ttex", "cocopp"],
+    install_requires=[
+        "numpy",
+        "cma",
+        "gymnasium",
+        "tai-ttex",
+        "cocopp",
+    ]
+    + archive_packages,
     extras_require={
         "ase": ["ase", "kimpy", "requests"],
         "tabrepo": ["tabrepo", "regex"],
