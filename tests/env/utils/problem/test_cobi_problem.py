@@ -54,6 +54,3 @@ def test_env_integration():
         assert isinstance(info, dict)
         assert reward is None
     assert truncated
-
-
-# TODO: Check for wrapper with reward what happens with Nones
