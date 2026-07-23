@@ -1,9 +1,10 @@
 import numpy as np
-from jaix.env.utils.archive.binning_strategy import BinningStrategy
 from pymoo.algorithms.moo.nsga3 import associate_to_niches
 from pymoo.core.individual import Individual
 from sklearn.neighbors import KDTree
 from ttex.config import Config, ConfigurableObject
+
+from jaix.env.utils.archive.binning_strategy import BinningStrategy
 
 
 class RVBinningStrategyConfig(Config):
