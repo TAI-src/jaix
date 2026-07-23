@@ -165,7 +165,6 @@ class BasicEA(ConfigurableObject, ATStrategy):
                 parents_idx = np.random.choice(
                     list(range(self.mu)), size=2, replace=False
                 )
-                assert self.crossover is not None
                 child_x = self.crossover_op.crossover(
                     self.pop[parents_idx[0]].x,
                     self.pop[parents_idx[1]].x,
@@ -174,8 +173,7 @@ class BasicEA(ConfigurableObject, ATStrategy):
             else:
                 child_x = self.pop[i].x
             if self.mutation_op is not None:
-                assert self.mutate is not None
-                child_x = self.mutate_op.mutate(child_x, **self.mutation_opts)
+                child_x = self.mutation_op.mutate(child_x, **self.mutation_opts)
             offspring[i] = child_x
         return offspring
 
@@ -195,7 +193,7 @@ class BasicEA(ConfigurableObject, ATStrategy):
         ]
 
         # Update parameters
-        if self.update_op is not None:
+        if self.update_strategy is not None:
             self.mutation_opts, self.crossover_opts = self.update_strategy.update(
                 self.pop,
                 new_pop,
