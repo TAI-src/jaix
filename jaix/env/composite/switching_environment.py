@@ -111,7 +111,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
 
     @update_env
     def step(self, action):
-        obs, r, term, trunc, info = self.env_list[self._current_env].step(action)
+        obs, r, term, _trunc, info = self.env_list[self._current_env].step(action)
         obs = (self._current_env, obs)
 
         if not self.real_time:
@@ -167,7 +167,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         valid_envs = [not env.stop() for env in self.env_list]
         new_env = self.pattern_switcher.switch(self._timer, valid=valid_envs)
         # only update env if not invalid (-1)
-        self._stopped = True if new_env < 0 else False
+        self._stopped = new_env < 0
         updated = False
         new_env = max(0, new_env)
         if new_env != self._current_env:

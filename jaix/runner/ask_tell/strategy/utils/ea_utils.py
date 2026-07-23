@@ -41,7 +41,7 @@ def uniform_crossover(x1, x2, mask=None):
         mask = np.random.randint(0, 2, n)
     else:
         assert len(mask) == n
-        assert all([m == 0 or m == 1 for m in mask])
+        assert all(m == 0 or m == 1 for m in mask)
     return np.where(mask, x1, x2)
 
 
@@ -70,7 +70,7 @@ def ddl_update(old_pop, new_pop, mutation_opts, crossover_opts, update_opts):
         if "pmin" not in update_opts
         else update_opts["pmin"]
     )  # 1/n^2
-    pmax = 1 / 2 if "pmax" not in update_opts else update_opts["pmax"]
+    pmax = update_opts.get("pmax", 1 / 2)
     F = 1 + 0.2 if "F" not in update_opts else update_opts["F"]  # or 1 + 0.1
     s = math.e - 1 if "s" not in update_opts else update_opts["s"]  # e-1
     mutation_opts["p"] = (

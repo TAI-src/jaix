@@ -105,7 +105,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         i.e. metrics, debug info.
         """
         x = np.asarray(x, dtype=self.action_space.dtype)
-        raw_fitness, clean_fitness = self.func(x)
+        raw_fitness, _clean_fitness = self.func(x)
         terminated = self.func.final_target_hit()
         truncated = (
             self.func.evalsleft(self.budget_multiplier) <= 0

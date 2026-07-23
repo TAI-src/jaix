@@ -149,4 +149,4 @@ class EnvironmentFactory:
                 # TODO: reset with seeding here
                 yield wrapped_env
                 assert wrapped_env.closed
-                assert all([env.closed for env in wrapped_envs])
+                assert all(env.closed for env in wrapped_envs)

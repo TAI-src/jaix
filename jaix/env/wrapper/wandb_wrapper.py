@@ -108,7 +108,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
 
         # TODO: Option for log frequency
 
-        env_step = info["env_step"] if "env_step" in info else self.log_env_steps
+        env_step = info.get("env_step", self.log_env_steps)
         # Log per reset
         info_dict = {
             f"env/resets/{self.env.unwrapped}": self.log_resets,
@@ -146,9 +146,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
 
     def close(self):
         env_step = (
-            self.last_info["env_step"]
-            if "env_step" in self.last_info
-            else self.log_env_steps
+            self.last_info.get("env_step", self.log_env_steps)
         )
         closing_info = {
             "env/step": env_step,
