@@ -1,8 +1,9 @@
-from jaix.utils.wandb_session import WandbSession
-import pytest
 import os
 from shutil import rmtree
-from jaix.utils.experiment_context import ExperimentContext, Artifact
+
+import pytest
+from jaix.utils.experiment_context import Artifact, ExperimentContext
+from jaix.utils.wandb_session import WandbSession
 from ttex.config import Config
 from ttex.log import setup_wandb_logger
 

@@ -1,18 +1,18 @@
+import logging
+import os
+import os.path as osp
+import shutil
+from uuid import uuid4
+
+import pytest
 from jaix.env.wrapper.coco_logger_wrapper import (
     COCOLoggerWrapper,
     COCOLoggerWrapperConfig,
 )
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
-from . import DummyEnv, TestHandler
-import pytest
-import shutil
-import os.path as osp
-import os
-import logging
-import jaix.utils.globals as globals
-from uuid import uuid4
 from jaix.utils.experiment_context import ExperimentContext
 
+from . import DummyEnv, TestHandler
 
 algo_name = "test_algo"
 

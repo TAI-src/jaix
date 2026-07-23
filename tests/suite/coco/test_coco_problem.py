@@ -1,5 +1,5 @@
-from jaix.suite.coco import COCOProblem
 import pytest
+from jaix.suite.coco import COCOProblem
 
 if COCOProblem is not None:
     import cocoex as ex

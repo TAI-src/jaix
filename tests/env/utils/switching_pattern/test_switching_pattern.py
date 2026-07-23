@@ -1,8 +1,8 @@
 from jaix.env.utils.switching_pattern.switching_pattern import (
-    SeqRegSwitchingPatternConfig,
-    SeqRegSwitchingPattern,
-    SeqForcedSwitchingPatternConfig,
     SeqForcedSwitchingPattern,
+    SeqForcedSwitchingPatternConfig,
+    SeqRegSwitchingPattern,
+    SeqRegSwitchingPatternConfig,
 )
 from ttex.config import ConfigurableObjectFactory as COF
 

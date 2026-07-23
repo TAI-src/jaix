@@ -1,12 +1,12 @@
-from jaix.suite.coco import COCOSuiteConfig, COCOSuite, COCOProblem
+import os
+
 import pytest
 from jaix.env.singular.ec_env import ECEnvironmentConfig
+from jaix.suite.coco import COCOProblem, COCOSuite, COCOSuiteConfig
+from jaix.suite.suite import AggType
 from ttex.config import (
     ConfigurableObjectFactory as COF,
 )
-import os
-from jaix.suite.suite import AggType
-from .test_coco_problem import skip_remaining_tests
 
 
 @pytest.fixture(scope="function")

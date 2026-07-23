@@ -1,4 +1,4 @@
-from . import DummyWrapper, DummyEnv, DummyWrapperConfig
+from . import DummyEnv, DummyWrapper, DummyWrapperConfig
 
 
 def test_stopping():

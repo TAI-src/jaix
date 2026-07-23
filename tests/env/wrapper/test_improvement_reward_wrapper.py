@@ -1,12 +1,13 @@
 import gymnasium as gym
+import pytest
+from gymnasium.utils.env_checker import check_env
 from jaix.env.wrapper.improvement_reward_wrapper import (
     ImprovementRewardWrapper,
     ImprovementRewardWrapperConfig,
     ImprovementType,
 )
-from gymnasium.utils.env_checker import check_env
+
 from . import DummyEnv
-import pytest
 
 
 def test_init():

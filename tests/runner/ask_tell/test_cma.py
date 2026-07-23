@@ -1,6 +1,7 @@
-from jaix.runner.ask_tell.strategy.cma import CMAConfig, CMA
-from . import DummyEnv, loop
 import pytest
+from jaix.runner.ask_tell.strategy.cma import CMA, CMAConfig
+
+from . import DummyEnv, loop
 
 
 def test_init():

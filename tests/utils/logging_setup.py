@@ -1,6 +1,6 @@
+import copy
 import logging
 import logging.config
-import copy
 
 
 # This is a test handler so it is easy to capture what was logged

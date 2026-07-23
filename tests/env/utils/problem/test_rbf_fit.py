@@ -1,10 +1,11 @@
-from .rbf.test_rbf_adapter import get_config
-from jaix.env.utils.problem.rbf_fit import RBFFitConfig, RBFFit
 from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
+from jaix.env.utils.problem.rbf_fit import RBFFit, RBFFitConfig
 from ttex.config import ConfigurableObjectFactory as COF
+
+from .rbf.test_rbf_adapter import get_config
 
 
 def test_rbf_fit():

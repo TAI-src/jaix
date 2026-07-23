@@ -1,10 +1,11 @@
+import pytest
+from gymnasium import spaces
 from jaix.runner.ask_tell.strategy.enumerate import (
     EnumerateATStrat,
     EnumerateATStratConfig,
 )
+
 from . import DummyEnv, loop
-import pytest
-from gymnasium import spaces
 
 
 def test_init_fail():

@@ -1,13 +1,13 @@
+import numpy as np
+import pytest
 from jaix.runner.ask_tell.strategy.utils.ea_utils import (
+    Individual,
+    ddl_update,
     global_flip,
     onepoint_crossover,
-    uniform_crossover,
-    Individual,
     select,
-    ddl_update,
+    uniform_crossover,
 )
-import pytest
-import numpy as np
 
 
 def test_global_flip_deterministic():

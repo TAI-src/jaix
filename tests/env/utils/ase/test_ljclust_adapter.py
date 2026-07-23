@@ -1,20 +1,19 @@
 from jaix.env.utils.ase import LJClustAdapter, LJClustAdapterConfig
 
 if LJClustAdapter is not None:
-    from ase.optimize import LBFGS
     from ase import Atoms
-    from ase.optimize.optimize import Optimizer
     from ase.calculators.lj import LennardJones
+    from ase.optimize import LBFGS
+    from ase.optimize.optimize import Optimizer
 
 
+import csv
 import os
 import shutil
-import csv
-import pytest
-import numpy as np
-from ttex.config import ConfigFactory, ConfigurableObjectFactory as COF
-from ...singular.test_ljclust_env import skip_remaining_tests
 
+import numpy as np
+import pytest
+from ttex.config import ConfigFactory
 
 target_dir = "./tmp_data"
 

@@ -1,6 +1,7 @@
-from jaix.env.wrapper.max_eval_wrapper import MaxEvalWrapper, MaxEvalWrapperConfig
-from . import DummyWrapper, DummyEnv
 import pytest
+from jaix.env.wrapper.max_eval_wrapper import MaxEvalWrapper, MaxEvalWrapperConfig
+
+from . import DummyEnv
 
 
 @pytest.fixture(scope="function")

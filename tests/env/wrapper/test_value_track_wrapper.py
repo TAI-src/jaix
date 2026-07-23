@@ -1,7 +1,7 @@
-from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
-import pytest
-import numpy as np
 import gymnasium as gym
+import numpy as np
+import pytest
+from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
 
 
 def test_get_val():

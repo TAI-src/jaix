@@ -1,4 +1,4 @@
-from jaix.utils.experiment_context import ExperimentContext, Artifact
+from jaix.utils.experiment_context import Artifact, ExperimentContext
 
 
 def test_artifact():

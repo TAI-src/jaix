@@ -1,8 +1,8 @@
-from jaix.env.wrapper.auto_reset_wrapper import AutoResetWrapper, AutoResetWrapperConfig
-import gymnasium as gym
-from . import DummyEnv
 import pytest
 from gymnasium.utils.env_checker import check_env
+from jaix.env.wrapper.auto_reset_wrapper import AutoResetWrapper, AutoResetWrapperConfig
+
+from . import DummyEnv
 
 
 def test_init():

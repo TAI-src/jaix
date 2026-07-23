@@ -1,21 +1,23 @@
-from jaix.env.wrapper.wandb_wrapper import WandbWrapper, WandbWrapperConfig
-from jaix.env.wrapper.wrapped_env_factory import (
-    WrappedEnvFactory as WEF,
-)
+import ast
+import logging
+import os
+from shutil import rmtree
+
+import pytest
+from gymnasium.utils.env_checker import check_env
 from jaix.env.wrapper.improvement_reward_wrapper import (
     ImprovementRewardWrapper,
     ImprovementRewardWrapperConfig,
 )
-from . import DummyEnv, DummyWrapper, DummyWrapperConfig, TestHandler
-from gymnasium.utils.env_checker import check_env
-import ast
-import pytest
-import logging
-from ttex.log import teardown_wandb_logger
+from jaix.env.wrapper.wandb_wrapper import WandbWrapper, WandbWrapperConfig
+from jaix.env.wrapper.wrapped_env_factory import (
+    WrappedEnvFactory as WEF,
+)
 from jaix.utils.experiment_context import ExperimentContext
 from jaix.utils.wandb_session import WandbSession
-import os
-from shutil import rmtree
+from ttex.log import teardown_wandb_logger
+
+from . import DummyEnv, DummyWrapper, DummyWrapperConfig, TestHandler
 
 WANDB_LOGGER_TEST_NAME = "WandbLoggerTest"
 

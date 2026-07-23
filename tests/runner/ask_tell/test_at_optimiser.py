@@ -1,9 +1,9 @@
-from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig, ATOptimiser
+import pytest
+from jaix.runner.ask_tell.at_optimiser import ATOptimiser, ATOptimiserConfig
 from jaix.runner.ask_tell.strategy.random import RandomATStrat, RandomATStratConfig
 from ttex.config import ConfigurableObjectFactory as COF
+
 from . import DummyEnv, loop
-import pytest
-import numpy as np
 
 
 def create_at_opt(dimension, num_objectives):

@@ -1,19 +1,20 @@
-from jaix.environment_factory import EnvironmentConfig, CompositeEnvironmentConfig
-from jaix.suite.suite import AggType
-from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
+import gymnasium as gym
+import pytest
 from jaix.env.composite.switching_environment import (
     SwitchingEnvironment,
     SwitchingEnvironmentConfig,
 )
-from jaix.env.utils.switching_pattern.switching_pattern import (
-    SeqRegSwitchingPatternConfig,
-    SeqRegSwitchingPattern,
-)
-from jaix.env.singular.ec_env import ECEnvironmentConfig, ECEnvironment
+from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.problem.sphere import Sphere, SphereConfig
-import pytest
+from jaix.env.utils.switching_pattern.switching_pattern import (
+    SeqRegSwitchingPattern,
+    SeqRegSwitchingPatternConfig,
+)
+from jaix.environment_factory import CompositeEnvironmentConfig, EnvironmentConfig
 from jaix.environment_factory import EnvironmentFactory as EF
-import gymnasium as gym
+from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
+from jaix.suite.suite import AggType
+
 from . import DummyWrapper, DummyWrapperConfig
 
 

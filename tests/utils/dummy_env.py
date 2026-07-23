@@ -1,9 +1,8 @@
-import gymnasium as gym
+
 from gymnasium import spaces
-from typing import Optional
 from gymnasium.utils.env_checker import check_env
-from ttex.config import ConfigurableObject, Config
 from jaix.env.singular.singular_environment import SingularEnvironment
+from ttex.config import Config, ConfigurableObject
 
 
 class DummyEnvConfig(Config):
@@ -55,8 +54,8 @@ class DummyConfEnv(ConfigurableObject, SingularEnvironment):
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
+        seed: int | None = None,
+        options: dict | None = None,
     ):
         super().reset(seed=seed)
         self.observation_space.seed(seed)

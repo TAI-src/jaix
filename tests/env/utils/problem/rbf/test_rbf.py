@@ -1,5 +1,5 @@
-from jaix.env.utils.problem.rbf.rbf import RBFKernel, RBF
 import numpy as np
+from jaix.env.utils.problem.rbf.rbf import RBF, RBFKernel
 
 
 def test_kernel():

@@ -1,5 +1,6 @@
-from .. import DummyEnv
 import numpy as np
+
+from .. import DummyEnv
 
 
 def loop(dimension, num_objectives, opt, env=None):

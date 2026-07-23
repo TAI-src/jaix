@@ -1,7 +1,8 @@
-from jaix.env.wrapper.closing_wrapper import ClosingWrapper
-from . import DummyEnv
-from gymnasium.utils.env_checker import check_env
 import pytest
+from gymnasium.utils.env_checker import check_env
+from jaix.env.wrapper.closing_wrapper import ClosingWrapper
+
+from . import DummyEnv
 
 
 def test_init():

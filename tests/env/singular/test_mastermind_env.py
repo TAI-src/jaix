@@ -1,10 +1,11 @@
-from jaix.env.singular.mastermind_env import (
-    MastermindEnvironmentConfig,
-    MastermindEnvironment,
-)
-from gymnasium.utils.env_checker import check_env
-import pytest
 import copy
+
+import pytest
+from gymnasium.utils.env_checker import check_env
+from jaix.env.singular.mastermind_env import (
+    MastermindEnvironment,
+    MastermindEnvironmentConfig,
+)
 
 
 def test_init():

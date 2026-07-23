@@ -1,27 +1,29 @@
-from ttex.config import (
-    ConfigurableObjectFactory as COF,
-)
-from jaix.env.composite.switching_environment import (
-    SwitchingEnvironmentConfig,
-    SwitchingEnvironment,
-)
-from jaix.env.utils.switching_pattern.switching_pattern import (
-    SeqRegSwitchingPatternConfig,
-    SeqRegSwitchingPattern,
-)
-import pytest
+import os
+
 import gymnasium as gym
-from gymnasium import spaces
 import numpy as np
-from jaix.env.utils.problem.sphere import Sphere, SphereConfig
-from jaix.env.utils.problem.rbf_fit import RBFFit, RBFFitConfig
-from ..utils.problem.rbf.test_rbf_adapter import get_config
+import pytest
+from gymnasium import spaces
+from jaix.env.composite.switching_environment import (
+    SwitchingEnvironment,
+    SwitchingEnvironmentConfig,
+)
 from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
-import os
+from jaix.env.utils.problem.rbf_fit import RBFFit, RBFFitConfig
+from jaix.env.utils.problem.sphere import Sphere, SphereConfig
+from jaix.env.utils.switching_pattern.switching_pattern import (
+    SeqRegSwitchingPattern,
+    SeqRegSwitchingPatternConfig,
+)
 from jaix.env.wrapper.closing_wrapper import ClosingWrapper
+from ttex.config import (
+    ConfigurableObjectFactory as COF,
+)
+
+from ..utils.problem.rbf.test_rbf_adapter import get_config
 
 
 @pytest.fixture(scope="function")

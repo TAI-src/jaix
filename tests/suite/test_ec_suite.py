@@ -1,10 +1,11 @@
+import os
+
 import pytest
-from ttex.config import ConfigurableObjectFactory as COF
+from jaix.env.singular.ec_env import ECEnvironmentConfig
 from jaix.env.utils.problem.sphere import Sphere, SphereConfig
 from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
 from jaix.suite.suite import AggType
-from jaix.env.singular.ec_env import ECEnvironmentConfig
-import os
+from ttex.config import ConfigurableObjectFactory as COF
 
 
 @pytest.fixture(scope="function")

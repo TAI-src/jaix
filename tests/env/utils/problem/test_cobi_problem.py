@@ -1,8 +1,9 @@
-from . import CobiProblem, CobiProblemConfig
 import numpy as np
 import pytest
 from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from ttex.config import ConfigurableObjectFactory as COF
+
+from . import CobiProblem, CobiProblemConfig
 
 
 @pytest.fixture(scope="session", autouse=True)

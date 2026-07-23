@@ -1,6 +1,7 @@
-from jaix.runner.ask_tell.strategy.random import RandomATStrat, RandomATStratConfig
-from . import DummyEnv, loop
 import pytest
+from jaix.runner.ask_tell.strategy.random import RandomATStrat, RandomATStratConfig
+
+from . import DummyEnv, loop
 
 
 def test_init():

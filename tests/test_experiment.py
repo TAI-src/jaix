@@ -1,15 +1,13 @@
-from .test_environment_factory import comp_config, ec_config, env_config
-from .runner.ask_tell.test_at_runner import get_optimiser
 import pytest
-from jaix.runner.ask_tell.ask_tell_runner import ATRunnerConfig, ATRunner
+from jaix.experiment import Experiment, ExperimentConfig
+from jaix.runner.ask_tell.ask_tell_runner import ATRunner, ATRunnerConfig
 from jaix.runner.ask_tell.at_optimiser import ATOptimiser
-from jaix.experiment import ExperimentConfig, Experiment
-from jaix.utils.logging_config import LoggingConfig
-import shutil
-from .utils.dummy_wrapper import DummyWrapper, DummyWrapperConfig
-from jaix.environment_factory import EnvironmentFactory as EF
-from jaix.env.wrapper.closing_wrapper import ClosingWrapper
 from jaix.utils.experiment_context import ExperimentContext
+from jaix.utils.logging_config import LoggingConfig
+
+from .runner.ask_tell.test_at_runner import get_optimiser
+from .test_environment_factory import env_config
+from .utils.dummy_wrapper import DummyWrapper, DummyWrapperConfig
 
 
 def exp_config(

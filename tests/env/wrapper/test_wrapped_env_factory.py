@@ -1,8 +1,9 @@
-from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
-from gymnasium.wrappers import RescaleAction
-from . import DummyEnv
 import gymnasium as gym
-from ttex.config import ConfigurableObject, Config
+from gymnasium.wrappers import RescaleAction
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
+from ttex.config import Config, ConfigurableObject
+
+from . import DummyEnv
 
 
 def test_plain_wrap():

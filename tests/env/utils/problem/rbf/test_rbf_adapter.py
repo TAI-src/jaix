@@ -1,8 +1,9 @@
-from jaix.env.utils.problem.rbf.rbf_adapter import RBFAdapterConfig, RBFAdapter
-from jaix.env.utils.problem.rbf.rbf import RBF
-import pytest
 from math import isclose
+
 import numpy as np
+import pytest
+from jaix.env.utils.problem.rbf.rbf import RBF
+from jaix.env.utils.problem.rbf.rbf_adapter import RBFAdapter, RBFAdapterConfig
 
 
 @pytest.mark.parametrize(

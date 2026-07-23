@@ -1,6 +1,6 @@
+import pytest
 from jaix.env.utils.problem.sphere import Sphere, SphereConfig
 from ttex.config import ConfigurableObjectFactory as COF
-import pytest
 
 
 def test_init():

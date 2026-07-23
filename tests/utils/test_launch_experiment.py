@@ -1,15 +1,15 @@
-from jaix.utils.launch_experiment import (
-    launch_jaix_experiment,
-)
-import os
-from ttex.config import ConfigFactory as CF
-from copy import deepcopy
-import pytest
 import itertools
 import json
 import logging
-from ttex.log import get_wandb_logger
+import os
 import shutil
+from copy import deepcopy
+
+import pytest
+from jaix.utils.launch_experiment import (
+    launch_jaix_experiment,
+)
+from ttex.log import get_wandb_logger
 
 
 def get_config(suite="RBF", comp=False):

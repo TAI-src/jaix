@@ -1,7 +1,7 @@
-from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 import gymnasium as gym
-from ttex.config import Config, ConfigurableObject
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 from jaix.utils.experiment_context import ExperimentContext
+from ttex.config import Config, ConfigurableObject
 
 
 class DummyWrapperConfig(Config):

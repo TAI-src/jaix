@@ -1,12 +1,11 @@
-from jaix.runner.ask_tell.strategy.random import RandomATStrat, RandomATStratConfig
-from ttex.config import ConfigFactory as COF
-from jaix.runner.ask_tell.strategy.bandit import ATBandit, ATBanditConfig
-from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig
-from jaix.runner.ask_tell.strategy.bandit import BanditConfig
-from jaix.runner.ask_tell.strategy.utils.bandit_model import BanditExploitStrategy
-from jaix.env.wrapper.auto_reset_wrapper import AutoResetWrapper, AutoResetWrapperConfig
-from . import DummyEnv, loop
 import numpy as np
+from jaix.env.wrapper.auto_reset_wrapper import AutoResetWrapper, AutoResetWrapperConfig
+from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig
+from jaix.runner.ask_tell.strategy.bandit import ATBandit, ATBanditConfig, BanditConfig
+from jaix.runner.ask_tell.strategy.random import RandomATStrat, RandomATStratConfig
+from jaix.runner.ask_tell.strategy.utils.bandit_model import BanditExploitStrategy
+
+from . import DummyEnv, loop
 
 
 def get_bandit(num_choices: int = 2, stop_after: int = -1):

@@ -1,7 +1,8 @@
-from jaix.suite.suite import Suite, SuiteConfig, AggType
-from . import DummyEnvConfig, DummyConfEnv
-from collections.abc import Iterable
+
 import pytest
+from jaix.suite.suite import AggType, Suite, SuiteConfig
+
+from . import DummyConfEnv, DummyEnvConfig
 
 
 def init_suite():

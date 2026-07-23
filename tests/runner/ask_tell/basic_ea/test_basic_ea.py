@@ -1,15 +1,17 @@
-from jaix.runner.ask_tell.strategy.basic_ea import BasicEA, BasicEAConfig
+import numpy as np
+import pytest
+from gymnasium import spaces
 from jaix.runner.ask_tell.strategy.basic_ea import (
+    BasicEA,
+    BasicEAConfig,
+    CrossoverOp,
     EAStrategy,
     MutationOp,
-    CrossoverOp,
     UpdateStrategy,
     WarmStartStrategy,
 )
-import pytest
+
 from .. import DummyEnv, loop
-import numpy as np
-from gymnasium import spaces
 
 
 @pytest.mark.parametrize(

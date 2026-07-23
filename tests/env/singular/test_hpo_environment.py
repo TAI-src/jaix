@@ -1,8 +1,9 @@
-from jaix.env.singular import HPOEnvironmentConfig, HPOEnvironment
-from jaix.env.utils.hpo import TaskType
-import pytest
-from ttex.config import ConfigurableObjectFactory as COF
 import json
+
+import pytest
+from jaix.env.singular import HPOEnvironment, HPOEnvironmentConfig
+from jaix.env.utils.hpo import TaskType
+from ttex.config import ConfigurableObjectFactory as COF
 
 
 @pytest.fixture(scope="session", autouse=True)

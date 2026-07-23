@@ -1,12 +1,12 @@
+import pytest
 from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
-from ttex.config import ConfigurableObjectFactory as COF
 from jaix.env.utils.problem.sphere import Sphere, SphereConfig
-import pytest
+from ttex.config import ConfigurableObjectFactory as COF
+
 from . import test_handler
-import numpy as np
 
 
 @pytest.fixture(scope="function")

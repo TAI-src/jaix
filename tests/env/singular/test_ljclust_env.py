@@ -1,7 +1,7 @@
-from jaix.env.singular import LJClustEnvironment, LJClustEnvironmentConfig
-import pytest
-from jaix.env.utils.ase import LJClustAdapterConfig
 import numpy as np
+import pytest
+from jaix.env.singular import LJClustEnvironment, LJClustEnvironmentConfig
+from jaix.env.utils.ase import LJClustAdapterConfig
 
 
 @pytest.fixture(scope="session", autouse=True)

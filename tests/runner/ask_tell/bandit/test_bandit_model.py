@@ -1,10 +1,10 @@
 import numpy as np
+import pytest
 from jaix.runner.ask_tell.strategy.utils.bandit_model import (
-    BanditConfig,
     Bandit,
+    BanditConfig,
     BanditExploitStrategy,
 )
-import pytest
 
 
 def get_bandit(
