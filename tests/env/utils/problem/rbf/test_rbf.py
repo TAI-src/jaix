@@ -4,8 +4,8 @@ import numpy as np
 
 def test_kernel():
     kernel = RBFKernel.GAUSSIAN
-    assert kernel(0, 5) == 1
-    assert kernel(1, 1) == np.exp(-1)
+    assert kernel.evaluate(0, 5) == 1
+    assert kernel.evaluate(1, 1) == np.exp(-1)
 
 
 def test_rbf_single():
