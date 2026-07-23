@@ -9,6 +9,7 @@ from ttex.config import (
 from typing import Type, List, Tuple, Union, Dict
 import gymnasium as gym
 import logging
+from typing import cast
 
 import jaix.utils.globals as globs
 
@@ -27,21 +28,22 @@ class WrappedEnvFactory:
             if isinstance(wrapper_config, Config):
                 # Wrapper is a configurable object and config is passed as object
                 wrapped_env = COF.create(wrapper_class, wrapper_config, wrapped_env)
-            elif (
-                issubclass(wrapper_class, ConfigurableObject)
-                and len(wrapper_config) == 1
-                and str(
-                    f"{wrapper_class.config_class.__module__}.{wrapper_class.config_class.__qualname__}"
-                )
-                in wrapper_config
-            ):
-                # Wrapper is a configurable object and config is passed as dict
-                config_object = CF.from_dict(wrapper_config, context=globals())
-                wrapped_env = COF.create(wrapper_class, config_object, wrapped_env)
-                wrappers[i] = (
-                    wrapper_class,
-                    config_object,
-                )  # Update to use config object
+            elif issubclass(wrapper_class, ConfigurableObject):
+                wrapper_class = cast(Type[ConfigurableObject], wrapper_class)
+                if (
+                    len(wrapper_config) == 1
+                    and str(
+                        f"{wrapper_class.config_class.__module__}.{wrapper_class.config_class.__qualname__}"
+                    )
+                    in wrapper_config
+                ):
+                    # Wrapper is a configurable object and config is passed as dict
+                    config_object = CF.from_dict(wrapper_config, context=globals())
+                    wrapped_env = COF.create(wrapper_class, config_object, wrapped_env)
+                    wrappers[i] = (
+                        wrapper_class,
+                        config_object,
+                    )  # Update to use config object
             else:
                 # Assume config is a dict of keyword arguments
                 wrapped_env = wrapper_class(wrapped_env, **wrapper_config)

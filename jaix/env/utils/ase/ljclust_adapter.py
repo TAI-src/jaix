@@ -3,19 +3,18 @@ import requests
 from ase.calculators.lj import LennardJones
 from ase.optimize.optimize import Optimizer
 from ase.optimize import BFGS, FIRE
-from ase import Atoms
+from ase import Atoms  # pyright: ignore[reportAttributeAccessIssue]
 import os
 import numpy as np
 from typing import Optional, Type, Union, List, Tuple
 from scipy.spatial.distance import pdist
 from ttex.config import ConfigurableObject, Config
 from ase.calculators.kim import KIM
-from os import path
 
 import logging
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 LJ_MAX_RC = 1e6  # near infinite cutoff to get as close to the optimum values known in literature as possible
 MIN_ATOM_DISTANCE = 0.15  # Minimum distance between atoms in the Lennard-Jones clusters

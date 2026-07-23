@@ -3,7 +3,8 @@ import numpy as np
 from collections import defaultdict
 import uuid
 import pickle
-from typing import DefaultDict, List, Optional, Tuple
+from typing import List, Optional, Tuple
+from typing import DefaultDict  # noqa: F401
 import math
 
 
