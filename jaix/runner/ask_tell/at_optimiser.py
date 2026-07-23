@@ -6,9 +6,9 @@ from jaix.runner.ask_tell.at_strategy import ATStrategy
 import numpy as np
 
 import logging
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class ATOptimiserConfig(Config):

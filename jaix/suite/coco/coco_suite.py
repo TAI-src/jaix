@@ -8,7 +8,8 @@ from jaix.suite.coco import COCOProblem
 import cocoex as ex
 import regex as re
 import random as rnd
-from typing import Optional, Dict
+from typing import Optional
+from typing import Dict  # noqa: F401
 
 
 class COCOSuiteConfig(Config):

@@ -1,7 +1,7 @@
 from ttex.config import Config, ConfigurableObjectFactory as COF
 from jaix.runner.runner import Runner
 from jaix.runner.optimiser import Optimiser
-from typing import Type, Optional, Dict
+from typing import Type, Optional
 from jaix.environment_factory import EnvironmentConfig, EnvironmentFactory as EF
 import logging
 from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig

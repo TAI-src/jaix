@@ -3,7 +3,7 @@ import gymnasium as gym
 import numpy as np
 from jaix.env.singular.singular_environment import SingularEnvironment
 from jaix.env.utils.ase import LJClustAdapter, LJClustAdapterConfig
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import jaix.utils.globals as globals
 
@@ -77,7 +77,7 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
         # Stop if the best energy is below the target accuracy
         return self.best_so_far - self.adapter.min_val <= self.target_accuracy
 
-    def reset(self, seed=None, options=None):
+    def reset(self, seed: int | None = None, options: None | Dict[str, Any] = None):
         """
         Resets the environment to an initial state,
         required before calling step.
@@ -91,7 +91,7 @@ class LJClustEnvironment(ConfigurableObject, SingularEnvironment):
         self.best_so_far = np.inf
         return None, self._get_info()
 
-    def step(self, pos):
+    def step(self, pos: np.ndarray):
         val: Optional[float]
         pos = np.reshape(pos, (self.adapter.num_atoms, 3))
         if not self.adapter.validate(pos):

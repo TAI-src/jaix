@@ -5,7 +5,6 @@ from jaix.env.wrapper.value_track_wrapper import (
     ValueTrackWrapper,
 )
 from ttex.config import ConfigurableObject, Config
-from typing import Optional, Any, Dict, Tuple
 from enum import Enum
 
 

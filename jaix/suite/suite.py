@@ -2,14 +2,13 @@ from enum import Enum
 from typing import Optional, Type, List, Union, Tuple, cast
 from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
 import gymnasium as gym
-import random as rnd
 import logging
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 import itertools
 import math
 import numpy as np
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class AggType(Enum):

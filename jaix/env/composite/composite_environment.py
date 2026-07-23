@@ -14,9 +14,13 @@ class CompositeEnvironment(gym.Env):
     def const_dim(env_list: List[gym.Env]) -> bool:
         """Check if action_space dimension is constant across all environments"""
         assert len(env_list) > 0, "env_list must not be empty"
-        dim_0 = np.prod(env_list[0].action_space.shape)
+        shape = env_list[0].action_space.shape
+        assert shape is not None, "action_space must have a shape"
+        dim_0 = np.prod(shape)
         for env in env_list:
-            if np.prod(env.action_space.shape) != dim_0:
+            shape = env.action_space.shape
+            assert shape is not None, "action_space must have a shape"
+            if np.prod(shape) != dim_0:
                 return False
         return True
 

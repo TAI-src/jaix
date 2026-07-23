@@ -1,6 +1,5 @@
 """Defines environment as in EC context"""
 
-import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import logging
