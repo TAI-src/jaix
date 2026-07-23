@@ -19,7 +19,14 @@ class RBFKernel(Enum):
 
     # LINEAR = lambda r, eps: -r
     # THIN_PLATE_SPLINE = lambda r, eps: r**2 * np.log(r)
-    GAUSSIAN = lambda r, eps: np.exp(-((r * eps) ** 2))
+    GAUSSIAN = "gaussian"
+    # lambda r, eps: np.exp(-((r * eps) ** 2))
+
+    def evaluate(self, r, eps) -> float:
+        if self == RBFKernel.GAUSSIAN:
+            return np.exp(-((r * eps) ** 2))
+        else:
+            raise NotImplementedError(f"Kernel {self} not implemented.")
 
 
 class RBF:
@@ -48,6 +55,7 @@ class RBF:
 
     def eval(self, x):
         vals = [
-            w * self.kernel(x - c, eps) for (c, eps, w) in zip(self.c, self.eps, self.w)
+            w * self.kernel.evaluate(x - c, eps)
+            for (c, eps, w) in zip(self.c, self.eps, self.w)
         ]
         return sum(vals)
