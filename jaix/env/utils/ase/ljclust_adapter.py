@@ -1,18 +1,18 @@
-from csv import DictReader
-import requests
-from ase.calculators.lj import LennardJones
-from ase.optimize.optimize import Optimizer
-from ase.optimize import BFGS, FIRE
-from ase import Atoms  # pyright: ignore[reportAttributeAccessIssue]
-import os
-import numpy as np
-from typing import Optional, Type, Union, List, Tuple
-from scipy.spatial.distance import pdist
-from ttex.config import ConfigurableObject, Config
-from ase.calculators.kim import KIM
-
 import logging
-import jaix.utils.globals as globals
+import os
+from csv import DictReader
+
+import numpy as np
+import requests
+from ase import Atoms  # pyright: ignore[reportAttributeAccessIssue]
+from ase.calculators.kim import KIM
+from ase.calculators.lj import LennardJones
+from ase.optimize import BFGS, FIRE
+from ase.optimize.optimize import Optimizer
+from scipy.spatial.distance import pdist
+from ttex.config import Config, ConfigurableObject
+
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -24,13 +24,9 @@ class LJClustAdapterConfig(Config):
     def __init__(
         self,
         target_dir: str = "./ljclust_data",
-        opt_alg: Type[Optimizer] = BFGS,
-        opt_alg_params: Optional[
-            dict
-        ] = None,  # Parameters for the optimizer initialization
-        opt_run_params: Optional[
-            dict
-        ] = None,  # Parameters for the optimizer run, including fmax and steps
+        opt_alg: type[Optimizer] = BFGS,
+        opt_alg_params: dict | None = None,  # Parameters for the optimizer initialization
+        opt_run_params: dict | None = None,  # Parameters for the optimizer run, including fmax and steps
     ):
         Config.__init__(self)
         self.target_dir = target_dir
@@ -132,7 +128,7 @@ class LJClustAdapter(ConfigurableObject):
         return positions
 
     @staticmethod
-    def _retrieve_lj_params(material: Optional[str] = None) -> dict:
+    def _retrieve_lj_params(material: str | None = None) -> dict:
         """
         Retrieves the Lennard-Jones parameters for a given material from a CSV file.
         :param material: Material for which to retrieve the parameters. If None, retrieves all parameters.
@@ -182,7 +178,7 @@ class LJClustAdapter(ConfigurableObject):
         return params
 
     @staticmethod
-    def retrieve_lj_params(atom_str: str) -> Union[dict, None]:
+    def retrieve_lj_params(atom_str: str) -> dict | None:
         """
         Retrieves the Lennard-Jones parameters for a given atom string.
         :param atom_str: String representing the atoms, e.g., "Cu10" for 10 copper atoms.
@@ -219,10 +215,10 @@ class LJClustAdapter(ConfigurableObject):
         :return: Dictionary containing available species, available numbers, number of functions, and number of instances.
         """
         params = LJClustAdapter._retrieve_lj_params()  # Retrieve all parameters
-        available_species: List[str] = ["X"] + list(
+        available_species: list[str] = ["X"] + list(
             params.keys()
         )  # Add "X" for theoretical LJ clusters
-        available_numbers: List[int] = list(range(3, 151))  # Valid number of atoms
+        available_numbers: list[int] = list(range(3, 151))  # Valid number of atoms
         functions = available_species if by_species else available_numbers
         instances = available_numbers if by_species else available_species
         return {
@@ -319,7 +315,7 @@ class LJClustAdapter(ConfigurableObject):
         atom_str: str,
         target_dir: str = ".",
         local_opt: bool = True,
-    ) -> Tuple[float, Union[Atoms, None]]:
+    ) -> tuple[float, Atoms | None]:
         """
         Retrieves the known minimum energy and corresponding atomic positions for a given atom string.
         :param atom_str: String representing the atoms, e.g., "Cu10" for 10 copper atoms.
@@ -392,7 +388,7 @@ class LJClustAdapter(ConfigurableObject):
         )
         # TODO: Importance of box_length?
 
-    def evaluate(self, positions: np.ndarray) -> Tuple[float, dict]:
+    def evaluate(self, positions: np.ndarray) -> tuple[float, dict]:
         """
         Evaluates the potential energy of the given atomic positions.
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
@@ -417,7 +413,7 @@ class LJClustAdapter(ConfigurableObject):
             "energy_diff": atoms.get_potential_energy() - self.min_val,
         }
 
-    def local_opt(self, positions: np.ndarray) -> Tuple[float, np.ndarray]:
+    def local_opt(self, positions: np.ndarray) -> tuple[float, np.ndarray]:
         """
         Performs local optimization on the given atomic positions.
         :param positions: Numpy array of shape (num_atoms, 3) representing the positions of the atoms.
@@ -429,7 +425,7 @@ class LJClustAdapter(ConfigurableObject):
         opt.run(**self.opt_run_params)
         return atoms.get_potential_energy(), atoms.get_positions()
 
-    def random_generate(self, seed: Optional[int] = None) -> np.ndarray:
+    def random_generate(self, seed: int | None = None) -> np.ndarray:
         """
         Generates a random atomic configuration within the specified box length.
         :param seed: Optional seed for random number generation.

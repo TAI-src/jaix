@@ -1,7 +1,7 @@
-from ttex.config import ConfigurableObject, Config
 import math
 from abc import abstractmethod
-from typing import List, Optional
+
+from ttex.config import Config, ConfigurableObject
 
 
 class SwitchingPattern(ConfigurableObject):
@@ -15,7 +15,7 @@ class SwitchingPattern(ConfigurableObject):
         raise NotImplementedError()
 
     @abstractmethod
-    def switch(self, t: float, valid: List[bool]) -> int:
+    def switch(self, t: float, valid: list[bool]) -> int:
         # Return which env index we are switching to
         raise NotImplementedError()
 
@@ -38,7 +38,7 @@ class SeqRegSwitchingPattern(SwitchingPattern):
     def reset(self, seed=None):
         self.offset = 0
 
-    def switch(self, t: float, valid: Optional[List[bool]] = None) -> int:
+    def switch(self, t: float, valid: list[bool] | None = None) -> int:
         assert valid is None or self.num_choices == len(valid)
         valid = [True] * self.num_choices if valid is None else valid
         env_num = math.floor((t + self.offset) / self.wait_period)
@@ -73,7 +73,7 @@ class SeqForcedSwitchingPattern(SwitchingPattern):
     def reset(self, seed=None):
         self.current = 0
 
-    def switch(self, t: float, valid: List[bool]) -> int:
+    def switch(self, t: float, valid: list[bool]) -> int:
         if not valid[self.current]:
             self.current = next(
                 (

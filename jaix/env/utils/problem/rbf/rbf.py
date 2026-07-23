@@ -1,4 +1,3 @@
-from typing import List
 from enum import Enum
 
 # Based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RBFInterpolator.html#scipy.interpolate.RBFInterpolator
@@ -32,9 +31,9 @@ class RBFKernel(Enum):
 class RBF:
     def __init__(
         self,
-        c: List[float],
-        eps: List[float],
-        w: List[float],
+        c: list[float],
+        eps: list[float],
+        w: list[float],
         kernel: RBFKernel = RBFKernel.GAUSSIAN,
     ):
         """

@@ -1,21 +1,23 @@
+
+from ttex.config import Config
+from ttex.config import ConfigurableObjectFactory as COF
+
 from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
 from jaix.env.utils.problem.static_problem import StaticProblem
-from ttex.config import ConfigurableObjectFactory as COF, Config
-from typing import Type, Optional, List
 from jaix.suite.suite import Suite, SuiteConfig
 
 
 class ECSuiteConfig(SuiteConfig):
     def __init__(
         self,
-        func_classes: List[Type[StaticProblem]],
-        func_configs: List[Config],
+        func_classes: list[type[StaticProblem]],
+        func_configs: list[Config],
         env_config: ECEnvironmentConfig,
-        instances: Optional[List[int]] = None,
-        agg_instances: Optional[int] = None,
+        instances: list[int] | None = None,
+        agg_instances: int | None = None,
     ):
         self.func_configs = func_configs
         self.func_classes = func_classes

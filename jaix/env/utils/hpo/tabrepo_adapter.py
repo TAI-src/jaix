@@ -1,7 +1,8 @@
-from tabrepo.repository.evaluation_repository import EvaluationRepository
 import re
-from typing import Optional, List, Union, Tuple
+
 import pandas as pd
+from tabrepo.repository.evaluation_repository import EvaluationRepository
+
 from jaix.env.utils.hpo import TaskType
 
 # from tabrepo.constants.model_constants import MODEL_TYPE_DICT
@@ -15,8 +16,8 @@ class TabrepoAdapter:
     def get_dataset_names(
         repo: EvaluationRepository,
         task_type: TaskType,
-        datasets_idx: Optional[List[int]] = None,
-    ) -> List[str]:
+        datasets_idx: list[int] | None = None,
+    ) -> list[str]:
         dataset_names = repo.datasets(union=True, problem_type=task_type.value)
         if datasets_idx is not None:
             # Will throw an error if not available
@@ -29,16 +30,16 @@ class TabrepoAdapter:
     def get_config_names(
         repo: EvaluationRepository,
         task_type: TaskType,
-        datasets: Optional[Union[List[int], List[str]]] = None,
-    ) -> Tuple[List[str], List[str]]:
+        datasets: list[int] | list[str] | None = None,
+    ) -> tuple[list[str], list[str]]:
         if datasets is None or isinstance(datasets[0], int):
-            dataset_names: List[str] = TabrepoAdapter.get_dataset_names(
+            dataset_names: list[str] = TabrepoAdapter.get_dataset_names(
                 repo,
                 task_type,
                 datasets,  # type: ignore
             )
         else:
-            dataset_names: List[str] = datasets  # type: ignore
+            dataset_names: list[str] = datasets  # type: ignore
         # Get one config per type
         regex = r"_c1_"  # For all handmade: r"_c\d+_"
         configs = [
@@ -49,7 +50,7 @@ class TabrepoAdapter:
         return configs, dataset_names
 
     @staticmethod
-    def get_metadata(repo: EvaluationRepository, dataset: str, configs: List[str]):
+    def get_metadata(repo: EvaluationRepository, dataset: str, configs: list[str]):
         metadata = repo.dataset_metadata(dataset)
         metadata.update(repo.dataset_info(dataset))
         metrics = repo.metrics(datasets=[dataset], configs=configs)
@@ -89,7 +90,7 @@ class TabrepoAdapter:
                 f"Tried getting fold {fold} of {self.metadata['num_folds']} available for dataset {self.dataset}"
             )
 
-    def evaluate(self, config_id: int, seed: Optional[int] = None):
+    def evaluate(self, config_id: int, seed: int | None = None):
         assert config_id < len(self.configs)
         # TODO: seed
         idx = pd.IndexSlice
@@ -101,7 +102,7 @@ class TabrepoAdapter:
         time_train_s = results["time_train_s"].values[0]
         return rank, time_train_s
 
-    def evaluate_ensemble(self, config_ids: List[int], seed: Optional[int] = None):
+    def evaluate_ensemble(self, config_ids: list[int], seed: int | None = None):
         if len(config_ids) == 0:
             return self.max_rank, 0
         assert max(config_ids) < len(self.configs)

@@ -1,18 +1,19 @@
-from ttex.config import Config, ConfigurableObject
 from enum import Enum
-from jaix.runner.ask_tell.at_strategy import ATStrategy
+
 import numpy as np
+from gymnasium import Env, spaces
+from ttex.config import Config, ConfigurableObject
+
+from jaix.env.composite.composite_environment import CompositeEnvironment
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 from jaix.runner.ask_tell.strategy.utils.ea_utils import (
+    Individual,
+    ddl_update,
     global_flip,
     onepoint_crossover,
-    uniform_crossover,
-    Individual,
     select,
-    ddl_update,
+    uniform_crossover,
 )
-from jaix.env.composite.composite_environment import CompositeEnvironment
-from typing import Optional
-from gymnasium import Env, spaces
 
 EAStrategy = Enum("EAStrategy", [("Comma", 0), ("Plus", 1)])
 
@@ -84,12 +85,12 @@ class BasicEAConfig(Config):
         strategy: EAStrategy,  # Comma or Plus
         mu: int,  # number of parents
         lam: int,  # number of offspring
-        mutation_op: Optional[MutationOp],  # mutation operator
-        crossover_op: Optional[CrossoverOp],  # crossover operator
+        mutation_op: MutationOp | None,  # mutation operator
+        crossover_op: CrossoverOp | None,  # crossover operator
         mutation_opts={},  # mutation operator options
         crossover_opts={},  # crossover operator options
         warm_start_strategy: WarmStartStrategy = WarmStartStrategy.NONE,  # warm start
-        update_strategy: Optional[UpdateStrategy] = None,  # update strategy
+        update_strategy: UpdateStrategy | None = None,  # update strategy
         update_opts={},  # update strategy options
     ):
         Config.__init__(self)

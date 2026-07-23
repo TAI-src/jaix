@@ -1,6 +1,7 @@
 import numpy as np
-from jaix.runner.ask_tell.at_strategy import ATStrategy
 from ttex.config import Config, ConfigurableObject
+
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 
 
 class RandomATStratConfig(Config):

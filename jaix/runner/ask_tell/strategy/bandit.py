@@ -1,16 +1,19 @@
+import logging
+
+import numpy as np
+from gymnasium import Env
 from ttex.config import (
     Config,
     ConfigurableObject,
+)
+from ttex.config import (
     ConfigurableObjectFactory as COF,
 )
-from typing import List, Dict
+
 from jaix.runner.ask_tell.at_optimiser import ATOptimiser, ATOptimiserConfig
 from jaix.runner.ask_tell.at_strategy import ATStrategy
-from jaix.runner.ask_tell.strategy.utils.bandit_model import BanditConfig, Bandit
-from gymnasium import Env
-import logging
-import jaix.utils.globals as globals
-import numpy as np
+from jaix.runner.ask_tell.strategy.utils.bandit_model import Bandit, BanditConfig
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -18,7 +21,7 @@ logger = logging.getLogger(globals.LOGGER_NAME)
 class ATBanditConfig(Config):
     def __init__(
         self,
-        opt_confs: List[ATOptimiserConfig],
+        opt_confs: list[ATOptimiserConfig],
         bandit_config: BanditConfig,
     ):
         Config.__init__(self)
@@ -97,8 +100,8 @@ class ATBandit(ConfigurableObject, ATStrategy):
         self,
         solutions,
         function_values,
-        info: Dict,
-        r: List[float],
+        info: dict,
+        r: list[float],
         env: Env,
         **optional_kwargs,
     ):

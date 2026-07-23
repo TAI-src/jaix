@@ -1,7 +1,8 @@
+
 import gymnasium as gym
-from ttex.config import ConfigurableObject, Config
+from ttex.config import Config, ConfigurableObject
+
 from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
-from typing import Optional
 
 
 class MaxEvalWrapperConfig(Config):
@@ -22,8 +23,8 @@ class MaxEvalWrapper(PassthroughWrapper, ConfigurableObject):
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
+        seed: int | None = None,
+        options: dict | None = None,
     ):
         if options is None or "online" not in options or not options["online"]:
             # Reset evaluations _unless_ it is online

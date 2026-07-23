@@ -1,9 +1,10 @@
-from ttex.config import Config, ConfigurableObject
-from typing import Tuple
-import numpy as np
-from jaix.env.utils.problem.rbf.rbf import RBFKernel, RBF
 import logging
-import jaix.utils.globals as globals
+
+import numpy as np
+from ttex.config import Config, ConfigurableObject
+
+from jaix.env.utils.problem.rbf.rbf import RBF, RBFKernel
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -11,12 +12,12 @@ logger = logging.getLogger(globals.LOGGER_NAME)
 class RBFAdapterConfig(Config):
     def __init__(
         self,
-        num_rad_range: Tuple[int, int] = (15, 25),
-        ratio_x_range: Tuple[float, float] = (0.25, 0.5),
+        num_rad_range: tuple[int, int] = (15, 25),
+        ratio_x_range: tuple[float, float] = (0.25, 0.5),
         num_measure_points: int = 2000,
         num_true_measure_points: int = 2000,
-        x_val_range: Tuple[float, float] = (-10, 10),
-        y_val_range: Tuple[float, float] = (
+        x_val_range: tuple[float, float] = (-10, 10),
+        y_val_range: tuple[float, float] = (
             1,
             4,
         ),  # With gaussian kernel up to 5 weights easily reachable (0-5)
@@ -99,7 +100,7 @@ class RBFAdapter(ConfigurableObject):
         ]
         return targets
 
-    def comp_fit(self, w) -> Tuple[float, float]:
+    def comp_fit(self, w) -> tuple[float, float]:
         """
         Compute the fitness of the given weights w.
         Returns a tuple of (fitness, true_fitness) where fitness is the error on

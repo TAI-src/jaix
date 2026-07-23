@@ -1,7 +1,8 @@
+
 import numpy as np
-from jaix.env.utils.problem.static_problem import StaticProblem
 from ttex.config import Config, ConfigurableObject
-from typing import List
+
+from jaix.env.utils.problem.static_problem import StaticProblem
 
 
 class SphereConfig(Config):
@@ -10,8 +11,8 @@ class SphereConfig(Config):
         dimension: int,
         num_objectives: int,
         mult: float,
-        x_shifts: List[float],
-        y_shifts: List[float],
+        x_shifts: list[float],
+        y_shifts: list[float],
         precision: float,
     ):
         Config.__init__(self)

@@ -1,14 +1,14 @@
 """Defines environment as in EC context"""
 
-from gymnasium import spaces
-import numpy as np
 import logging
 
-from ttex.config import ConfigurableObject, Config
-from jaix.env.utils.problem.static_problem import StaticProblem
-from typing import Optional
-import jaix.utils.globals as globals
+import numpy as np
+from gymnasium import spaces
+from ttex.config import Config, ConfigurableObject
+
 from jaix.env.singular.singular_environment import SingularEnvironment
+from jaix.env.utils.problem.static_problem import StaticProblem
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -81,8 +81,8 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
+        seed: int | None = None,
+        options: dict | None = None,
     ):
         """
         Resets the environment to an initial state,

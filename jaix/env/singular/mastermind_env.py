@@ -1,10 +1,11 @@
-import gymnasium as gym
-from ttex.config import ConfigurableObject, Config
-import jaix.utils.globals as globals
-import numpy as np
-from typing import Tuple, Optional
 import logging
+
+import gymnasium as gym
+import numpy as np
+from ttex.config import Config, ConfigurableObject
+
 from jaix.env.singular.singular_environment import SingularEnvironment
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -12,8 +13,8 @@ logger = logging.getLogger(globals.LOGGER_NAME)
 class MastermindEnvironmentConfig(Config):
     def __init__(
         self,
-        num_slots_range: Tuple[int, int] = (10, 20),
-        num_colours_range: Tuple[int, int] = (3, 5),
+        num_slots_range: tuple[int, int] = (10, 20),
+        num_colours_range: tuple[int, int] = (3, 5),
         max_guesses: int = np.iinfo(np.int32).max,
     ):
         Config.__init__(self)
@@ -85,8 +86,8 @@ class MastermindEnvironment(ConfigurableObject, SingularEnvironment):
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
+        seed: int | None = None,
+        options: dict | None = None,
     ):
         """
         Resets the environment to an initial state,

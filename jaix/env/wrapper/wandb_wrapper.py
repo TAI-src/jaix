@@ -1,9 +1,10 @@
-from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
-import gymnasium as gym
-from ttex.config import ConfigurableObject, Config
 import logging
-from typing import Optional, Dict, List
+
+import gymnasium as gym
+from ttex.config import Config, ConfigurableObject
 from ttex.log import setup_wandb_logger
+
+from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
 from jaix.utils.experiment_context import ExperimentContext
 
 DEFAULT_WANDB_LOGGER_NAME = "wandb_logger"
@@ -12,12 +13,12 @@ DEFAULT_WANDB_LOGGER_NAME = "wandb_logger"
 class WandbWrapperConfig(Config):
     def __init__(
         self,
-        wandb_logger_name: Optional[str] = None,
-        custom_metrics: Optional[Dict] = None,
+        wandb_logger_name: str | None = None,
+        custom_metrics: dict | None = None,
         snapshot: bool = True,
-        snapshot_sensitive_keys: Optional[List[str]] = None,
-        project: Optional[str] = None,
-        group: Optional[str] = None,
+        snapshot_sensitive_keys: list[str] | None = None,
+        project: str | None = None,
+        group: str | None = None,
         passthrough: bool = True,
         state_eval: str = "obs0",  # Which value should be logged
         is_min: bool = True,  # Whether lower is better for state_eval
@@ -117,7 +118,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
             # "restarts/step": self.log_renv_steps,
         }
         if r is not None:
-            info_dict[f"env/r/{str(self.env.unwrapped)}"] = float(r.item())
+            info_dict[f"env/r/{self.env.unwrapped!s}"] = float(r.item())
         if f"raw_{self.state_eval}" in info:
             # The original value might have been overwritten, so get it from info if available
             raw_val = float(info[f"raw_{self.state_eval}"])
@@ -131,13 +132,13 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
             raw_val = float(val)
             best_raw_val = float(self.best_val if self.best_val is not None else val)
 
-        info_dict[f"env/raw_{self.state_eval}/{str(self.env.unwrapped)}"] = raw_val
+        info_dict[f"env/raw_{self.state_eval}/{self.env.unwrapped!s}"] = raw_val
         info_dict[
-            f"env/best_raw_{self.state_eval}/{str(self.env.unwrapped)}"
+            f"env/best_raw_{self.state_eval}/{self.env.unwrapped!s}"
         ] = best_raw_val
 
         if term:
-            info_dict[f"env/term/{str(self.env.unwrapped)}"] = float(
+            info_dict[f"env/term/{self.env.unwrapped!s}"] = float(
                 self.log_renv_steps
             )
 
@@ -160,7 +161,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
             # TODO: Test for loggable values for wandb. if not, issue warning. Probably do this in ttex
             if isinstance(value, dict):
                 continue
-            closing_info[f"env/close/{str(self.env.unwrapped)}/{key}"] = value
+            closing_info[f"env/close/{self.env.unwrapped!s}/{key}"] = value
 
         self.wandb_logger.info(closing_info)
         self.env.close()

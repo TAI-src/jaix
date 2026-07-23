@@ -1,8 +1,8 @@
-import numpy as np
-from typing import List
-from uuid import uuid4
 import math
 from collections.abc import Iterable
+from uuid import uuid4
+
+import numpy as np
 
 
 def global_flip(parent, p=None, low=0, high=1):
@@ -56,7 +56,7 @@ class Individual:
         return f"Individual(x={self.x}, fitness={self.fitness}, generation={self.generation})"
 
 
-def select(population: List[Individual], mu: int, reverse=False):
+def select(population: list[Individual], mu: int, reverse=False):
     # TODO: test new sorting
     return sorted(
         population, key=lambda x: (x.fitness, -x.generation), reverse=reverse

@@ -1,5 +1,6 @@
+
 import gymnasium as gym
-from typing import Optional, Dict
+
 from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 
 
@@ -8,7 +9,7 @@ class OnlineWrapper(PassthroughWrapper):
         super().__init__(env, passthrough)
         self.online = online
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[Dict] = None):
+    def reset(self, *, seed: int | None = None, options: dict | None = None):
         reset_opts = {"online": self.online}
         if options is not None:
             reset_opts.update(options)
