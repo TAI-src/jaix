@@ -1,6 +1,6 @@
 from ttex.config import Config, ConfigurableObject, ConfigurableObjectFactory as COF
 import numpy as np
-from typing import Any, Dict, List, Tuple, Type
+from typing import Any, Dict, List, Tuple, Type, Set
 from jaix.env.utils.archive.archive import Archive
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
@@ -42,7 +42,7 @@ class BinArchive(ConfigurableObject, Archive):
         }
         self.n_points = 0
         self.covered_bins = 0
-        self.bin_set = set()  # Set to keep track of covered bins
+        self.bin_set: Set[int] = set()  # Set to keep track of covered bins
         self.hit_counter = np.zeros(self.n_bins, dtype=int)  # Counter for hits per bin
         self.add_counter = np.zeros(
             self.n_bins, dtype=int
@@ -192,13 +192,16 @@ class BinArchive(ConfigurableObject, Archive):
             all_samples.extend(bin_samples)
         return all_samples
 
-    def plot_stats(self, fig_path: str | None = None) -> Tuple[Figure, Axes]:
+    def plot_stats(
+        self, stat_names: List[str] | None = None, fig_path: str | None = None
+    ) -> Tuple[Figure, Axes]:
         """
         Plot the stats over time
         """
-        stat_cols = ["coverage", "add_rate", "replace_rate", "fitness", "score"]
-        stat_cols = [f"{col}_{self.n_bins}" for col in stat_cols]
-        return super().plot_stats(stat_names=stat_cols, fig_path=fig_path)
+        if stat_names is None:
+            stat_names = ["coverage", "add_rate", "replace_rate", "fitness", "score"]
+            stat_names = [f"{col}_{self.n_bins}" for col in stat_names]
+        return super().plot_stats(stat_names=stat_names, fig_path=fig_path)
 
     def plot_pbin_stats(self, fig_path: str | None = None) -> Tuple[Figure, Axes]:
         """

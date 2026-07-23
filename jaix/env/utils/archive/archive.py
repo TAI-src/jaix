@@ -78,7 +78,7 @@ class Archive(ABC):
 
     def plot_stats(
         self,
-        stat_names: List | None = None,
+        stat_names: List[str] | None = None,
         fig_path: str | None = None,
     ) -> Tuple[Figure, Axes]:
         """
