@@ -1,4 +1,3 @@
-
 from ttex.config.config import Config
 from ttex.log import get_logging_config, initiate_logger
 

@@ -1,4 +1,3 @@
-
 import numpy as np
 from ttex.config import Config, ConfigurableObject
 
