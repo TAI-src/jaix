@@ -62,9 +62,7 @@ class ExperimentConfig(Config):
 
 class Experiment:
     @staticmethod
-    def run(
-        exp_config: ExperimentConfig, exp_id: str | None = None, *args, **kwargs
-    ):
+    def run(exp_config: ExperimentConfig, exp_id: str | None = None, *args, **kwargs):
         ctx = ExperimentContext(exp_id)
 
         wandb_session: WandbSession | None = None

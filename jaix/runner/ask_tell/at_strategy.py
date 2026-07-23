@@ -1,4 +1,3 @@
-
 import gymnasium as gym
 from cma.interfaces import OOOptimizer
 
