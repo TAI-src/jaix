@@ -25,7 +25,8 @@ class CompositeEnvironmentConfig(Config):
         agg_type: AggType,
         comp_env_class: type[CompositeEnvironment],
         comp_env_config: Config,
-        comp_env_wrappers: list[tuple[type[gym.Wrapper], Config | dict[str, Any]]] | None = None,
+        comp_env_wrappers: list[tuple[type[gym.Wrapper], Config | dict[str, Any]]]
+        | None = None,
     ):
         Config.__init__(self)
         self.agg_type = agg_type

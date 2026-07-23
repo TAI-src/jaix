@@ -5,7 +5,7 @@ from abc import abstractmethod
 from collections import defaultdict
 from typing import (
     DefaultDict,  # noqa: F401
-    )
+)
 
 import numpy as np
 
@@ -104,8 +104,7 @@ class StaticProblem:
             min(cb, f) for f, cb in zip(raw_fitness, self.current_best)
         ]
         self.current_best_nnoise = [
-            min(cb, f)
-            for f, cb in zip(clean_fitness, self.current_best_nnoise)
+            min(cb, f) for f, cb in zip(clean_fitness, self.current_best_nnoise)
         ]
         return raw_fitness, clean_fitness
 

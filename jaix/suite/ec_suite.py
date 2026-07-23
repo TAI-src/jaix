@@ -1,4 +1,3 @@
-
 from ttex.config import Config
 from ttex.config import ConfigurableObjectFactory as COF
 
