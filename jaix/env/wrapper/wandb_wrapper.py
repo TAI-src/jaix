@@ -145,9 +145,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
         return obs, r, term, trunc, info
 
     def close(self):
-        env_step = (
-            self.last_info.get("env_step", self.log_env_steps)
-        )
+        env_step = self.last_info.get("env_step", self.log_env_steps)
         closing_info = {
             "env/step": env_step,
             "env/log_step": self.log_env_steps,
