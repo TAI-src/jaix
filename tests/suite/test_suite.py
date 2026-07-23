@@ -1,4 +1,3 @@
-
 import pytest
 from jaix.suite.suite import AggType, Suite, SuiteConfig
 

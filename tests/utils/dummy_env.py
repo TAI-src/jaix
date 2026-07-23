@@ -1,4 +1,3 @@
-
 from gymnasium import spaces
 from gymnasium.utils.env_checker import check_env
 from jaix.env.singular.singular_environment import SingularEnvironment
