@@ -1,22 +1,23 @@
-from jaix.experiment import Experiment
-from ttex.config import ConfigFactory as CF
-from wandb.sdk import launch
-from typing import Dict, Optional, List, Any, Tuple
-import os
-import sys
-import logging
 import argparse
 import json
-from jaix.utils.dict_tools import nested_set
+import logging
+import os
+import sys
 from copy import deepcopy
+from typing import Any
 
-import jaix.utils.globals as globals
+from ttex.config import ConfigFactory as CF
+from wandb.sdk import launch
+
+from jaix.experiment import Experiment
+from jaix.utils import globals
+from jaix.utils.dict_tools import nested_set
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 def run_experiment(
-    run_config: Dict,
+    run_config: dict,
 ):
     """
     Run an experiment
@@ -46,9 +47,9 @@ def run_experiment(
 
 
 def launch_jaix_experiment(
-    run_config: Dict,
+    run_config: dict,
     repeat: int = 1,
-    sweep: Optional[Tuple[List[str], List[Any]]] = None,
+    sweep: tuple[list[str], list[Any]] | None = None,
 ):
     """
     Launch a jaix experiment from a run_config dictionary

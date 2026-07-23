@@ -1,7 +1,7 @@
 import gymnasium as gym
-from ttex.config import ConfigurableObject, Config
+from ttex.config import Config, ConfigurableObject
+
 from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
-from typing import Optional
 
 
 class AutoResetWrapperConfig(Config):
@@ -41,8 +41,8 @@ class AutoResetWrapper(PassthroughWrapper, ConfigurableObject):
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
+        seed: int | None = None,
+        options: dict | None = None,
     ):
         obs, info = self.env.reset(seed=seed, options=options)
         if options is None or "auto" not in options or not options["auto"]:

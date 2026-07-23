@@ -1,8 +1,25 @@
-from ttex.config import (
-    ConfigurableObject,
-    ConfigurableObjectFactory as COF,
-    Config,
+import logging
+from collections.abc import Callable
+from functools import wraps
+from typing import (
+    Any,
+    Dict,  # noqa: F401
+    Tuple,  # noqa: F401
+    TypeVar,
+    Union,  # noqa: F401
 )
+
+import gymnasium as gym
+from gymnasium import spaces
+from ttex.config import (
+    Config,
+    ConfigurableObject,
+)
+from ttex.config import (
+    ConfigurableObjectFactory as COF,
+)
+
+from jaix.env.composite.composite_environment import CompositeEnvironment
 from jaix.env.utils.switching_pattern.switching_pattern import (
     SwitchingPattern,
 )
@@ -11,24 +28,7 @@ from jaix.env.wrapper.auto_reset_wrapper import (
     AutoResetWrapperConfig,
 )
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
-from typing import (
-    Dict,  # noqa: F401
-    Type,
-    List,
-    Optional,
-    Callable,
-    Any,
-    TypeVar,
-    Tuple,  # noqa: F401
-    Union,  # noqa: F401
-)
-import gymnasium as gym
-from gymnasium import spaces
-from functools import wraps
-from jaix.env.composite.composite_environment import CompositeEnvironment
-
-import logging
-import jaix.utils.globals as globals
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 FuncT = TypeVar("FuncT", bound=Callable[..., Any])
@@ -37,10 +37,10 @@ FuncT = TypeVar("FuncT", bound=Callable[..., Any])
 class SwitchingEnvironmentConfig(Config):
     def __init__(
         self,
-        switching_pattern_class: Type[SwitchingPattern],
+        switching_pattern_class: type[SwitchingPattern],
         switching_pattern_config: Config,
         real_time: bool,
-        auto_reset_wrapper_config: Optional[AutoResetWrapperConfig] = None,
+        auto_reset_wrapper_config: AutoResetWrapperConfig | None = None,
     ):
         Config.__init__(self)
         self.switching_pattern_class = switching_pattern_class
@@ -60,7 +60,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
     def __init__(
         self,
         config: SwitchingEnvironmentConfig,
-        env_list: List[gym.Env],
+        env_list: list[gym.Env],
     ):
         ConfigurableObject.__init__(self, config)
         wrappers = [
@@ -92,7 +92,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         logger.debug(f"Action space: {self.action_space}")
         logger.debug(f"Observation space: {self.observation_space}")
 
-    def update_env(func: FuncT):
+    def update_env(func):
         @wraps(func)
         def decorator_func(self, *args: Any, **kwargs: Any) -> Any:
             self._update_current_env()
@@ -128,12 +128,12 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
+        seed: int | None = None,
+        options: dict | None = None,
     ):
         if options is None:
             options = {}
-        if "online" in options and options["online"]:
+        if options.get("online"):
             env_obs, info = self.env_list[self._current_env].reset(
                 seed=seed, options=options
             )

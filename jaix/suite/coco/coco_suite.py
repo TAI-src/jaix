@@ -1,15 +1,19 @@
+import random as rnd
+from typing import (
+    Dict,  # noqa: F401
+)
+
+import cocoex as ex
+import regex as re
+from ttex.config import Config
+from ttex.config import ConfigurableObjectFactory as COF
+
 from jaix.env.singular.ec_env import (
     ECEnvironment,
     ECEnvironmentConfig,
 )
-from ttex.config import ConfigurableObjectFactory as COF, Config
-from jaix.suite.suite import Suite, AggType
 from jaix.suite.coco import COCOProblem
-import cocoex as ex
-import regex as re
-import random as rnd
-from typing import Optional
-from typing import Dict  # noqa: F401
+from jaix.suite.suite import AggType, Suite
 
 
 class COCOSuiteConfig(Config):
@@ -46,7 +50,7 @@ class COCOSuite(Suite):
 
         self.suite = ex.Suite(self.suite_name, self.suite_instance, self.suite_options)
 
-    def _get_agg_problem_dict(self, agg_type: AggType, seed: Optional[int] = None):
+    def _get_agg_problem_dict(self, agg_type: AggType, seed: int | None = None):
         if agg_type != AggType.INST:
             raise NotImplementedError()
         problems = {}  # type: Dict[int, Dict[int, ex.Problem]]
@@ -99,9 +103,7 @@ class COCOSuite(Suite):
             )
             yield env
 
-    def get_agg_envs(
-        self, agg_type: AggType = AggType.NONE, seed: Optional[int] = None
-    ):
+    def get_agg_envs(self, agg_type: AggType = AggType.NONE, seed: int | None = None):
         # Currently, this only makes sense for single batches
         assert self.num_batches == 1
         assert self.current_batch == 0

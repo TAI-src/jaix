@@ -1,11 +1,11 @@
-from abc import abstractmethod
 import logging
-import gymnasium as gym
-from typing import Type
-from ttex.config import Config, ConfigurableObject
-from jaix.runner.optimiser import Optimiser
+from abc import abstractmethod
 
-import jaix.utils.globals as globals
+import gymnasium as gym
+from ttex.config import Config, ConfigurableObject
+
+from jaix.runner.optimiser import Optimiser
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -15,7 +15,7 @@ class Runner(ConfigurableObject):
     def run(
         self,
         env: gym.Env,
-        opt_class: Type[Optimiser],
+        opt_class: type[Optimiser],
         opt_config: Config,
         *args,
         **kwargs,

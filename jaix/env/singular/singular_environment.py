@@ -1,5 +1,6 @@
-import gymnasium as gym
 import uuid
+
+import gymnasium as gym
 
 
 class SingularEnvironment(gym.Env):

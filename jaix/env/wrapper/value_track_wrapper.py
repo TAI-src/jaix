@@ -1,6 +1,8 @@
-from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
-from typing import Optional, Any, Dict
+from typing import Any
+
 import gymnasium as gym
+
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 
 
 class ValueTrackWrapper(PassthroughWrapper):
@@ -18,10 +20,10 @@ class ValueTrackWrapper(PassthroughWrapper):
         PassthroughWrapper.__init__(self, env, passthrough)
         self.state_eval = state_eval
         self.is_min = is_min
-        self.best_val: Optional[float] = None
+        self.best_val: float | None = None
         self.steps = 0
-        self.first_val: Optional[float] = None
-        self.last_val: Optional[float] = None
+        self.first_val: float | None = None
+        self.last_val: float | None = None
 
     def reset(self, **kwargs):
         self.best_val = None
@@ -31,7 +33,7 @@ class ValueTrackWrapper(PassthroughWrapper):
         return self.env.reset(**kwargs)
 
     @staticmethod
-    def get_val(obs: Any, r: float, info: Dict, state_eval: str) -> float:
+    def get_val(obs: Any, r: float, info: dict, state_eval: str) -> float:
         if state_eval == "obs0":
             if isinstance(obs, tuple) and len(obs) == 2:
                 # This returns a tuple with the current env number and the observation

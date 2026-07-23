@@ -1,12 +1,15 @@
-from enum import Enum
-from typing import Optional, Type, List, Union, Tuple, cast
-from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
-import gymnasium as gym
-import logging
-import jaix.utils.globals as globals
 import itertools
+import logging
 import math
+from enum import Enum
+from typing import cast
+
+import gymnasium as gym
 import numpy as np
+from ttex.config import Config, ConfigurableObject
+from ttex.config import ConfigurableObjectFactory as COF
+
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -19,13 +22,13 @@ class AggType(Enum):
 class SuiteConfig(Config):
     def __init__(
         self,
-        env_class: Type[gym.Env],
+        env_class: type[gym.Env],
         env_config: Config,
-        functions: Optional[List[int]] = None,
-        instances: Optional[List[int]] = None,
-        comp_env_num: Optional[int] = None,
-        agg_instances: Optional[Union[List[int], List[Tuple[int, ...]], int]] = None,
-        seed: Optional[int] = None,
+        functions: list[int] | None = None,
+        instances: list[int] | None = None,
+        comp_env_num: int | None = None,
+        agg_instances: list[int] | list[tuple[int, ...]] | int | None = None,
+        seed: int | None = None,
     ):
         Config.__init__(self)
         logger.debug("Creating SuiteConfig")
@@ -43,7 +46,7 @@ class SuiteConfig(Config):
         comp_env_num = len(self.instances) if comp_env_num is None else comp_env_num
         instance_permutations = itertools.permutations(self.instances, comp_env_num)
 
-        self.agg_instances: List[Tuple[int, ...]]
+        self.agg_instances: list[tuple[int, ...]]
         if agg_instances is None:
             # Nothing passed, use all permutations of instances
             if len(self.instances) > 5:
@@ -60,7 +63,7 @@ class SuiteConfig(Config):
                 logger.warning(
                     "Using random permutations of instances. Inefficient for small instance sets."
                 )
-            inst_tuples: List[Tuple[int, ...]] = [
+            inst_tuples: list[tuple[int, ...]] = [
                 tuple(
                     np.random.choice(self.instances, size=comp_env_num, replace=False)
                 )
@@ -82,7 +85,7 @@ class SuiteConfig(Config):
         elif isinstance(agg_instances, list):
             if all([isinstance(i, int) for i in agg_instances]):
                 agg_instances = cast(
-                    List[int], agg_instances
+                    list[int], agg_instances
                 )  # otherwise mypy complains
                 assert all(
                     i >= 0 for i in agg_instances
@@ -101,7 +104,7 @@ class SuiteConfig(Config):
                         self.agg_instances.append(perm)
             elif all([isinstance(i, tuple) for i in agg_instances]):
                 agg_instances = cast(
-                    List[Tuple[int, ...]], agg_instances
+                    list[tuple[int, ...]], agg_instances
                 )  # otherwise mypy complains
                 assert all(
                     min(i) >= 0 for i in agg_instances
@@ -134,7 +137,7 @@ class Suite(ConfigurableObject):
                 env = self._get_env(func, inst)
                 yield env
 
-    def get_agg_envs(self, agg_type: AggType, seed: Optional[int] = None):
+    def get_agg_envs(self, agg_type: AggType, seed: int | None = None):
         logger.debug(f"Getting environments with seed {seed}")
         if agg_type != AggType.INST:
             raise NotImplementedError("Only INST aggregation is supported")

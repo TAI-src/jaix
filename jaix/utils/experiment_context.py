@@ -1,6 +1,6 @@
-from typing import Any, Dict, Optional
-from uuid import uuid4
 from dataclasses import dataclass
+from typing import Any
+from uuid import uuid4
 
 
 @dataclass
@@ -12,12 +12,12 @@ class Artifact:
 
 
 class ExperimentContext:
-    def __init__(self, exp_id: Optional[str] = None) -> None:
-        self._data: Dict[str, Any] = ExperimentContext.default_values(exp_id)
+    def __init__(self, exp_id: str | None = None) -> None:
+        self._data: dict[str, Any] = ExperimentContext.default_values(exp_id)
         self._frozen = False
 
     @staticmethod
-    def default_values(exp_id: Optional[str]) -> Dict[str, Any]:
+    def default_values(exp_id: str | None) -> dict[str, Any]:
         from ttex.log import LOGGER_NAME as LOGGER_NAME
 
         exp_id = exp_id if exp_id is not None else str(uuid4())

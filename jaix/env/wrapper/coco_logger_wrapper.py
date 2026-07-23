@@ -1,19 +1,19 @@
-import gymnasium as gym
-from ttex.config import ConfigurableObject, Config
-from typing import List, Optional
-from ttex.log.coco import (
-    COCOStart,
-    COCOEnd,
-    COCOEval,
-)
-from ttex.log import setup_coco_logger, teardown_coco_logger
 import logging
 import os.path as osp
-import numpy as np
-from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
-from jaix.utils.experiment_context import ExperimentContext, Artifact
 
-import jaix.utils.globals as globals
+import gymnasium as gym
+import numpy as np
+from ttex.config import Config, ConfigurableObject
+from ttex.log import setup_coco_logger, teardown_coco_logger
+from ttex.log.coco import (
+    COCOEnd,
+    COCOEval,
+    COCOStart,
+)
+
+from jaix.env.wrapper.value_track_wrapper import ValueTrackWrapper
+from jaix.utils import globals
+from jaix.utils.experiment_context import Artifact, ExperimentContext
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 DEFAULT_COCO_LOGGER_NAME = "coco_logger"
@@ -22,10 +22,10 @@ DEFAULT_COCO_LOGGER_NAME = "coco_logger"
 class COCOLoggerWrapperConfig(Config):
     def __init__(
         self,
-        algo_name: Optional[str] = None,
+        algo_name: str | None = None,
         algo_info: str = "",
-        coco_logger_name: Optional[str] = None,
-        base_evaluation_triggers: Optional[List[int]] = None,
+        coco_logger_name: str | None = None,
+        base_evaluation_triggers: list[int] | None = None,
         number_evaluation_triggers: int = 20,
         improvement_steps: float = 1e-5,
         number_target_triggers: int = 20,
@@ -99,7 +99,7 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
     """
 
     config_class = COCOLoggerWrapperConfig
-    algo_name: Optional[str] = None
+    algo_name: str | None = None
 
     def __init__(
         self,
