@@ -5,9 +5,9 @@ from typing import Type
 from ttex.config import Config, ConfigurableObject
 from jaix.runner.optimiser import Optimiser
 
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class Runner(ConfigurableObject):

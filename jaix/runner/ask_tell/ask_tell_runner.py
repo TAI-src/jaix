@@ -7,14 +7,15 @@ from jaix.runner.runner import Runner
 from jaix.runner.optimiser import Optimiser
 import logging
 import gymnasium as gym
-from typing import Type, List, Tuple, Union, Dict
+from typing import Type
+from typing import List, Dict, Tuple, Union  # noqa: F401
 from jaix.env.wrapper.max_eval_wrapper import MaxEvalWrapper, MaxEvalWrapperConfig
-from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper  # noqa: F401
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class ATRunnerConfig(Config):

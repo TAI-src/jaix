@@ -26,6 +26,12 @@ class MutationOp(Enum):
 
     FLIP = "global_flip"
 
+    def mutate(self, x, **kwargs):
+        if self == MutationOp.FLIP:
+            return global_flip(x, **kwargs)
+        else:
+            raise NotImplementedError(f"Mutation operator {self} not implemented")
+
 
 class CrossoverOp(Enum):
     """
@@ -35,6 +41,14 @@ class CrossoverOp(Enum):
     ONEPOINT = "onepoint_crossover"
     UNIFORM = "uniform_crossover"
 
+    def crossover(self, x1, x2, **kwargs):
+        if self == CrossoverOp.ONEPOINT:
+            return onepoint_crossover(x1, x2, **kwargs)
+        elif self == CrossoverOp.UNIFORM:
+            return uniform_crossover(x1, x2, **kwargs)
+        else:
+            raise NotImplementedError(f"Crossover operator {self} not implemented")
+
 
 class UpdateStrategy(Enum):
     """
@@ -42,6 +56,12 @@ class UpdateStrategy(Enum):
     """
 
     DDL = "ddl_update"
+
+    def update(self, pop, new_pop, mutation_opts, crossover_opts, update_opts):
+        if self == UpdateStrategy.DDL:
+            return ddl_update(pop, new_pop, mutation_opts, crossover_opts, update_opts)
+        else:
+            raise NotImplementedError(f"Update strategy {self} not implemented")
 
 
 class WarmStartStrategy(Enum):
@@ -113,21 +133,6 @@ class BasicEA(ConfigurableObject, ATStrategy):
             raise NotImplementedError(
                 f"Action space {env.unwrapped.action_space} not supported yet"
             )
-        self.mutate = (
-            globals().get(self.mutation_op.value)
-            if self.mutation_op is not None
-            else None
-        )
-        self.crossover = (
-            globals().get(self.crossover_op.value)
-            if self.crossover_op is not None
-            else None
-        )
-        self.update = (
-            globals().get(self.update_strategy.value)
-            if self.update_strategy is not None
-            else None
-        )
 
         ATStrategy.__init__(self, self.xstart)
         self.initialize()
@@ -160,7 +165,8 @@ class BasicEA(ConfigurableObject, ATStrategy):
                 parents_idx = np.random.choice(
                     list(range(self.mu)), size=2, replace=False
                 )
-                child_x = self.crossover(
+                assert self.crossover is not None
+                child_x = self.crossover_op.crossover(
                     self.pop[parents_idx[0]].x,
                     self.pop[parents_idx[1]].x,
                     **self.crossover_opts,
@@ -168,7 +174,8 @@ class BasicEA(ConfigurableObject, ATStrategy):
             else:
                 child_x = self.pop[i].x
             if self.mutation_op is not None:
-                child_x = self.mutate(child_x, **self.mutation_opts)
+                assert self.mutate is not None
+                child_x = self.mutate_op.mutate(child_x, **self.mutation_opts)
             offspring[i] = child_x
         return offspring
 
@@ -188,8 +195,8 @@ class BasicEA(ConfigurableObject, ATStrategy):
         ]
 
         # Update parameters
-        if self.update is not None:
-            self.mutation_opts, self.crossover_opts = self.update(
+        if self.update_op is not None:
+            self.mutation_opts, self.crossover_opts = self.update_strategy.update(
                 self.pop,
                 new_pop,
                 self.mutation_opts,

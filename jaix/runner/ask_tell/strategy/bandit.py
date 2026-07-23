@@ -9,10 +9,10 @@ from jaix.runner.ask_tell.at_strategy import ATStrategy
 from jaix.runner.ask_tell.strategy.utils.bandit_model import BanditConfig, Bandit
 from gymnasium import Env
 import logging
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 import numpy as np
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class ATBanditConfig(Config):

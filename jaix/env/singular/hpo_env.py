@@ -5,7 +5,8 @@ from tabrepo.repository.evaluation_repository import (
     load_repository,
 )
 from jaix.env.utils.hpo.tabrepo_adapter import TaskType, TabrepoAdapter
-from typing import Optional, List, Tuple, Dict
+from typing import Optional
+from typing import List, Tuple, Dict  # noqa: F401
 import jaix.utils.globals as globals
 from jaix.env.singular.singular_environment import SingularEnvironment
 from collections import defaultdict

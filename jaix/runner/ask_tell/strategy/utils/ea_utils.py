@@ -13,6 +13,7 @@ def global_flip(parent, p=None, low=0, high=1):
     if np.issubdtype(type(high), int):
         high = [high] * len(x)
     assert p >= 0 and p <= 1
+    assert isinstance(low, list) and isinstance(high, list)
     for i in range(len(x)):
         if np.random.rand() < p:
             options = list(range(low[i], high[i] + 1))

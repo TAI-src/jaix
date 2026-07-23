@@ -1,7 +1,6 @@
-from ttex.config import ConfigurableObject, ConfigurableObjectFactory as COF, Config
+from ttex.config import ConfigurableObject, Config
 import math
 from abc import abstractmethod
-from gymnasium import spaces
 from typing import List, Optional
 
 

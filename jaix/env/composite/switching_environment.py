@@ -11,16 +11,26 @@ from jaix.env.wrapper.auto_reset_wrapper import (
     AutoResetWrapperConfig,
 )
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
-from typing import Dict, Type, List, Optional, Callable, Any, TypeVar, Tuple, Union
+from typing import (
+    Dict,  # noqa: F401
+    Type,
+    List,
+    Optional,
+    Callable,
+    Any,
+    TypeVar,
+    Tuple,  # noqa: F401
+    Union,  # noqa: F401
+)
 import gymnasium as gym
 from gymnasium import spaces
 from functools import wraps
 from jaix.env.composite.composite_environment import CompositeEnvironment
 
 import logging
-from jaix.utils.globals import LOGGER_NAME
+import jaix.utils.globals as globals
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(globals.LOGGER_NAME)
 FuncT = TypeVar("FuncT", bound=Callable[..., Any])
 
 
