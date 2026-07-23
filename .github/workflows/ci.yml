@@ -45,7 +45,7 @@ jobs:
     with:
       docker-service: jaix
       lint-src: jaix
-      pretty: false
+      pretty: true
       from-scratch: ${{ github.event_name == 'schedule' || github.event.inputs.from-scratch == 'true' }}
     secrets: inherit
     
