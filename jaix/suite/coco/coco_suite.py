@@ -1,7 +1,4 @@
 import random as rnd
-from typing import (
-    Dict,  # noqa: F401
-)
 
 import cocoex as ex
 import regex as re
@@ -53,22 +50,18 @@ class COCOSuite(Suite):
     def _get_agg_problem_dict(self, agg_type: AggType, seed: int | None = None):
         if agg_type != AggType.INST:
             raise NotImplementedError()
-        problems = {}  # type: Dict[int, Dict[int, ex.Problem]]
+        problems = {}  # type: dict[int, dict[int, ex.Problem]]
         for dim in self.suite.dimensions:
             problems[dim] = {}
             function_names = {
-                
-                    re.findall(r"_f[0-9]+_", name)[0]
-                    for name in self.suite.ids("", f"d{dim:02d}", "")
-                
+                re.findall(r"_f[0-9]+_", name)[0]
+                for name in self.suite.ids("", f"d{dim:02d}", "")
             }
             functions = [re.findall(r"[0-9]+", name)[0] for name in function_names]
             for func in functions:
                 instance_names = {
-                    
-                        re.findall(r"i[0-9]+", name)[0]
-                        for name in self.suite.ids(f"f{func}", f"d{dim:02d}", "")
-                    
+                    re.findall(r"i[0-9]+", name)[0]
+                    for name in self.suite.ids(f"f{func}", f"d{dim:02d}", "")
                 }
                 instances = [
                     int(re.findall(r"[0-9]+", name)[0]) for name in instance_names

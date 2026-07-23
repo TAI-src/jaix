@@ -3,10 +3,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import (
     Any,
-    Dict,  # noqa: F401
-    Tuple,  # noqa: F401
     TypeVar,
-    Union,  # noqa: F401
 )
 
 import gymnasium as gym
@@ -65,7 +62,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         ConfigurableObject.__init__(self, config)
         wrappers = [
             (AutoResetWrapper, self.auto_reset_wrapper_config),
-        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        ]  # type: list[tuple[type[gym.Wrapper], Config | dict]]
         self.env_list = [WEF.wrap(env, wrappers) for env in env_list]
         self._current_env = 0
 
