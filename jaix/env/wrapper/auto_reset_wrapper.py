@@ -1,4 +1,3 @@
-
 import gymnasium as gym
 from ttex.config import Config, ConfigurableObject
 

@@ -1,4 +1,3 @@
-
 import numpy as np
 from cma import CMAEvolutionStrategy, CMAOptions
 from ttex.config import Config, ConfigurableObject

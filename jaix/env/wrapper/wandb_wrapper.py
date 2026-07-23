@@ -138,9 +138,7 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
         ] = best_raw_val
 
         if term:
-            info_dict[f"env/term/{self.env.unwrapped!s}"] = float(
-                self.log_renv_steps
-            )
+            info_dict[f"env/term/{self.env.unwrapped!s}"] = float(self.log_renv_steps)
 
         self.wandb_logger.info(info_dict)
         # TODO: Figure out what info would be helpful from all the sub-wrappers etc
