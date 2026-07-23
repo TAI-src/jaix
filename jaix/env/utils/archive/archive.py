@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-import pandas as pd
-from typing import Any, Dict, List, Tuple
+from typing import Any
+
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
+import pandas as pd
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 
 class Archive(ABC):
@@ -25,11 +26,10 @@ class Archive(ABC):
         return self._stats
 
     @abstractmethod
-    def get_archive_stats(self) -> Dict[str, Any]:
+    def get_archive_stats(self) -> dict[str, Any]:
         """
         Return a dictionary with the current archive stats
         """
-        pass
 
     @property
     @abstractmethod
@@ -37,9 +37,8 @@ class Archive(ABC):
         """
         Return the score of the archive as a float
         """
-        pass
 
-    def simulate_add(self, sample: Any, fitness: float, **kwargs) -> Tuple[bool, float]:
+    def simulate_add(self, sample: Any, fitness: float, **kwargs) -> tuple[bool, float]:
         """
         Simulate adding a sample to the archive without actually adding it
         Returns a tuple (added, reward) where added is a boolean
@@ -51,12 +50,11 @@ class Archive(ABC):
         )
 
     @abstractmethod
-    def _add(self, sample: Any, fitness: float) -> Dict[str, Any]:
+    def _add(self, sample: Any, fitness: float) -> dict[str, Any]:
         """
         Internal method to add a sample to the archive
         Returns a dictionary with the result of the addition
         """
-        pass
 
     def add(self, sample: Any, fitness: float) -> float:
         """
@@ -70,17 +68,16 @@ class Archive(ABC):
         return reward
 
     @abstractmethod
-    def get_all(self) -> List[Any]:
+    def get_all(self) -> list[Any]:
         """
         Return all samples in the archive
         """
-        pass
 
     def plot_stats(
         self,
-        stat_names: List[str] | None = None,
+        stat_names: list[str] | None = None,
         fig_path: str | None = None,
-    ) -> Tuple[Figure, Axes]:
+    ) -> tuple[Figure, Axes]:
         """
         Plot the stats over time
         """

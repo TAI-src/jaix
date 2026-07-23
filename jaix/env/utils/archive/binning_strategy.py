@@ -8,11 +8,9 @@ class BinningStrategy(ABC):
         """
         Given a sample, return the bin index it belongs to.
         """
-        pass
 
     @abstractmethod
     def get_k_nearest_bins(self, bidx: int, k: int) -> list:
         """
         Given a bin index, return the indices of the k nearest bins.
         """
-        pass

@@ -1,12 +1,15 @@
-from ttex.config import Config, ConfigurableObject, ConfigurableObjectFactory as COF
-import numpy as np
-from typing import Any, Dict, List, Tuple, Type, Set
-from jaix.env.utils.archive.archive import Archive
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
+from typing import Any
+
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
+from ttex.config import Config, ConfigurableObject
+from ttex.config import ConfigurableObjectFactory as COF
+
+from jaix.env.utils.archive.archive import Archive
 from jaix.env.utils.archive.binning_strategy import BinningStrategy
 
 
@@ -15,7 +18,7 @@ class BinArchiveConfig(Config):
         self,
         n_bins: int,
         max_fitness: float,  # maximum fitness value for normalisation
-        binning_strategy: Type[BinningStrategy],
+        binning_strategy: type[BinningStrategy],
         binning_config: Config,
         np_bin: int = 1,
         coverage_weight: float = 0.5,  # weight for coverage in the score function
@@ -37,12 +40,12 @@ class BinArchive(ConfigurableObject, Archive):
     def __init__(self, config: BinArchiveConfig, **kwargs):
         Archive.__init__(self)
         ConfigurableObject.__init__(self, config)
-        self.map: Dict[int, List[Tuple[float, float]]] = {
+        self.map: dict[int, list[tuple[float, float]]] = {
             bin_idx: [] for bin_idx in range(self.n_bins)
         }
         self.n_points = 0
         self.covered_bins = 0
-        self.bin_set: Set[int] = set()  # Set to keep track of covered bins
+        self.bin_set: set[int] = set()  # Set to keep track of covered bins
         self.hit_counter = np.zeros(self.n_bins, dtype=int)  # Counter for hits per bin
         self.add_counter = np.zeros(
             self.n_bins, dtype=int
@@ -82,7 +85,7 @@ class BinArchive(ConfigurableObject, Archive):
             + (1 - self.coverage_weight) * self.fitness
         )
 
-    def get_archive_stats(self, bin_stats: bool = False, **kwargs) -> Dict[str, Any]:
+    def get_archive_stats(self, bin_stats: bool = False, **kwargs) -> dict[str, Any]:
         """
         Return a dictionary with the current archive stats
         """
@@ -119,7 +122,7 @@ class BinArchive(ConfigurableObject, Archive):
 
         return stat_dict
 
-    def _add(self, sample: Any, fitness: float) -> Dict[str, Any]:
+    def _add(self, sample: Any, fitness: float) -> dict[str, Any]:
         """
         Add a sample to the archive if it is better than the current best in the bin.
         If the bin is empty, add the sample directly.
@@ -173,7 +176,7 @@ class BinArchive(ConfigurableObject, Archive):
         else:
             return False
 
-    def get_elite(self, bin_idx: int) -> Tuple[Any, float]:
+    def get_elite(self, bin_idx: int) -> tuple[Any, float]:
         """
         Return the best sample and its fitness in the given bin
         """
@@ -185,7 +188,7 @@ class BinArchive(ConfigurableObject, Archive):
 
     def get_closest_elite(
         self, bin_idx: int, safety_k: int = 5, max_k: int = -1
-    ) -> Tuple[Any, float, int]:
+    ) -> tuple[Any, float, int]:
         """
         Return the best sample and its fitness in the closest non-empty bin to the given bin index
         If the given bin index is non-empty, return its best sample and fitness directly.
@@ -229,7 +232,7 @@ class BinArchive(ConfigurableObject, Archive):
         # If no non-empty bin found, return -1
         return -1
 
-    def get_all(self) -> List[Tuple[Any, float]]:
+    def get_all(self) -> list[tuple[Any, float]]:
         """
         Return all samples in the archive as a list of tuples (sample, fitness)
         """
@@ -239,8 +242,8 @@ class BinArchive(ConfigurableObject, Archive):
         return all_samples
 
     def plot_stats(
-        self, stat_names: List[str] | None = None, fig_path: str | None = None
-    ) -> Tuple[Figure, Axes]:
+        self, stat_names: list[str] | None = None, fig_path: str | None = None
+    ) -> tuple[Figure, Axes]:
         """
         Plot the stats over time
         """
@@ -249,7 +252,7 @@ class BinArchive(ConfigurableObject, Archive):
             stat_names = [f"{col}_{self.n_bins}" for col in stat_names]
         return super().plot_stats(stat_names=stat_names, fig_path=fig_path)
 
-    def plot_pbin_stats(self, fig_path: str | None = None) -> Tuple[Figure, Axes]:
+    def plot_pbin_stats(self, fig_path: str | None = None) -> tuple[Figure, Axes]:
         """
         Plot the number of hits per bin, split by successful additions
         """
@@ -280,7 +283,7 @@ class BinArchive(ConfigurableObject, Archive):
             plt.savefig(fig_path)
         return fig, ax
 
-    def plot_pbin_history(self, fig_path: str | None = None) -> Tuple[Figure, Axes]:
+    def plot_pbin_history(self, fig_path: str | None = None) -> tuple[Figure, Axes]:
         """
         Plot fitness and hits over time as a heatmap
         """
