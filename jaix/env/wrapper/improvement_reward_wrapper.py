@@ -1,11 +1,13 @@
+import math
+from enum import Enum
+
 import gymnasium as gym
 import numpy as np
-import math
+from ttex.config import Config, ConfigurableObject
+
 from jaix.env.wrapper.value_track_wrapper import (
     ValueTrackWrapper,
 )
-from ttex.config import ConfigurableObject, Config
-from enum import Enum
 
 
 class ImprovementType(Enum):

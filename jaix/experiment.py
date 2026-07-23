@@ -1,10 +1,13 @@
-from ttex.config import Config, ConfigurableObjectFactory as COF
-from jaix.runner.runner import Runner
-from jaix.runner.optimiser import Optimiser
-from typing import Type, Optional
-from jaix.environment_factory import EnvironmentConfig, EnvironmentFactory as EF
 import logging
+
+from ttex.config import Config
+from ttex.config import ConfigurableObjectFactory as COF
+
+from jaix.environment_factory import EnvironmentConfig
+from jaix.environment_factory import EnvironmentFactory as EF
 from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig
+from jaix.runner.optimiser import Optimiser
+from jaix.runner.runner import Runner
 from jaix.utils.experiment_context import ExperimentContext
 from jaix.utils.logging_config import LoggingConfig
 from jaix.utils.wandb_session import WandbSession
@@ -14,9 +17,9 @@ class ExperimentConfig(Config):
     def __init__(
         self,
         env_config: EnvironmentConfig,
-        runner_class: Type[Runner],
+        runner_class: type[Runner],
         runner_config: Config,
-        opt_class: Type[Optimiser],
+        opt_class: type[Optimiser],
         opt_config: Config,
         logging_config: LoggingConfig,
     ):
@@ -59,12 +62,10 @@ class ExperimentConfig(Config):
 
 class Experiment:
     @staticmethod
-    def run(
-        exp_config: ExperimentConfig, exp_id: Optional[str] = None, *args, **kwargs
-    ):
+    def run(exp_config: ExperimentConfig, exp_id: str | None = None, *args, **kwargs):
         ctx = ExperimentContext(exp_id)
 
-        wandb_session: Optional[WandbSession] = None
+        wandb_session: WandbSession | None = None
         try:
             # Set up for everything in config, including logging
             exp_config.setup(ctx)

@@ -1,12 +1,13 @@
-from jaix.runner.optimiser import Optimiser
-from ttex.config import Config, ConfigurableObject, ConfigurableObjectFactory as COF
-import gymnasium as gym
-from typing import Type
-from jaix.runner.ask_tell.at_strategy import ATStrategy
-import numpy as np
-
 import logging
-import jaix.utils.globals as globals
+
+import gymnasium as gym
+import numpy as np
+from ttex.config import Config, ConfigurableObject
+from ttex.config import ConfigurableObjectFactory as COF
+
+from jaix.runner.ask_tell.at_strategy import ATStrategy
+from jaix.runner.optimiser import Optimiser
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(globals.LOGGER_NAME)
 class ATOptimiserConfig(Config):
     def __init__(
         self,
-        strategy_class: Type[ATStrategy],
+        strategy_class: type[ATStrategy],
         strategy_config: Config,
         init_pop_size: int,
         stop_after: int = np.iinfo(np.int32).max,

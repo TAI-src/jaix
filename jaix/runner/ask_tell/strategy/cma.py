@@ -1,16 +1,16 @@
-from cma import CMAOptions, CMAEvolutionStrategy
-from ttex.config import Config, ConfigurableObject
-from jaix.runner.ask_tell.at_strategy import ATStrategy
 import numpy as np
-from typing import Optional
+from cma import CMAEvolutionStrategy, CMAOptions
+from ttex.config import Config, ConfigurableObject
+
 from jaix.env.composite.composite_environment import CompositeEnvironment
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 
 
 class CMAConfig(Config):
     def __init__(
         self,
         sigma0: int,
-        opts: Optional[dict] = None,
+        opts: dict | None = None,
         warm_start_best: bool = True,
     ):
         Config.__init__(self)
@@ -46,7 +46,7 @@ class CMA(ConfigurableObject, CMAEvolutionStrategy, ATStrategy):
         assert len(solutions) == len(function_values)
         if isinstance(env.unwrapped, CompositeEnvironment):
             function_values = [v for n, v in function_values]
-        assert all([len(v) == 1 for v in function_values])
+        assert all(len(v) == 1 for v in function_values)
         f_vals = [v[0] for v in function_values]
         return super().tell(solutions, f_vals)
 

@@ -1,7 +1,9 @@
-from jaix.runner.ask_tell.at_strategy import ATStrategy
-from ttex.config import Config, ConfigurableObject
-from gymnasium import Env, spaces
 import itertools
+
+from gymnasium import Env, spaces
+from ttex.config import Config, ConfigurableObject
+
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 
 
 class EnumerateATStratConfig(Config):

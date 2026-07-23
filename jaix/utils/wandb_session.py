@@ -1,6 +1,7 @@
-from ttex.log import log_wandb_init, teardown_wandb_logger, log_wandb_artifact
-from jaix.utils.experiment_context import ExperimentContext
 from ttex.config import Config
+from ttex.log import log_wandb_artifact, log_wandb_init, teardown_wandb_logger
+
+from jaix.utils.experiment_context import ExperimentContext
 
 
 class WandbSession:

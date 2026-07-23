@@ -1,16 +1,16 @@
-from jaix.utils.experiment_context import ExperimentContext
 from ttex.config.config import Config
-from ttex.log import initiate_logger, get_logging_config
-from typing import Optional, Dict
+from ttex.log import get_logging_config, initiate_logger
+
+from jaix.utils.experiment_context import ExperimentContext
 
 
 class LoggingConfig(Config):
     def __init__(
         self,
         log_level: int = 30,
-        logger_name: Optional[str] = None,
-        disable_existing: Optional[bool] = False,
-        dict_config: Optional[Dict] = None,
+        logger_name: str | None = None,
+        disable_existing: bool | None = False,
+        dict_config: dict | None = None,
     ):
         Config.__init__(self)
         self.log_level = log_level

@@ -1,6 +1,6 @@
 # only import if tabrepo extra options
 try:
-    from jaix.env.singular.hpo_env import HPOEnvironmentConfig, HPOEnvironment
+    from jaix.env.singular.hpo_env import HPOEnvironment, HPOEnvironmentConfig
 except ImportError:
     # If the import fails, we set HPOEnvironmentConfig and HPOEnvironment to None
     HPOEnvironmentConfig = None  # type: ignore[assignment,misc]
@@ -8,8 +8,8 @@ except ImportError:
 # only import if ase extra options
 try:
     from jaix.env.singular.ljclust_env import (
-        LJClustEnvironmentConfig,
         LJClustEnvironment,
+        LJClustEnvironmentConfig,
     )
 except ImportError:
     # If the import fails, we set LJClustEnvironmentConfig and LJClustEnvironment to None

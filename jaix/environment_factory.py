@@ -1,30 +1,36 @@
-from ttex.config import Config, ConfigurableObjectFactory as COF
-from typing import Type, Optional, Union, Dict, Tuple, List, Any
-from jaix.suite.suite import Suite, AggType
-from jaix.env.composite.composite_environment import CompositeEnvironment
-from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
-from jaix.env.wrapper.closing_wrapper import ClosingWrapper
-import gymnasium as gym
 import logging
-import jaix.utils.globals as globals
+from typing import (
+    Any,
+    ClassVar,
+)
+
+import gymnasium as gym
+from ttex.config import Config
+from ttex.config import ConfigurableObjectFactory as COF
+
+from jaix.env.composite.composite_environment import CompositeEnvironment
+from jaix.env.wrapper.closing_wrapper import ClosingWrapper
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
+from jaix.suite.suite import AggType, Suite
+from jaix.utils import globals
 from jaix.utils.experiment_context import ExperimentContext
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class CompositeEnvironmentConfig(Config):
-    default_wrappers = [
-        (ClosingWrapper, {}),
-    ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+    default_wrappers: ClassVar[list[tuple[type[gym.Wrapper], Config | dict]]] = [
+        (ClosingWrapper, {})
+    ]
 
     def __init__(
         self,
         agg_type: AggType,
-        comp_env_class: Type[CompositeEnvironment],
+        comp_env_class: type[CompositeEnvironment],
         comp_env_config: Config,
-        comp_env_wrappers: Optional[
-            List[Tuple[Type[gym.Wrapper], Union[Config, Dict[str, Any]]]]
-        ] = None,
+        comp_env_wrappers: (
+            list[tuple[type[gym.Wrapper], Config | dict[str, Any]]] | None
+        ) = None,
     ):
         Config.__init__(self)
         self.agg_type = agg_type
@@ -62,21 +68,19 @@ class CompositeEnvironmentConfig(Config):
 
 
 class EnvironmentConfig(Config):
-    default_wrappers = [
+    default_wrappers: ClassVar[list[tuple[type[gym.Wrapper], Config | dict]]] = [
         (ClosingWrapper, {}),
-    ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+    ]
     default_seed = 1337
 
     # TODO: Seeding wrapper
     def __init__(
         self,
-        suite_class: Type[Suite],
+        suite_class: type[Suite],
         suite_config: Config,
-        env_wrappers: Optional[
-            List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
-        ] = None,
-        comp_config: Optional[CompositeEnvironmentConfig] = None,
-        seed: Optional[int] = None,
+        env_wrappers: list[tuple[type[gym.Wrapper], Config | dict]] | None = None,
+        comp_config: CompositeEnvironmentConfig | None = None,
+        seed: int | None = None,
     ):
         self.suite_class = suite_class
         self.suite_config = suite_config
@@ -149,4 +153,4 @@ class EnvironmentFactory:
                 # TODO: reset with seeding here
                 yield wrapped_env
                 assert wrapped_env.closed
-                assert all([env.closed for env in wrapped_envs])
+                assert all(env.closed for env in wrapped_envs)

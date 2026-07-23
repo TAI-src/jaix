@@ -1,19 +1,20 @@
-from jaix.env.wrapper.online_wrapper import OnlineWrapper
+import logging
+
+import gymnasium as gym
+from ttex.config import (
+    Config,
+)
 from ttex.config import (
     ConfigurableObjectFactory as COF,
-    Config,
 )  # E501: ignore
-from jaix.runner.runner import Runner
-from jaix.runner.optimiser import Optimiser
-import logging
-import gymnasium as gym
-from typing import Type
-from typing import List, Dict, Tuple, Union  # noqa: F401
+
 from jaix.env.wrapper.max_eval_wrapper import MaxEvalWrapper, MaxEvalWrapperConfig
+from jaix.env.wrapper.online_wrapper import OnlineWrapper
 from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper  # noqa: F401
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
-
-import jaix.utils.globals as globals
+from jaix.runner.optimiser import Optimiser
+from jaix.runner.runner import Runner
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -31,7 +32,7 @@ class ATRunner(Runner):
     def run(
         self,
         env: gym.Env,
-        opt_class: Type[Optimiser],
+        opt_class: type[Optimiser],
         opt_config: Config,
         *args,
         **kwargs,
@@ -40,7 +41,7 @@ class ATRunner(Runner):
         wrappers = [
             (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals)),
             (OnlineWrapper, {"online": True}),
-        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        ]  # type: list[tuple[type[gym.Wrapper], Config | dict]]
 
         wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)
@@ -50,7 +51,7 @@ class ATRunner(Runner):
             logger.debug("Resetting optimiser")
             opt = COF.create(opt_class, opt_config, env=wenv)
             logger.debug("Optimiser created")
-            info = {}  # type: Dict
+            info = {}  # type: dict
             while not opt.stop() and not wenv.stop():
                 X = opt.ask(env=wenv)
                 res_list = []

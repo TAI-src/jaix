@@ -1,14 +1,14 @@
 """Defines environment as in EC context"""
 
-from gymnasium import spaces
-import numpy as np
 import logging
 
-from ttex.config import ConfigurableObject, Config
-from jaix.env.utils.problem.static_problem import StaticProblem
-from typing import Optional
-import jaix.utils.globals as globals
+import numpy as np
+from gymnasium import spaces
+from ttex.config import Config, ConfigurableObject
+
 from jaix.env.singular.singular_environment import SingularEnvironment
+from jaix.env.utils.problem.static_problem import StaticProblem
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -27,7 +27,10 @@ class ECEnvironmentConfig(Config):
 class ECEnvironment(ConfigurableObject, SingularEnvironment):
     """EC environment to run static problems with EC algorithms"""
 
-    metadata = {"render_modes": ["ansi"], "render_fps": 4}
+    metadata = {  # noqa: RUF012
+        "render_modes": ["ansi"],
+        "render_fps": 4,
+    }
     config_class = ECEnvironmentConfig
 
     def __init__(
@@ -81,8 +84,8 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
+        seed: int | None = None,
+        options: dict | None = None,
     ):
         """
         Resets the environment to an initial state,
@@ -105,7 +108,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         i.e. metrics, debug info.
         """
         x = np.asarray(x, dtype=self.action_space.dtype)
-        raw_fitness, clean_fitness = self.func(x)
+        raw_fitness, _clean_fitness = self.func(x)
         terminated = self.func.final_target_hit()
         truncated = (
             self.func.evalsleft(self.budget_multiplier) <= 0

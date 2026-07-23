@@ -1,19 +1,19 @@
-from ttex.config import ConfigurableObject, Config
+import json
+
+# TODO: Introduce ensembles at some point
+import logging
+from collections import defaultdict
+
 import gymnasium as gym
 import numpy as np
 from tabrepo.repository.evaluation_repository import (
     load_repository,
 )
-from jaix.env.utils.hpo.tabrepo_adapter import TaskType, TabrepoAdapter
-from typing import Optional
-from typing import List, Tuple, Dict  # noqa: F401
-import jaix.utils.globals as globals
-from jaix.env.singular.singular_environment import SingularEnvironment
-from collections import defaultdict
-import json
+from ttex.config import Config, ConfigurableObject
 
-# TODO: Introduce ensembles at some point
-import logging
+from jaix.env.singular.singular_environment import SingularEnvironment
+from jaix.env.utils.hpo.tabrepo_adapter import TabrepoAdapter, TaskType
+from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -72,7 +72,7 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         self.num_resets = 0
         self.ensembles = defaultdict(
             list
-        )  # type: Dict[float, List[Tuple[List[int], float]]]
+        )  # type: dict[float, list[tuple[list[int], float]]]
 
     def _get_info(self):
         # TODO: don't send full ensembles mid-way
@@ -89,8 +89,8 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
+        seed: int | None = None,
+        options: dict | None = None,
     ):
         """
         Resets the environment to an initial state,

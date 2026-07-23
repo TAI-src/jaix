@@ -1,6 +1,7 @@
-from ttex.config import Config, ConfigurableObject
-import numpy as np
 from enum import Enum
+
+import numpy as np
+from ttex.config import Config, ConfigurableObject
 
 # https://medium.com/@enendufrankc/implement-a-multi-armed-bandit-algorithm-18afa2354c3f
 

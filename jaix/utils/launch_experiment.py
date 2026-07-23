@@ -1,22 +1,23 @@
-from jaix.experiment import Experiment
-from ttex.config import ConfigFactory as CF
-from wandb.sdk import launch
-from typing import Dict, Optional, List, Any, Tuple
-import os
-import sys
-import logging
 import argparse
 import json
-from jaix.utils.dict_tools import nested_set
+import logging
+import os
+import sys
 from copy import deepcopy
+from typing import Any
 
-import jaix.utils.globals as globals
+from ttex.config import ConfigFactory as CF
+from wandb.sdk import launch
+
+from jaix.experiment import Experiment
+from jaix.utils import globals
+from jaix.utils.dict_tools import nested_set
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 def run_experiment(
-    run_config: Dict,
+    run_config: dict,
 ):
     """
     Run an experiment
@@ -38,17 +39,17 @@ def run_experiment(
         exp_id = Experiment.run(exp_config)
         logger.info(f"Experiment finished with id: {exp_id}")
         exit_code = 0
-    except Exception as e:
-        logger.error(f"Experiment failed {e}", exc_info=True)
+    except Exception:
+        logger.exception("Experiment failed")
         exit_code = 1
 
     return exit_code, exp_id
 
 
 def launch_jaix_experiment(
-    run_config: Dict,
+    run_config: dict,
     repeat: int = 1,
-    sweep: Optional[Tuple[List[str], List[Any]]] = None,
+    sweep: tuple[list[str], list[Any]] | None = None,
 ):
     """
     Launch a jaix experiment from a run_config dictionary
@@ -61,7 +62,7 @@ def launch_jaix_experiment(
         exit_code (int): Exit code of the experiment
     """
     run_configs = []
-    group_names = []  # type: List[Optional[str]]
+    group_names = []  # type: list[str | None]
     if sweep is not None:
         sweep_keys, sweep_values = sweep
         for sweep_value in sweep_values:
@@ -76,15 +77,15 @@ def launch_jaix_experiment(
 
     results = {}
 
-    for run_config, group_name in zip(run_configs, group_names):
+    for r_config, group_name in zip(run_configs, group_names):
         results[group_name] = {
-            "run_config": run_config,
+            "run_config": r_config,
             "data_dirs": [],
             "exit_codes": [],
         }
         # TODO: pass group names through, don't just ignore them
         for _ in range(repeat):
-            exit_code, exp_id = run_experiment(run_config)
+            exit_code, exp_id = run_experiment(r_config)
             results[group_name]["exit_codes"].append(exit_code)  # type: ignore
             results[group_name]["data_dirs"].append(exp_id)  # type: ignore
     return results
@@ -129,8 +130,8 @@ if __name__ == "__main__":
         launch_arguments["run_config"] = run_config
         launch_arguments["repeat"] = args.repeat
         if args.sweep_keys and args.sweep_values:
-            sweep_keys = args.sweep_keys  # type: List[str]
-            sweep_values = args.sweep_values  # type: List[Any]
+            sweep_keys = args.sweep_keys  # type: list[str]
+            sweep_values = args.sweep_values  # type: list[Any]
             launch_arguments["sweep"] = (sweep_keys, sweep_values)  # type: ignore
         # TODO: better validation of arguments
     results = launch_jaix_experiment(**launch_arguments)  # type: ignore

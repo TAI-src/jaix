@@ -1,16 +1,15 @@
-from abc import abstractmethod
-import numpy as np
-from collections import defaultdict
-import uuid
-import pickle
-from typing import List, Optional, Tuple
-from typing import DefaultDict  # noqa: F401
 import math
+import pickle
+import uuid
+from abc import abstractmethod
+from collections import defaultdict
+
+import numpy as np
 
 
 class StaticProblem:
     def __init__(
-        self, dimension: int, num_objectives: int, precision: Optional[float] = None
+        self, dimension: int, num_objectives: int, precision: float | None = None
     ):
         self.dimension = dimension
         self.num_objectives = num_objectives
@@ -19,26 +18,26 @@ class StaticProblem:
             [-np.inf] * self.dimension
             if not hasattr(self, "lower_bounds")
             else self.lower_bounds
-        )  # type: List[float]
+        )  # type: list[float]
         self.upper_bounds = (
             [np.inf] * self.dimension
             if not hasattr(self, "upper_bounds")
             else self.upper_bounds
-        )  # type: List[float]
+        )  # type: list[float]
         self.min_values = (
             [-np.inf] * self.num_objectives
             if not hasattr(self, "min_values")
             else self.min_values
-        )  # type: List[float]
+        )  # type: list[float]
         self.max_values = (
             [np.inf] * self.num_objectives
             if not hasattr(self, "max_values")
             else self.max_values
-        )  # type: List[float]
+        )  # type: list[float]
         self.evaluations = 0
         self.recommendations = defaultdict(
             list
-        )  # type: DefaultDict[int, List[np.ndarray]]
+        )  # type: defaultdict[int, list[np.ndarray]]
         self.last_recommended_at = 0
         self.current_best = self.max_values
         self.current_best_nnoise = self.max_values
@@ -67,15 +66,14 @@ class StaticProblem:
         return self.evalsleft(budget_multiplier) <= 0 or self.final_target_hit()
 
     @abstractmethod
-    def _eval(self, x) -> Tuple[List[float], List[float]]:
+    def _eval(self, x) -> tuple[list[float], list[float]]:
         """
         Evaluate the objective function.
             :param x: The input vector.
             :return: Tuple of objective function value (clean and noisy).
         """
-        pass
 
-    def __call__(self, x) -> Tuple[List[float], List[float]]:
+    def __call__(self, x) -> tuple[list[float], list[float]]:
         """
         Evaluate the objective function.
             :param x: The input vector.
@@ -100,11 +98,10 @@ class StaticProblem:
         self.evaluations += 1
         raw_fitness, clean_fitness = self._eval(x)
         self.current_best = [
-            f if f < cb else cb for f, cb in zip(raw_fitness, self.current_best)
+            min(cb, f) for f, cb in zip(raw_fitness, self.current_best)
         ]
         self.current_best_nnoise = [
-            f if f < cb else cb
-            for f, cb in zip(clean_fitness, self.current_best_nnoise)
+            min(cb, f) for f, cb in zip(clean_fitness, self.current_best_nnoise)
         ]
         return raw_fitness, clean_fitness
 
@@ -123,7 +120,7 @@ class StaticProblem:
 
     def close(self):
         if len(self.recommendations) > 0:
-            recommendation_file = f"{str(uuid.uuid4())}.pkl"
+            recommendation_file = f"{uuid.uuid4()!s}.pkl"
             with open(recommendation_file, "wb") as rec_file:
                 pickle.dump(
                     self.recommendations, rec_file, protocol=pickle.HIGHEST_PROTOCOL

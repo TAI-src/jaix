@@ -1,18 +1,19 @@
-from ttex.config import Config, ConfigurableObject
 from enum import Enum
-from jaix.runner.ask_tell.at_strategy import ATStrategy
+
 import numpy as np
+from gymnasium import Env, spaces
+from ttex.config import Config, ConfigurableObject
+
+from jaix.env.composite.composite_environment import CompositeEnvironment
+from jaix.runner.ask_tell.at_strategy import ATStrategy
 from jaix.runner.ask_tell.strategy.utils.ea_utils import (
+    Individual,
+    ddl_update,
     global_flip,
     onepoint_crossover,
-    uniform_crossover,
-    Individual,
     select,
-    ddl_update,
+    uniform_crossover,
 )
-from jaix.env.composite.composite_environment import CompositeEnvironment
-from typing import Optional
-from gymnasium import Env, spaces
 
 EAStrategy = Enum("EAStrategy", [("Comma", 0), ("Plus", 1)])
 
@@ -84,14 +85,20 @@ class BasicEAConfig(Config):
         strategy: EAStrategy,  # Comma or Plus
         mu: int,  # number of parents
         lam: int,  # number of offspring
-        mutation_op: Optional[MutationOp],  # mutation operator
-        crossover_op: Optional[CrossoverOp],  # crossover operator
-        mutation_opts={},  # mutation operator options
-        crossover_opts={},  # crossover operator options
+        mutation_op: MutationOp | None,  # mutation operator
+        crossover_op: CrossoverOp | None,  # crossover operator
+        mutation_opts=None,  # mutation operator options
+        crossover_opts=None,  # crossover operator options
         warm_start_strategy: WarmStartStrategy = WarmStartStrategy.NONE,  # warm start
-        update_strategy: Optional[UpdateStrategy] = None,  # update strategy
-        update_opts={},  # update strategy options
+        update_strategy: UpdateStrategy | None = None,  # update strategy
+        update_opts=None,  # update strategy options
     ):
+        if update_opts is None:
+            update_opts = {}
+        if crossover_opts is None:
+            crossover_opts = {}
+        if mutation_opts is None:
+            mutation_opts = {}
         Config.__init__(self)
         self.strategy = strategy
         self.mu = mu
@@ -186,7 +193,7 @@ class BasicEA(ConfigurableObject, ATStrategy):
             function_values = [v for n, v in function_values]
         # TODO: currently only doing single-objective
         # TODO: make this setup common to avoid code duplication
-        assert all([len(v) == 1 for v in function_values])
+        assert all(len(v) == 1 for v in function_values)
         self.gen += 1
         new_pop = [
             Individual(x, f[0], self.gen) for x, f in zip(solutions, function_values)
@@ -216,7 +223,7 @@ class BasicEA(ConfigurableObject, ATStrategy):
         self.xstart = [env.unwrapped.action_space.sample() for _ in range(self.mu)]
         if self.warm_start_strategy == WarmStartStrategy.BEST:
             # Add current best individual into starting population
-            self.xstart[0] = sorted(self.pop, key=lambda x: x.fitness, reverse=False)[0]
+            self.xstart[0] = min(self.pop, key=lambda x: x.fitness)
         elif self.warm_start_strategy == WarmStartStrategy.LAST:
             self.xstart[0] = xlast
         self.initialize()
