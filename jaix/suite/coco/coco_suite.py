@@ -1,7 +1,7 @@
 import random as rnd
 from typing import (
     Dict,  # noqa: F401
-    )
+)
 
 import cocoex as ex
 import regex as re
@@ -103,9 +103,7 @@ class COCOSuite(Suite):
             )
             yield env
 
-    def get_agg_envs(
-        self, agg_type: AggType = AggType.NONE, seed: int | None = None
-    ):
+    def get_agg_envs(self, agg_type: AggType = AggType.NONE, seed: int | None = None):
         # Currently, this only makes sense for single batches
         assert self.num_batches == 1
         assert self.current_batch == 0
