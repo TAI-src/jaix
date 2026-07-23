@@ -18,15 +18,16 @@ logger = logging.getLogger(globals.LOGGER_NAME)
 class CompositeEnvironmentConfig(Config):
     default_wrappers = [
         (ClosingWrapper, {}),
-    ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+    ]  # type: list[tuple[type[gym.Wrapper], Config | dict]]
 
     def __init__(
         self,
         agg_type: AggType,
         comp_env_class: type[CompositeEnvironment],
         comp_env_config: Config,
-        comp_env_wrappers: list[tuple[type[gym.Wrapper], Config | dict[str, Any]]]
-        | None = None,
+        comp_env_wrappers: (
+            list[tuple[type[gym.Wrapper], Config | dict[str, Any]]] | None
+        ) = None,
     ):
         Config.__init__(self)
         self.agg_type = agg_type
@@ -66,7 +67,7 @@ class CompositeEnvironmentConfig(Config):
 class EnvironmentConfig(Config):
     default_wrappers = [
         (ClosingWrapper, {}),
-    ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+    ]  # type: list[tuple[type[gym.Wrapper], Config | dict]]
     default_seed = 1337
 
     # TODO: Seeding wrapper

@@ -3,7 +3,6 @@ from collections.abc import Callable
 from functools import wraps
 from typing import (
     Any,
-    TypeVar,
 )
 
 import gymnasium as gym
@@ -28,7 +27,6 @@ from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
-FuncT = TypeVar("FuncT", bound=Callable[..., Any])
 
 
 class SwitchingEnvironmentConfig(Config):
@@ -89,7 +87,8 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         logger.debug(f"Action space: {self.action_space}")
         logger.debug(f"Observation space: {self.observation_space}")
 
-    def update_env(func):
+    @staticmethod
+    def update_env(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def decorator_func(self, *args: Any, **kwargs: Any) -> Any:
             self._update_current_env()

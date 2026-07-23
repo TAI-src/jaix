@@ -62,7 +62,7 @@ def launch_jaix_experiment(
         exit_code (int): Exit code of the experiment
     """
     run_configs = []
-    group_names = []  # type: List[Optional[str]]
+    group_names = []  # type: list[str | None]
     if sweep is not None:
         sweep_keys, sweep_values = sweep
         for sweep_value in sweep_values:
@@ -130,8 +130,8 @@ if __name__ == "__main__":
         launch_arguments["run_config"] = run_config
         launch_arguments["repeat"] = args.repeat
         if args.sweep_keys and args.sweep_values:
-            sweep_keys = args.sweep_keys  # type: List[str]
-            sweep_values = args.sweep_values  # type: List[Any]
+            sweep_keys = args.sweep_keys  # type: list[str]
+            sweep_values = args.sweep_values  # type: list[Any]
             launch_arguments["sweep"] = (sweep_keys, sweep_values)  # type: ignore
         # TODO: better validation of arguments
     results = launch_jaix_experiment(**launch_arguments)  # type: ignore
