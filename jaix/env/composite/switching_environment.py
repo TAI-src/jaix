@@ -3,10 +3,6 @@ from collections.abc import Callable
 from functools import wraps
 from typing import (
     Any,
-    Dict,  # noqa: F401
-    Tuple,  # noqa: F401
-    TypeVar,
-    Union,  # noqa: F401
 )
 
 import gymnasium as gym
@@ -31,7 +27,6 @@ from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 from jaix.utils import globals
 
 logger = logging.getLogger(globals.LOGGER_NAME)
-FuncT = TypeVar("FuncT", bound=Callable[..., Any])
 
 
 class SwitchingEnvironmentConfig(Config):
@@ -65,7 +60,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         ConfigurableObject.__init__(self, config)
         wrappers = [
             (AutoResetWrapper, self.auto_reset_wrapper_config),
-        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        ]  # type: list[tuple[type[gym.Wrapper], Config | dict]]
         self.env_list = [WEF.wrap(env, wrappers) for env in env_list]
         self._current_env = 0
 
@@ -92,7 +87,8 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         logger.debug(f"Action space: {self.action_space}")
         logger.debug(f"Observation space: {self.observation_space}")
 
-    def update_env(func):
+    @staticmethod
+    def update_env(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def decorator_func(self, *args: Any, **kwargs: Any) -> Any:
             self._update_current_env()
@@ -111,7 +107,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
 
     @update_env
     def step(self, action):
-        obs, r, term, trunc, info = self.env_list[self._current_env].step(action)
+        obs, r, term, _trunc, info = self.env_list[self._current_env].step(action)
         obs = (self._current_env, obs)
 
         if not self.real_time:
@@ -167,7 +163,7 @@ class SwitchingEnvironment(ConfigurableObject, CompositeEnvironment):
         valid_envs = [not env.stop() for env in self.env_list]
         new_env = self.pattern_switcher.switch(self._timer, valid=valid_envs)
         # only update env if not invalid (-1)
-        self._stopped = True if new_env < 0 else False
+        self._stopped = new_env < 0
         updated = False
         new_env = max(0, new_env)
         if new_env != self._current_env:

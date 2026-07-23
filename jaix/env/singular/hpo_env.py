@@ -3,7 +3,6 @@ import json
 # TODO: Introduce ensembles at some point
 import logging
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple  # noqa: F401
 
 import gymnasium as gym
 import numpy as np
@@ -73,7 +72,7 @@ class HPOEnvironment(ConfigurableObject, SingularEnvironment):
         self.num_resets = 0
         self.ensembles = defaultdict(
             list
-        )  # type: Dict[float, List[Tuple[List[int], float]]]
+        )  # type: dict[float, list[tuple[list[int], float]]]
 
     def _get_info(self):
         # TODO: don't send full ensembles mid-way

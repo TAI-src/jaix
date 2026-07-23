@@ -18,7 +18,7 @@ class ExperimentContext:
 
     @staticmethod
     def default_values(exp_id: str | None) -> dict[str, Any]:
-        from ttex.log import LOGGER_NAME as LOGGER_NAME
+        from ttex.log import LOGGER_NAME
 
         exp_id = exp_id if exp_id is not None else str(uuid4())
 

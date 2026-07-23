@@ -1,7 +1,4 @@
 import random as rnd
-from typing import (
-    Dict,  # noqa: F401
-)
 
 import cocoex as ex
 import regex as re
@@ -43,33 +40,26 @@ class COCOSuite(Suite):
     def __init__(self, config: COCOSuiteConfig):
         super().__init__(config)
         if self.num_batches > 1:
-            self.output_folder += "_batch%03dof%d" % (
-                self.current_batch,
-                self.num_batches,
-            )
+            self.output_folder += f"_batch{self.current_batch:03d}of{self.num_batches}"
 
         self.suite = ex.Suite(self.suite_name, self.suite_instance, self.suite_options)
 
     def _get_agg_problem_dict(self, agg_type: AggType, seed: int | None = None):
         if agg_type != AggType.INST:
             raise NotImplementedError()
-        problems = {}  # type: Dict[int, Dict[int, ex.Problem]]
+        problems = {}  # type: dict[int, dict[int, ex.Problem]]
         for dim in self.suite.dimensions:
             problems[dim] = {}
-            function_names = set(
-                [
-                    re.findall(r"_f[0-9]+_", name)[0]
-                    for name in self.suite.ids("", f"d{dim:02d}", "")
-                ]
-            )
+            function_names = {
+                re.findall(r"_f[0-9]+_", name)[0]
+                for name in self.suite.ids("", f"d{dim:02d}", "")
+            }
             functions = [re.findall(r"[0-9]+", name)[0] for name in function_names]
             for func in functions:
-                instance_names = set(
-                    [
-                        re.findall(r"i[0-9]+", name)[0]
-                        for name in self.suite.ids(f"f{func}", f"d{dim:02d}", "")
-                    ]
-                )
+                instance_names = {
+                    re.findall(r"i[0-9]+", name)[0]
+                    for name in self.suite.ids(f"f{func}", f"d{dim:02d}", "")
+                }
                 instances = [
                     int(re.findall(r"[0-9]+", name)[0]) for name in instance_names
                 ]
@@ -108,8 +98,8 @@ class COCOSuite(Suite):
         assert self.num_batches == 1
         assert self.current_batch == 0
         problems_dict = self._get_agg_problem_dict(agg_type, seed)
-        for dim, funcs in problems_dict.items():
-            for fun, coco_problems in funcs.items():
+        for funcs in problems_dict.values():
+            for coco_problems in funcs.values():
                 observers = [
                     ex.Observer(
                         self.suite_name,

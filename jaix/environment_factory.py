@@ -1,5 +1,8 @@
 import logging
-from typing import Any
+from typing import (
+    Any,
+    ClassVar,
+)
 
 import gymnasium as gym
 from ttex.config import Config
@@ -16,17 +19,18 @@ logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class CompositeEnvironmentConfig(Config):
-    default_wrappers = [
-        (ClosingWrapper, {}),
-    ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+    default_wrappers: ClassVar[list[tuple[type[gym.Wrapper], Config | dict]]] = [
+        (ClosingWrapper, {})
+    ]
 
     def __init__(
         self,
         agg_type: AggType,
         comp_env_class: type[CompositeEnvironment],
         comp_env_config: Config,
-        comp_env_wrappers: list[tuple[type[gym.Wrapper], Config | dict[str, Any]]]
-        | None = None,
+        comp_env_wrappers: (
+            list[tuple[type[gym.Wrapper], Config | dict[str, Any]]] | None
+        ) = None,
     ):
         Config.__init__(self)
         self.agg_type = agg_type
@@ -64,9 +68,9 @@ class CompositeEnvironmentConfig(Config):
 
 
 class EnvironmentConfig(Config):
-    default_wrappers = [
+    default_wrappers: ClassVar[list[tuple[type[gym.Wrapper], Config | dict]]] = [
         (ClosingWrapper, {}),
-    ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+    ]
     default_seed = 1337
 
     # TODO: Seeding wrapper
@@ -149,4 +153,4 @@ class EnvironmentFactory:
                 # TODO: reset with seeding here
                 yield wrapped_env
                 assert wrapped_env.closed
-                assert all([env.closed for env in wrapped_envs])
+                assert all(env.closed for env in wrapped_envs)

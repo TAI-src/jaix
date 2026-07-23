@@ -27,7 +27,10 @@ class ECEnvironmentConfig(Config):
 class ECEnvironment(ConfigurableObject, SingularEnvironment):
     """EC environment to run static problems with EC algorithms"""
 
-    metadata = {"render_modes": ["ansi"], "render_fps": 4}
+    metadata = {  # noqa: RUF012
+        "render_modes": ["ansi"],
+        "render_fps": 4,
+    }
     config_class = ECEnvironmentConfig
 
     def __init__(
@@ -105,7 +108,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         i.e. metrics, debug info.
         """
         x = np.asarray(x, dtype=self.action_space.dtype)
-        raw_fitness, clean_fitness = self.func(x)
+        raw_fitness, _clean_fitness = self.func(x)
         terminated = self.func.final_target_hit()
         truncated = (
             self.func.evalsleft(self.budget_multiplier) <= 0

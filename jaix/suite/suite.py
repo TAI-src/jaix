@@ -83,7 +83,7 @@ class SuiteConfig(Config):
                 tuple([int(x) for x in perm]) for perm in set(inst_tuples)
             ]
         elif isinstance(agg_instances, list):
-            if all([isinstance(i, int) for i in agg_instances]):
+            if all(isinstance(i, int) for i in agg_instances):
                 agg_instances = cast(
                     list[int], agg_instances
                 )  # otherwise mypy complains
@@ -102,7 +102,7 @@ class SuiteConfig(Config):
                 for i, perm in enumerate(instance_permutations):
                     if i in agg_instances:
                         self.agg_instances.append(perm)
-            elif all([isinstance(i, tuple) for i in agg_instances]):
+            elif all(isinstance(i, tuple) for i in agg_instances):
                 agg_instances = cast(
                     list[tuple[int, ...]], agg_instances
                 )  # otherwise mypy complains

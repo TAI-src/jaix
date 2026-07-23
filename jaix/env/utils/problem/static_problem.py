@@ -3,9 +3,6 @@ import pickle
 import uuid
 from abc import abstractmethod
 from collections import defaultdict
-from typing import (
-    DefaultDict,  # noqa: F401
-)
 
 import numpy as np
 
@@ -21,26 +18,26 @@ class StaticProblem:
             [-np.inf] * self.dimension
             if not hasattr(self, "lower_bounds")
             else self.lower_bounds
-        )  # type: List[float]
+        )  # type: list[float]
         self.upper_bounds = (
             [np.inf] * self.dimension
             if not hasattr(self, "upper_bounds")
             else self.upper_bounds
-        )  # type: List[float]
+        )  # type: list[float]
         self.min_values = (
             [-np.inf] * self.num_objectives
             if not hasattr(self, "min_values")
             else self.min_values
-        )  # type: List[float]
+        )  # type: list[float]
         self.max_values = (
             [np.inf] * self.num_objectives
             if not hasattr(self, "max_values")
             else self.max_values
-        )  # type: List[float]
+        )  # type: list[float]
         self.evaluations = 0
         self.recommendations = defaultdict(
             list
-        )  # type: DefaultDict[int, List[np.ndarray]]
+        )  # type: defaultdict[int, list[np.ndarray]]
         self.last_recommended_at = 0
         self.current_best = self.max_values
         self.current_best_nnoise = self.max_values

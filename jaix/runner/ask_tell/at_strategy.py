@@ -27,7 +27,7 @@ class ATStrategy(OOOptimizer):
         """
         Reset the strategy
         """
-        NotImplementedError()
+        raise NotImplementedError()
 
     def warm_start(self, xlast, env, **kwargs):
         """

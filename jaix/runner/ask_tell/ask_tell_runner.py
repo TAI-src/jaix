@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, List, Tuple, Type, Union  # noqa: F401
 
 import gymnasium as gym
 from ttex.config import (
@@ -42,7 +41,7 @@ class ATRunner(Runner):
         wrappers = [
             (MaxEvalWrapper, MaxEvalWrapperConfig(max_evals=self.max_evals)),
             (OnlineWrapper, {"online": True}),
-        ]  # type: List[Tuple[Type[gym.Wrapper], Union[Config, Dict]]]
+        ]  # type: list[tuple[type[gym.Wrapper], Config | dict]]
 
         wenv = WEF.wrap(env, wrappers)  # type: PassthroughWrapper
         # Independent restarts (runs)
@@ -52,7 +51,7 @@ class ATRunner(Runner):
             logger.debug("Resetting optimiser")
             opt = COF.create(opt_class, opt_config, env=wenv)
             logger.debug("Optimiser created")
-            info = {}  # type: Dict
+            info = {}  # type: dict
             while not opt.stop() and not wenv.stop():
                 X = opt.ask(env=wenv)
                 res_list = []
