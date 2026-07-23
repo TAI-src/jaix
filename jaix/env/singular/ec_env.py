@@ -27,7 +27,10 @@ class ECEnvironmentConfig(Config):
 class ECEnvironment(ConfigurableObject, SingularEnvironment):
     """EC environment to run static problems with EC algorithms"""
 
-    metadata = {"render_modes": ["ansi"], "render_fps": 4}
+    metadata = {  # noqa: RUF012
+        "render_modes": ["ansi"],
+        "render_fps": 4,
+    }
     config_class = ECEnvironmentConfig
 
     def __init__(

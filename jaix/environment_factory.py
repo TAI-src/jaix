@@ -1,5 +1,8 @@
 import logging
-from typing import Any
+from typing import (
+    Any,
+    ClassVar,
+)
 
 import gymnasium as gym
 from ttex.config import Config
@@ -16,9 +19,9 @@ logger = logging.getLogger(globals.LOGGER_NAME)
 
 
 class CompositeEnvironmentConfig(Config):
-    default_wrappers = [
-        (ClosingWrapper, {}),
-    ]  # type: list[tuple[type[gym.Wrapper], Config | dict]]
+    default_wrappers: ClassVar[list[tuple[type[gym.Wrapper], Config | dict]]] = [
+        (ClosingWrapper, {})
+    ]
 
     def __init__(
         self,
@@ -65,9 +68,9 @@ class CompositeEnvironmentConfig(Config):
 
 
 class EnvironmentConfig(Config):
-    default_wrappers = [
+    default_wrappers: ClassVar[list[tuple[type[gym.Wrapper], Config | dict]]] = [
         (ClosingWrapper, {}),
-    ]  # type: list[tuple[type[gym.Wrapper], Config | dict]]
+    ]
     default_seed = 1337
 
     # TODO: Seeding wrapper

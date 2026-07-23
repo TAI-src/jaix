@@ -40,10 +40,7 @@ class COCOSuite(Suite):
     def __init__(self, config: COCOSuiteConfig):
         super().__init__(config)
         if self.num_batches > 1:
-            self.output_folder += "_batch%03dof%d" % (
-                self.current_batch,
-                self.num_batches,
-            )
+            self.output_folder += f"_batch{self.current_batch:03d}of{self.num_batches}"
 
         self.suite = ex.Suite(self.suite_name, self.suite_instance, self.suite_options)
 
