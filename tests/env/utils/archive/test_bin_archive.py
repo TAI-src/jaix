@@ -4,12 +4,15 @@ from jaix.env.utils.archive.binning_strategy import BinningStrategy
 import numpy as np
 import pytest
 import os.path as osp
+import random
 
 
 class DummyBinningStrategyConfig(Config):
-    def __init__(self):
-        Config.__init__(self)
-        self.n_bins = 5
+    def __init__(self, n_bins=5):
+        Config.__init__(
+            self,
+        )
+        self.n_bins = n_bins
         self.lower_bound = 0.0
         self.upper_bound = 10.0
         self.binning_strategy = "linear"
@@ -26,8 +29,13 @@ class DummyBinningStrategy(BinningStrategy, ConfigurableObject):
         return 0
 
     def get_k_nearest_bins(self, bidx, k):
-        # For testing purposes, we just return the next k bins
-        return list(range(bidx + 1, bidx + 1 + k))
+        # For testing purposes, return k random bins
+        bin_list = range(self.n_bins)
+        sampled = random.sample(bin_list, k)
+        # remove original bin index if present
+        if bidx in sampled:
+            sampled.remove(bidx)
+        return sampled
 
 
 def get_archive(pre_fill=False):
@@ -137,3 +145,28 @@ def test_plot_pbin_history(tmp_path):
     assert fig is not None, "Figure should be created"
     assert ax is not None, "Axes should be created"
     assert osp.exists(plot_path), "Plot should be saved to the specified path"
+
+
+def test_get_closest_bin():
+    archive = get_archive(pre_fill=True)
+    sample = np.array([2.0, 3.0])
+    bin = archive.binner.get_bin(sample)
+    closest_bin = archive.get_closest_non_empty_bin(bin)
+    assert closest_bin == bin, "Closest bin index should be 0 for the given sample"
+
+    closest_bin = archive.get_closest_non_empty_bin(bin + 2)
+    assert closest_bin == bin, "Closest bin index should be 0 for the given sample"
+
+
+def test_closest_elite():
+    archive = get_archive(pre_fill=True)
+    sample = np.array([2.0, 3.0])
+    bin = archive.binner.get_bin(sample)
+    elite_sample, elite_fitness, closest_bin = archive.get_closest_elite(bin)
+    assert closest_bin == bin, "Closest bin index should be 0 for the given sample"
+
+    elite_sample, elite_fitness, closest_bin = archive.get_closest_elite(bin + 2)
+    assert closest_bin == bin, "Closest bin index should be 0 for the given sample"
+    assert (
+        elite_fitness == archive.get_elite(bin)[1]
+    ), "Elite fitness should match the fitness of the closest bin"

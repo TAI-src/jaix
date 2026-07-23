@@ -183,6 +183,52 @@ class BinArchive(ConfigurableObject, Archive):
         best_sample, best_fitness = min(self.map[bin_idx], key=lambda x: x[1])
         return best_sample, best_fitness
 
+    def get_closest_elite(
+        self, bin_idx: int, safety_k: int = 5, max_k: int = -1
+    ) -> Tuple[Any, float, int]:
+        """
+        Return the best sample and its fitness in the closest non-empty bin to the given bin index
+        If the given bin index is non-empty, return its best sample and fitness directly.
+        If the archive is empty, return (None, np.nan, -1).
+        If no non-empty bin is found within the nearest k bins, return (None, np.nan, -1).
+        """
+        closest_bin_idx = self.get_closest_non_empty_bin(bin_idx, safety_k, max_k)
+        if closest_bin_idx == -1:
+            return None, np.nan, -1
+        best_sample, best_fitness = self.get_elite(closest_bin_idx)
+        return best_sample, best_fitness, closest_bin_idx
+
+    def get_closest_non_empty_bin(
+        self,
+        bin_idx: int,  # Bin index to find the closest elite for
+        safety_k: int = 5,  # Safety factor for the number of nearest bins to consider
+        max_k: int = -1,  # Maximum number of nearest bins to consider (-1 for no limit)
+    ) -> int:
+        """
+        Return the index of the closest non-empty bin to the given bin index.
+        If the given bin index is non-empty, return it directly.
+        If the archive is empty, return -1.
+        If no non-empty bin is found within the nearest k bins, return -1.
+        """
+        # check if the archive is empty
+        if self.n_points == 0:
+            return -1
+        # check if the bin is non-empty
+        if len(self.map[bin_idx]) > 0:
+            return bin_idx
+        if max_k == -1:  # If max_k is -1, set it to the number of bins
+            max_k = self.n_bins
+        k = int(
+            min(max(1, safety_k) * self.n_bins / self.covered_bins, max_k)
+        )  # Determine the number of closest niches to consider based on the safety factor and the number of covered niches
+        nearest_bins = self.binner.get_k_nearest_bins(bin_idx, k)
+        # Get first non-empty bin from the nearest bins
+        for nb in nearest_bins:
+            if len(self.map[nb]) > 0:
+                return nb
+        # If no non-empty bin found, return -1
+        return -1
+
     def get_all(self) -> List[Tuple[Any, float]]:
         """
         Return all samples in the archive as a list of tuples (sample, fitness)
