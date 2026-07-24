@@ -14,7 +14,7 @@ def test_init():
     config = ImprovementRewardWrapperConfig()
     wrapped_env = ImprovementRewardWrapper(config, env)
     assert wrapped_env.imp_type == config.imp_type
-    assert wrapped_env.state_eval == config.state_eval
+    assert wrapped_env.state_eval == [config.imp_state_eval]
 
 
 def test_default():
@@ -50,15 +50,15 @@ def test__get_improvement():
         transform=False, imp_type=ImprovementType.OVER_FIRST, is_min=True
     )
     wrapped_env = ImprovementRewardWrapper(config, env)
-    assert wrapped_env.first_val is None
-    assert wrapped_env.best_val is None
-    assert wrapped_env.last_val is None
+    assert len(wrapped_env.first_val) == 0
+    assert len(wrapped_env.best_val) == 0
+    assert len(wrapped_env.last_val) == 0
     wrapped_env.steps = 1
     assert wrapped_env._get_improvement(0) == 0.0
 
-    wrapped_env.first_val = 10.5
-    wrapped_env.best_val = 5
-    wrapped_env.last_val = 7
+    wrapped_env.first_val["obs0"] = 10.5
+    wrapped_env.best_val["obs0"] = 5
+    wrapped_env.last_val["obs0"] = 7
     wrapped_env.steps = 2
     assert wrapped_env._get_improvement(0.5) == 10.0
     assert wrapped_env._get_improvement(11) == 0
@@ -76,34 +76,35 @@ def test__get_improvement():
     assert wrapped_env._get_improvement(7) == 5.5
 
 
-def test_get_improvement():
+@pytest.mark.parametrize("state_eval", ["r"])
+def test_get_improvement(state_eval):
     env = gym.make("MountainCar-v0", render_mode="rgb_array")
     config = ImprovementRewardWrapperConfig(
         transform=True,
         imp_type=ImprovementType.BEST_SINCE_FIRST,
-        state_eval="r",
+        state_eval=state_eval,
         is_min=True,
     )
     wrapped_env = ImprovementRewardWrapper(config, env)
 
-    wrapped_env.best_val = 100000
-    wrapped_env.first_val = 10.5
-    wrapped_env.last_val = 5000
+    wrapped_env.best_val = {state_eval: 100000}
+    wrapped_env.first_val = {state_eval: 10.5}
+    wrapped_env.last_val = {state_eval: 5000}
     wrapped_env.steps = 0
     assert wrapped_env.get_improvement(0.5) == 1
 
-    wrapped_env.best_val = 0.5
+    wrapped_env.best_val = {state_eval: 0.5}
     assert wrapped_env.get_improvement(100) == 1
     assert wrapped_env.get_improvement(0.05) >= 1
 
     wrapped_env.steps = 9
-    wrapped_env.best_val = 5
+    wrapped_env.best_val = {state_eval: 5}
     assert wrapped_env.get_improvement(0.5) == 0.5
     assert wrapped_env.get_improvement(0.05) >= 0.5
 
     wrapped_env.steps = 0
-    wrapped_env.first_val = 0.5
-    wrapped_env.best_val = 0.5
+    wrapped_env.first_val = {state_eval: 0.5}
+    wrapped_env.best_val = {state_eval: 0.5}
     assert wrapped_env.get_improvement(-9.5) == 1
     assert wrapped_env.get_improvement(-99.5) == 2
 
@@ -117,10 +118,10 @@ def test_val_choice(state_eval):
     obs, r, _, _, info = wrapped_env.step(wrapped_env.action_space.sample())
     obs, r, _, _, info = wrapped_env.step(wrapped_env.action_space.sample())
     if state_eval == "obs0":
-        assert wrapped_env.last_val == obs[0]
+        assert wrapped_env.last_val["obs0"] == obs[0]
     elif state_eval == "r":
-        assert wrapped_env.last_val != r
+        assert wrapped_env.last_val["r"] != r
     elif state_eval == "val":
-        assert wrapped_env.last_val == info["val"]
+        assert wrapped_env.last_val["val"] == info["val"]
 
-    assert info[f"raw_{state_eval}"] == wrapped_env.last_val
+    assert info[f"raw_{state_eval}"] == wrapped_env.last_val[state_eval]

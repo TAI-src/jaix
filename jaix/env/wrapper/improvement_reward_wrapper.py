@@ -27,7 +27,7 @@ class ImprovementRewardWrapperConfig(Config):
         imp_type=ImprovementType.BEST_SINCE_FIRST,
     ):
         Config.__init__(self)
-        self.state_eval = state_eval
+        self.imp_state_eval = state_eval
         self.is_min = is_min
         self.transform = transform
         self.passthrough = passthrough
@@ -43,7 +43,7 @@ class ImprovementRewardWrapper(ConfigurableObject, ValueTrackWrapper):
     def __init__(self, config: ImprovementRewardWrapperConfig, env: gym.Env):
         ConfigurableObject.__init__(self, config)
         ValueTrackWrapper.__init__(
-            self, env, config.state_eval, config.is_min, config.passthrough
+            self, env, config.imp_state_eval, config.is_min, config.passthrough
         )
 
     @staticmethod
@@ -54,7 +54,7 @@ class ImprovementRewardWrapper(ConfigurableObject, ValueTrackWrapper):
         return ret
 
     def _compute_imp(self, comp_val: float, val: float) -> float:
-        if self.is_min:
+        if self.is_min[self.imp_state_eval]:
             imp = comp_val - val
         else:
             imp = val - comp_val
@@ -62,20 +62,24 @@ class ImprovementRewardWrapper(ConfigurableObject, ValueTrackWrapper):
 
     def _get_improvement(self, val: float) -> float:
         # On first step, just return 0 improvement
-        if self.first_val is None or self.best_val is None or self.last_val is None:
+        if (
+            len(self.first_val) == 0
+            or len(self.best_val) == 0
+            or len(self.last_val) == 0
+        ):
             return 0.0
         if self.imp_type == ImprovementType.OVER_FIRST:
-            comp_val = self.first_val
+            comp_val = self.first_val[self.imp_state_eval]
         elif self.imp_type == ImprovementType.OVER_BEST:
-            comp_val = self.best_val
+            comp_val = self.best_val[self.imp_state_eval]
         elif self.imp_type == ImprovementType.OVER_LAST:
-            comp_val = self.last_val
+            comp_val = self.last_val[self.imp_state_eval]
         elif self.imp_type == ImprovementType.BEST_SINCE_FIRST:
             # Compare the (new) best val to the first val
-            if self._compute_imp(self.best_val, val) <= 0:
+            if self._compute_imp(self.best_val[self.imp_state_eval], val) <= 0:
                 # No improvement, so use previous best val for comparison
-                val = self.best_val
-            comp_val = self.first_val
+                val = self.best_val[self.imp_state_eval]
+            comp_val = self.first_val[self.imp_state_eval]
         else:
             raise ValueError(f"Unknown imp_type {self.imp_type}")
 
@@ -99,12 +103,13 @@ class ImprovementRewardWrapper(ConfigurableObject, ValueTrackWrapper):
             trunc,
             info,
         ) = self.env.step(action)
-        val = self.get_val(obs, r, info, self.state_eval)
-        info[f"raw_{self.state_eval}"] = val
-        result_val = self.get_improvement(val)
+        val = self.get_vals(obs, r, info, self.imp_state_eval)
+        info[f"raw_{self.imp_state_eval}"] = val[self.imp_state_eval]
+        result_val = self.get_improvement(val[self.imp_state_eval])
         self.update_vals(val)
-        info[f"best_raw_{self.state_eval}"] = (
-            self.best_val if self.best_val is not None else val
+
+        info[f"best_raw_{self.imp_state_eval}"] = self.best_val.get(
+            self.imp_state_eval, val[self.imp_state_eval]
         )
         info["improvement"] = result_val
         return obs, result_val, term, trunc, info

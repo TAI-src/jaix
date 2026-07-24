@@ -149,11 +149,19 @@ def test_wandb_improvement_interaction_v1(state_eval_imp, state_eval_wandb):
 
     if state_eval_imp == state_eval_wandb:
         assert wrapped_env.last_val == wrapped_env.env.last_val
-    assert info[f"best_raw_{state_eval_imp}"] == wrapped_env.env.best_val
-    assert info[f"raw_{state_eval_imp}"] == wrapped_env.env.last_val
+    assert (
+        info[f"best_raw_{state_eval_imp}"] == wrapped_env.env.best_val[state_eval_imp]
+    )
+    assert info[f"raw_{state_eval_imp}"] == wrapped_env.env.last_val[state_eval_imp]
 
-    assert msg[f"env/best_raw_{state_eval_wandb}/DummyEnv/0/1"] == wrapped_env.best_val
-    assert msg[f"env/raw_{state_eval_wandb}/DummyEnv/0/1"] == wrapped_env.last_val
+    assert (
+        msg[f"env/best_raw_{state_eval_wandb}/DummyEnv/0/1"]
+        == wrapped_env.best_val[state_eval_wandb]
+    )
+    assert (
+        msg[f"env/raw_{state_eval_wandb}/DummyEnv/0/1"]
+        == wrapped_env.last_val[state_eval_wandb]
+    )
 
     assert "env/r/DummyEnv/0/1" in msg
 
@@ -192,13 +200,17 @@ def test_wandb_improvement_interaction_v2(state_eval_imp, state_eval_wandb):
 
     if state_eval_imp == state_eval_wandb:
         assert wrapped_env.last_val == wrapped_env.env.last_val
-    assert info[f"best_raw_{state_eval_imp}"] == wrapped_env.best_val
-    assert info[f"raw_{state_eval_imp}"] == wrapped_env.last_val
+    assert info[f"best_raw_{state_eval_imp}"] == wrapped_env.best_val[state_eval_imp]
+    assert info[f"raw_{state_eval_imp}"] == wrapped_env.last_val[state_eval_imp]
 
     assert (
-        msg[f"env/best_raw_{state_eval_wandb}/DummyEnv/0/1"] == wrapped_env.env.best_val
+        msg[f"env/best_raw_{state_eval_wandb}/DummyEnv/0/1"]
+        == wrapped_env.env.best_val[state_eval_wandb]
     )
-    assert msg[f"env/raw_{state_eval_wandb}/DummyEnv/0/1"] == wrapped_env.env.last_val
+    assert (
+        msg[f"env/raw_{state_eval_wandb}/DummyEnv/0/1"]
+        == wrapped_env.env.last_val[state_eval_wandb]
+    )
 
 
 # changes the logger, needs to happen last
