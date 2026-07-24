@@ -45,10 +45,10 @@ class COCOLoggerWrapperConfig(Config):
         self.improvement_steps = improvement_steps
         self.number_target_triggers = number_target_triggers
         self.target_precision = target_precision
-        self.state_eval = state_eval
+        self.coco_state_eval = state_eval
         self.is_min = is_min
 
-    def _setup(self, ctx: ExperimentContext):  # Setup COCO logger
+    def _setup(self, ctx: ExperimentContext):  # Se/tup COCO logger
         self.coco_logger_name = (
             self.coco_logger_name
             if self.coco_logger_name is not None
@@ -111,7 +111,7 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
             self,
             env,
             passthrough=config.passthrough,
-            state_eval=config.state_eval,
+            state_eval=config.coco_state_eval,
             is_min=config.is_min,
         )
         self.coco_logger = logging.getLogger(self.coco_logger_name)
@@ -177,12 +177,14 @@ class COCOLoggerWrapper(ConfigurableObject, ValueTrackWrapper):
         ) = self.env.step(action)
 
         # Get the value for tracking and update internal state
-        val = self.get_val(obs, r, info, self.state_eval)
+        val = self.get_vals(obs, r, info, self.coco_state_eval)
         self.update_vals(val)
 
         coco_eval = COCOEval(
             x=action,
-            mf=val,  # TODO: should also be logging noisy values
+            mf=val.get(
+                self.coco_state_eval, np.nan
+            ),  # TODO: should also be logging noisy values
         )
         self.coco_logger.info(coco_eval)
         logger.debug(f"COCOEval emitted: {coco_eval} {self.exp_id}")

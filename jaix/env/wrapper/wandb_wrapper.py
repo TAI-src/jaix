@@ -20,8 +20,8 @@ class WandbWrapperConfig(Config):
         project: str | None = None,
         group: str | None = None,
         passthrough: bool = True,
-        state_eval: str = "obs0",  # Which value should be logged
-        is_min: bool = True,  # Whether lower is better for state_eval
+        state_eval: list[str] | str = "obs0",  # Which values should be logged
+        is_min: dict[str, bool] | bool = True,  # Whether lower is better for state_eval
     ):
         Config.__init__(self)
         self.passthrough = passthrough
@@ -30,8 +30,17 @@ class WandbWrapperConfig(Config):
         self.snapshot_sensitive_keys = snapshot_sensitive_keys
         self.project = project
         self.group = group
-        self.state_eval = state_eval
-        self.is_min = is_min
+        if isinstance(state_eval, str):
+            self.state_eval = [state_eval]
+        else:
+            self.state_eval = state_eval.copy()
+        if isinstance(is_min, bool):
+            self.is_min: dict[str, bool] = {se: is_min for se in self.state_eval}
+        else:
+            assert is_min.keys() == set(
+                self.state_eval
+            ), "is_min keys must match state_eval"
+            self.is_min = is_min.copy()
         self.wandb_logger_name = wandb_logger_name
 
     def _setup(self, ctx: ExperimentContext):  # Setup wandb logger
@@ -103,8 +112,8 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
         self.log_renv_steps += 1
 
         # Get the value for tracking and update internal state
-        val = self.get_val(obs, r, info, self.state_eval)
-        self.update_vals(val)
+        vals = self.get_vals(obs, r, info, self.state_eval)
+        self.update_vals(vals)
 
         # TODO: Option for log frequency
 
@@ -119,23 +128,18 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
         }
         if r is not None:
             info_dict[f"env/r/{self.env.unwrapped!s}"] = float(r.item())
-        if f"raw_{self.state_eval}" in info:
-            # The original value might have been overwritten, so get it from info if available
-            raw_val = float(info[f"raw_{self.state_eval}"])
-            best_raw_val = (
-                float(info[f"best_raw_{self.state_eval}"])
-                if f"best_raw_{self.state_eval}" in info
-                else raw_val
-            )
-        else:
-            # Get the raw value from the current step
-            raw_val = float(val)
-            best_raw_val = float(self.best_val if self.best_val is not None else val)
+        for se, val in vals.items():
+            if f"raw_{se}" in info:
+                # The original value might have been overwritten, so get it from info if available
+                raw_val = float(info[f"raw_{se}"])
+                best_raw_val = float(info.get(f"best_raw_{se}", raw_val))
+            else:
+                # Get the raw value from the current step
+                raw_val = float(val)
+                best_raw_val = float(self.best_val.get(se, raw_val))
 
-        info_dict[f"env/raw_{self.state_eval}/{self.env.unwrapped!s}"] = raw_val
-        info_dict[
-            f"env/best_raw_{self.state_eval}/{self.env.unwrapped!s}"
-        ] = best_raw_val
+            info_dict[f"env/raw_{se}/{self.env.unwrapped!s}"] = raw_val
+            info_dict[f"env/best_raw_{se}/{self.env.unwrapped!s}"] = best_raw_val
 
         if term:
             info_dict[f"env/term/{self.env.unwrapped!s}"] = float(self.log_renv_steps)
