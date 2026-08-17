@@ -133,9 +133,9 @@ class WandbWrapper(ConfigurableObject, ValueTrackWrapper):
             best_raw_val = float(self.best_val if self.best_val is not None else val)
 
         info_dict[f"env/raw_{self.state_eval}/{self.env.unwrapped!s}"] = raw_val
-        info_dict[
-            f"env/best_raw_{self.state_eval}/{self.env.unwrapped!s}"
-        ] = best_raw_val
+        info_dict[f"env/best_raw_{self.state_eval}/{self.env.unwrapped!s}"] = (
+            best_raw_val
+        )
 
         if term:
             info_dict[f"env/term/{self.env.unwrapped!s}"] = float(self.log_renv_steps)

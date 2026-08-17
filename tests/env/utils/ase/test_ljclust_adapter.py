@@ -15,7 +15,6 @@ import numpy as np
 from ttex.config import ConfigFactory, ConfigurableObjectFactory as COF
 from ...singular.test_ljclust_env import skip_remaining_tests
 
-
 target_dir = "./tmp_data"
 
 
