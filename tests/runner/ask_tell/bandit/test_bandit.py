@@ -1,5 +1,4 @@
 from jaix.runner.ask_tell.strategy.random import RandomATStrat, RandomATStratConfig
-from ttex.config import ConfigFactory as COF
 from jaix.runner.ask_tell.strategy.bandit import ATBandit, ATBanditConfig
 from jaix.runner.ask_tell.at_optimiser import ATOptimiserConfig
 from jaix.runner.ask_tell.strategy.bandit import BanditConfig
