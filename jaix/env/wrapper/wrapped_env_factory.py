@@ -8,11 +8,11 @@ from ttex.config import (
     Config,
     ConfigurableObject,
 )
-from ttex.config.config import (
-    ConfigFactory as CF,
-)
 from ttex.config import (
     ConfigurableObjectFactory as COF,
+)
+from ttex.config.config import (
+    ConfigFactory as CF,
 )
 
 import jaix.utils.globals as globs
