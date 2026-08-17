@@ -1,7 +1,9 @@
-from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
-from ttex.config import Config, ConfigurableObject, ConfigurableObjectFactory as COF
-from jaix.env.utils.archive.archive import Archive
 import gymnasium as gym
+from ttex.config import Config, ConfigurableObject
+from ttex.config import ConfigurableObjectFactory as COF
+
+from jaix.env.utils.archive.archive import Archive
+from jaix.env.wrapper.passthrough_wrapper import PassthroughWrapper
 
 
 class ArchiveWrapperConfig(Config):
