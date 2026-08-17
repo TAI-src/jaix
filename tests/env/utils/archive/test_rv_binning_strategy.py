@@ -1,10 +1,8 @@
-from matplotlib.artist import get
 from jaix.env.utils.archive.rv_binning_strategy import (
     RVBinningStrategy,
     RVBinningStrategyConfig,
 )
 import numpy as np
-from pymoo.core.individual import Individual
 
 
 def test_get_bin():
@@ -18,10 +16,9 @@ def test_get_bin():
 
     for _ in range(10):
         # Create a random Individual with objectives in the range [0, 1]
-        sample = Individual()
-        sample.F = np.random.rand(2) * 4  # Scale to [0, 4] for testing
-        bin_index = binning_strategy.get_bin(sample)
-        if sample.F[0] < sample.F[1]:
+        F = np.random.rand(2) * 4  # Scale to [0, 4] for testing
+        bin_index = binning_strategy.get_bin(F)
+        if F[0] < F[1]:
             assert bin_index == 0, f"Expected bin index 0, got {bin_index}"
         else:
             assert bin_index == 1, f"Expected bin index 1, got {bin_index}"

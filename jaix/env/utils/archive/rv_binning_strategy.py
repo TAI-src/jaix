@@ -1,6 +1,5 @@
 import numpy as np
 from pymoo.algorithms.moo.nsga3 import associate_to_niches
-from pymoo.core.individual import Individual
 from sklearn.neighbors import KDTree
 from ttex.config import Config, ConfigurableObject
 
@@ -30,16 +29,12 @@ class RVBinningStrategy(BinningStrategy, ConfigurableObject):
             ref_dirs
         )  # Build a KDTree for efficient nearest neighbor search
 
-    def get_bin(self, sample: Individual) -> int:
+    def get_bin(self, F: np.ndarray) -> int:
         """
-        Given a sample (Individual), return the bin index it belongs to.
+        Given an objective vector, return the bin index it belongs to.
         """
-        assert isinstance(
-            sample, Individual
-        ), "Sample must be an instance of pymoo.core.individual.Individual."
-        assert sample.F is not None, "Sample must have objectives (F) defined."
         niches, _, _ = associate_to_niches(
-            sample.F.reshape(1, -1), self.ref_dirs, self.ideal, self.nadir
+            F.reshape(1, -1), self.ref_dirs, self.ideal, self.nadir
         )
         return niches[0]  # Return the index of the niche/bin
 
