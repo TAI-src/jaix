@@ -13,7 +13,6 @@ import jaix.utils.globals as globals
 from uuid import uuid4
 from jaix.utils.experiment_context import ExperimentContext
 
-
 algo_name = "test_algo"
 
 

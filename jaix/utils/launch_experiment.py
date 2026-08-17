@@ -6,7 +6,7 @@ import sys
 from copy import deepcopy
 from typing import Any
 
-from ttex.config import ConfigFactory as CF
+from ttex.config.config import ConfigFactory as CF
 from wandb.sdk import launch
 
 from jaix.experiment import Experiment
