@@ -8,7 +8,7 @@ from ttex.config import (
     Config,
     ConfigurableObject,
 )
-from ttex.config import (
+from ttex.config.config import (
     ConfigFactory as CF,
 )
 from ttex.config import (

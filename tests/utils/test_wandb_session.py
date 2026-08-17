@@ -109,7 +109,7 @@ def test_robustness():
     assert exp_id is not None
     assert wandb_session.run is None
 
-    assert wandb_session.config_dict == {}
+    assert wandb_session.config_dict["EmptyConfig"] == {}
 
     wandb_session.end(ctx)
     # Ensure no exceptions were raised during the process.

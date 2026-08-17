@@ -12,9 +12,9 @@ import shutil
 import csv
 import pytest
 import numpy as np
-from ttex.config import ConfigFactory, ConfigurableObjectFactory as COF
+from ttex.config import ConfigurableObjectFactory as COF
+from ttex.config.config import ConfigFactory
 from ...singular.test_ljclust_env import skip_remaining_tests
-
 
 target_dir = "./tmp_data"
 

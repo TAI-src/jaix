@@ -5,7 +5,7 @@ import gymnasium as gym
 import numpy as np
 from ttex.config import Config, ConfigurableObject
 from ttex.log import setup_coco_logger, teardown_coco_logger
-from ttex.log.coco import (
+from ttex.log.filter.event.coco_events import (
     COCOEnd,
     COCOEval,
     COCOStart,
