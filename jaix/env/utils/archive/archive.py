@@ -12,6 +12,8 @@ class Archive(ABC):
         # Record stats over time
         self.stats_rows = []  # List to store stats for each call
         self._stats = pd.DataFrame()
+        self.size: int = 0
+        self.fixed_size: bool = True
 
     @property
     def stats(self) -> pd.DataFrame:
@@ -71,6 +73,12 @@ class Archive(ABC):
     def get_all(self) -> list[Any]:
         """
         Return all samples in the archive
+        """
+
+    @abstractmethod
+    def get(self, index: int) -> Any | None:
+        """
+        Return the sample at the given index
         """
 
     def plot_stats(
