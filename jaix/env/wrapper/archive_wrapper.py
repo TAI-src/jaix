@@ -10,7 +10,7 @@ class ArchiveWrapperConfig(Config):
     def __init__(
         self,
         archive_class: type[Archive],
-        archive_config: Config,
+        archive_config: Config | None,
         replace_reward: bool = True,
         passthrough: bool = True,
     ):
@@ -33,17 +33,21 @@ class ArchiveWrapper(ConfigurableObject, PassthroughWrapper):
     def __init__(self, config: ArchiveWrapperConfig, env: gym.Env, **kwargs):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, config.passthrough)
-        self.archive = COF.create(config.archive_class, config.archive_config, **kwargs)
+        if config.archive_config is None:
+            self.archive = config.archive_class(**kwargs)
+        else:
+            self.archive = COF.create(
+                config.archive_class, config.archive_config, **kwargs
+            )
 
     def reset(self, **kwargs):
         self.archive.reset()
         # TODO: pop the used kwargs and pass the rest on
-        return self.env.reset()
+        return self.env.reset(**kwargs)
 
     def step(self, action):
         obs, r, term, trunc, info = self.env.step(action)
-        # Obs is assumed to be the multi-objective reward, or else some sort of descriptor of the solution. The archive will then store solutions based on the descriptor and archive
-        # The reward is assumed to be the scalarized reward, or some sort of fitness value. How that will be incorporated into the archive is up to the archive implementation.
-        archive_reward = self.archive.add(obs, r)
+        # We assume that the action is a solution to be added to the archive, and the reward is the fitness of that solution.
+        archive_reward = self.archive.add(action, r)
         ret_reward = archive_reward if self.replace_reward else r
         return obs, ret_reward, term, trunc, info

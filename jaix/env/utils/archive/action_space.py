@@ -1,21 +1,19 @@
 from typing import Any
 
 import numpy as np
-from gymnasium.spaces import MultiDiscrete
+from gymnasium.spaces import MultiDiscrete, Space
 from ttex.config import Config, ConfigurableObject
 
 from jaix.env.utils.archive.archive import Archive
 
 
-class ArchiveActionSpace(MultiDiscrete):
-    def __init__(self, archive: Archive, num_choices: int, **kwargs):
+class ArchiveActionSpace(Space):
+    def __init__(self, archive: Archive, action_space: Space):
         self.archive = archive
-        self.num_choices = num_choices
-        assert self.archive.max_size is not None, "Archive must have a max_size defined"
-        super().__init__([self.archive.max_size] * self.num_choices, **kwargs)
+        self.action_space = action_space
 
     def translate(self, action: np.ndarray) -> Any:
-        assert super().contains(action), "Action is not in the action space"
+        assert self.action_space.contains(action), "Action is not in the action space"
         # Pick the solutions from the archive based on the action parameters
         picked = [self.archive.get(i) for i in action]
         return picked
@@ -24,11 +22,18 @@ class ArchiveActionSpace(MultiDiscrete):
         self, mask: Any | None = None, probability: Any | None = None
     ) -> np.ndarray:
         # Sample a random action from the action space
-        sample = super().sample(mask, probability)
-        return self.translate(sample)
+        sample = self.action_space.sample(mask, probability)
+        return sample
+
+    @property
+    def shape(self) -> tuple[int, ...] | None:
+        return self.action_space.shape
+
+    def seed(self, seed: int | None = None) -> int | list[int] | dict[str, int]:
+        return self.action_space.seed(seed)
 
     def contains(self, action: np.ndarray) -> bool:
-        if super().contains(action) is False:
+        if self.action_space.contains(action) is False:
             return False
         # Check if the action is in the action space
         picked = self.translate(action)
@@ -44,11 +49,12 @@ class UniformCrossoverActionSpaceConfig(Config):
 class UniformCrossoverActionSpace(ArchiveActionSpace, ConfigurableObject):
     config_class = UniformCrossoverActionSpaceConfig
 
-    def __init__(
-        self, config: UniformCrossoverActionSpaceConfig, archive: Archive, **kwargs
-    ):
+    def __init__(self, config: UniformCrossoverActionSpaceConfig, archive: Archive):
         ConfigurableObject.__init__(self, config)
-        super().__init__(archive, self.num_parents, **kwargs)
+        assert archive.max_size is not None, "Archive must have a max_size defined"
+        ArchiveActionSpace.__init__(
+            self, archive, MultiDiscrete([archive.max_size] * self.num_parents)
+        )
 
     def translate(self, action: np.ndarray) -> Any:
         archive_content = super().translate(action)
@@ -57,7 +63,12 @@ class UniformCrossoverActionSpace(ArchiveActionSpace, ConfigurableObject):
             # parents are tuples of (sample, fitness), we only want the sample
             assert p is not None, "Parent is None, cannot perform crossover"
             assert len(p) == 2, "Parent should be a tuple of (sample, fitness)"
-            assert isinstance(p[0], np.ndarray), "Parent sample should be a numpy array"
+            assert self.action_space.contains(
+                action
+            ), "Action is not in the action space"
             parents.append(p[0])
         offspring = np.mean(parents, axis=0)
+        if self.action_space.dtype is not None:
+            # try to convert to dtype of underlying action space
+            offspring = np.asarray(offspring, dtype=self.action_space.dtype)
         return offspring

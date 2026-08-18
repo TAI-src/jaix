@@ -6,6 +6,7 @@ from jaix.env.utils.archive.action_space import (
 from ttex.config import ConfigurableObjectFactory as COF
 from .test_archive import DummyArchive
 import numpy as np
+from gymnasium.spaces import MultiDiscrete
 
 
 def create_dummy_archive_with_samples(
@@ -19,8 +20,8 @@ def create_dummy_archive_with_samples(
 
 def test_archive_action_space_translate():
     archive = create_dummy_archive_with_samples(num_samples=5, max_size=10)
-
-    action_space = ArchiveActionSpace(archive, num_choices=3)
+    act_space = MultiDiscrete([archive.max_size] * 3)
+    action_space = ArchiveActionSpace(archive, act_space)
 
     action = [0, 2, 1]
     picked = action_space.translate(action)
@@ -35,22 +36,20 @@ def test_archive_action_space_translate():
 
 def test_sample():
     archive = create_dummy_archive_with_samples(num_samples=5, max_size=10)
-    action_space = ArchiveActionSpace(archive, num_choices=3)
+    act_space = MultiDiscrete([archive.max_size] * 3)
+    action_space = ArchiveActionSpace(archive, act_space)
     sampled_action = action_space.sample()
 
     assert len(sampled_action) == 3, "Sampled action should have length 3"
-    for i, p in enumerate(sampled_action):
-        # check that we have the correct format
-        if p is None:
-            continue
-        assert len(p) == 2, "Sampled action should be a tuple of (sample, fitness)"
-        assert isinstance(p[0], np.ndarray), "Sampled sample should be a numpy array"
-        assert isinstance(p[1], float), "Sampled fitness should be a float"
+    assert action_space.action_space.contains(
+        sampled_action
+    ), "Sampled action should be contained in the action space"
 
 
 def test_contains():
     archive = create_dummy_archive_with_samples(num_samples=5, max_size=10)
-    action_space = ArchiveActionSpace(archive, num_choices=3)
+    act_space = MultiDiscrete([archive.max_size] * 3)
+    action_space = ArchiveActionSpace(archive, act_space)
 
     action = [0, 2, 1]
     assert action_space.contains(
@@ -80,11 +79,12 @@ def test_uniform_crossover_action_space_translate():
     assert child[1] == np.mean(action)
 
 
-def test_uniform_crossover_action_space_sample():
-    config = UniformCrossoverActionSpaceConfig(num_parents=3)
-    archive = create_dummy_archive_with_samples(num_samples=11, max_size=10)
+def test_simple():
+    config = UniformCrossoverActionSpaceConfig(num_parents=1)
+    archive = DummyArchive(max_size=5)
+    for i in range(5):
+        archive.add(sample=i, fitness=float(i))
     action_space = COF.create(UniformCrossoverActionSpace, config, archive=archive)
-
-    action = action_space.sample()
-    assert action[0] == 0
-    assert action[1] > 0
+    for i in range(5):
+        trans_act = action_space.translate([i])
+        assert trans_act == i
