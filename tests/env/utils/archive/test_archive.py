@@ -4,10 +4,11 @@ import os.path as osp
 
 
 class DummyArchive(Archive):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, max_size: int):
+        super().__init__(max_size=max_size)
         self._score = 0.0
         self.num_points = 0
+        self.added_samples = []
 
     @property
     def score(self) -> float:
@@ -17,17 +18,30 @@ class DummyArchive(Archive):
         return {"score": self._score, "num_points": self.num_points}
 
     def _add(self, sample: Any, fitness: float, **kwargs) -> Dict[str, Any]:
-        # For testing purposes, we just increment the score by the fitness value
+        # Simple archive of max_size, we just remove the oldest sample if we exceed max_size
+        if self.max_size is not None and self.num_points >= self.max_size:
+            self.added_samples.pop(0)
+        self.added_samples.append((sample, fitness))
         self.num_points += 1
         self._score += fitness
         return self.get_archive_stats()
 
+    @property
+    def size(self) -> int:
+        return len(self.added_samples)
+
     def get_all(self):
-        return []
+        return self.added_samples
+
+    def get(self, index: int):
+        if index < 0 or index >= len(self.added_samples):
+            return None
+        else:
+            return self.added_samples[index]
 
 
 def test_archive_add():
-    archive = DummyArchive()
+    archive = DummyArchive(max_size=10)
     initial_score = archive.score
     initial_num_points = archive.num_points
 
@@ -58,7 +72,7 @@ def test_archive_add():
 
 
 def test_plot(tmp_path):
-    archive = DummyArchive()
+    archive = DummyArchive(max_size=10)
     # Add some samples to the archive
     for i in range(5):
         archive.add(sample=f"sample{i}", fitness=i * 2.0)
