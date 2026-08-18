@@ -36,7 +36,7 @@ class ArchiveWrapper(ConfigurableObject, PassthroughWrapper):
         self.archive = COF.create(config.archive_class, config.archive_config, **kwargs)
 
     def reset(self, **kwargs):
-        self.archive = COF.create(self.archive_class, self.archive_config, **kwargs)
+        self.archive.reset()
         # TODO: pop the used kwargs and pass the rest on
         return self.env.reset()
 
