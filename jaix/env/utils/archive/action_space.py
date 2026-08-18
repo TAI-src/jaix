@@ -1,8 +1,10 @@
-from gymnasium.spaces import MultiDiscrete
-from jaix.env.utils.archive.archive import Archive
-import numpy as np
 from typing import Any
+
+import numpy as np
+from gymnasium.spaces import MultiDiscrete
 from ttex.config import Config, ConfigurableObject
+
+from jaix.env.utils.archive.archive import Archive
 
 
 class ArchiveActionSpace(MultiDiscrete):
@@ -30,7 +32,7 @@ class ArchiveActionSpace(MultiDiscrete):
             return False
         # Check if the action is in the action space
         picked = self.translate(action)
-        return all([p is not None for p in picked])
+        return all(p is not None for p in picked)
 
 
 class UniformCrossoverActionSpaceConfig(Config):
