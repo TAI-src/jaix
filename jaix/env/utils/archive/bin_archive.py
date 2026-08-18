@@ -22,7 +22,6 @@ class BinArchiveConfig(Config):
         binning_config: Config,
         np_bin: int = 1,
         coverage_weight: float = 0.5,  # weight for coverage in the score function
-        allow_close_elites: bool = True,  # whether to allow getting closest elites when a bin is empty
     ):
         Config.__init__(self)
         self.n_bins = n_bins
@@ -31,7 +30,6 @@ class BinArchiveConfig(Config):
         self.max_fitness = max_fitness
         self.binning_strategy = binning_strategy
         self.binning_config = binning_config
-        self.allow_close_elites = allow_close_elites
 
         assert np_bin >= 1, "np_bin must be at least 1"
 
@@ -40,16 +38,8 @@ class BinArchive(ConfigurableObject, Archive):
     config_class = BinArchiveConfig
 
     def __init__(self, config: BinArchiveConfig, **kwargs):
+        Archive.__init__(self)
         ConfigurableObject.__init__(self, config)
-        Archive.__init__(
-            self, max_size=self.n_bins
-        )  # Set max_size to n_bins for stats tracking
-        # Note the number of points in the archive can be larger than n_bins if np_bin > 1
-        # But since we want the get_i to correspond to the bin index, we set max_size to n_bins
-        self.binner = COF.create(self.binning_strategy, self.binning_config, **kwargs)
-        self.reset()
-
-    def reset(self):
         self.map: dict[int, list[tuple[float, float]]] = {
             bin_idx: [] for bin_idx in range(self.n_bins)
         }
@@ -64,14 +54,7 @@ class BinArchive(ConfigurableObject, Archive):
             self.n_bins, dtype=int
         )  # Counter for replacements per bin
         self.total_fitness = 0.0  # Total fitness of all samples in the archive
-        super().reset()  # Reset the stats rows and dataframe
-
-    @property
-    def size(self) -> int:
-        """
-        Return the number of bins in the archive
-        """
-        return self.covered_bins
+        self.binner = COF.create(self.binning_strategy, self.binning_config, **kwargs)
 
     @property
     def coverage(self) -> float:
@@ -231,7 +214,7 @@ class BinArchive(ConfigurableObject, Archive):
         If no non-empty bin is found within the nearest k bins, return -1.
         """
         # check if the archive is empty
-        if self.n_points == 0 or bin_idx < 0 or bin_idx >= self.n_bins:
+        if self.n_points == 0:
             return -1
         # check if the bin is non-empty
         if len(self.map[bin_idx]) > 0:
@@ -248,12 +231,6 @@ class BinArchive(ConfigurableObject, Archive):
                 return nb
         # If no non-empty bin found, return -1
         return -1
-
-    def get(self, bin_idx: int) -> tuple[Any, float] | None:
-        if self.allow_close_elites:
-            return self.get_closest_elite(bin_idx)[:2]
-        else:
-            return self.get_elite(bin_idx)
 
     def get_all(self) -> list[tuple[Any, float]]:
         """
