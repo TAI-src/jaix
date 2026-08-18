@@ -37,6 +37,10 @@ class BinArchiveConfig(Config):
 
 
 class BinArchive(ConfigurableObject, Archive):
+    """
+    A bin-based archive that stores samples in discrete bins based on a binning strategy.
+    """
+
     config_class = BinArchiveConfig
 
     def __init__(self, config: BinArchiveConfig, **kwargs):
@@ -49,7 +53,7 @@ class BinArchive(ConfigurableObject, Archive):
         self.binner = COF.create(self.binning_strategy, self.binning_config, **kwargs)
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self.map: dict[int, list[tuple[float, float]]] = {
             bin_idx: [] for bin_idx in range(self.n_bins)
         }
