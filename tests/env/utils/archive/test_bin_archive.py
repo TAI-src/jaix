@@ -38,7 +38,7 @@ class DummyBinningStrategy(BinningStrategy, ConfigurableObject):
         return sampled
 
 
-def get_archive(pre_fill=False, allow_close_elites=True):
+def get_archive(pre_fill=False):
     config = BinArchiveConfig(
         n_bins=5,
         max_fitness=10.0,
@@ -46,7 +46,6 @@ def get_archive(pre_fill=False, allow_close_elites=True):
         binning_config=DummyBinningStrategyConfig(),
         np_bin=2,
         coverage_weight=0.7,
-        allow_close_elites=allow_close_elites,
     )
     archive = COF.create(BinArchive, config)
     if pre_fill:
@@ -171,30 +170,3 @@ def test_closest_elite():
     assert (
         elite_fitness == archive.get_elite(bin)[1]
     ), "Elite fitness should match the fitness of the closest bin"
-
-
-def test_get():
-    archive = get_archive(pre_fill=True)
-    sample, fitness = archive.get(0)
-    assert sample is not None, "Sample should not be None for valid index"
-
-    sample, fitness = archive.get(2)
-    assert (
-        sample is not None
-    ), "Sample should not be None for valid index if closest is allowed"
-
-    sample, fitness = archive.get(100)
-    assert (
-        sample is None
-    ), "Sample should be None for invalid index if closest is not allowed"
-
-    archive = get_archive(pre_fill=True, allow_close_elites=False)
-    sample, fitness = archive.get(2)
-    assert (
-        sample is None
-    ), "Sample should be None for invalid index if closest is not allowed"
-
-
-def test_size():
-    archive = get_archive(pre_fill=True)
-    assert archive.size == archive.covered_bins

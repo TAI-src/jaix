@@ -8,10 +8,10 @@ from matplotlib.figure import Figure
 
 
 class Archive(ABC):
-    def __init__(self, max_size: int | None = None):
+    def __init__(self):
         # Record stats over time
-        self._max_size = max_size
-        self.reset()
+        self.stats_rows = []  # List to store stats for each call
+        self._stats = pd.DataFrame()
 
     @property
     def stats(self) -> pd.DataFrame:
@@ -24,21 +24,6 @@ class Archive(ABC):
         if len(self.stats_rows) != len(self._stats):
             self._stats = pd.DataFrame(self.stats_rows)
         return self._stats
-
-    def reset(self):
-        self.stats_rows = []
-        self._stats = pd.DataFrame()
-
-    @property
-    def max_size(self) -> int | None:
-        return self._max_size
-
-    @property
-    @abstractmethod
-    def size(self) -> int:
-        """
-        Return the current size of the archive
-        """
 
     @abstractmethod
     def get_archive_stats(self) -> dict[str, Any]:
@@ -86,12 +71,6 @@ class Archive(ABC):
     def get_all(self) -> list[Any]:
         """
         Return all samples in the archive
-        """
-
-    @abstractmethod
-    def get(self, index: int) -> Any | None:
-        """
-        Return the sample at the given index
         """
 
     def plot_stats(
