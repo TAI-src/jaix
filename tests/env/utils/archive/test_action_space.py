@@ -4,7 +4,7 @@ from jaix.env.utils.archive.action_space import (
     UniformCrossoverActionSpaceConfig,
 )
 from ttex.config import ConfigurableObjectFactory as COF
-from .test_archive import DummyArchive
+from .test_archive import DummyArchive, DummyArchiveEntry
 import numpy as np
 from gymnasium.spaces import MultiDiscrete
 
@@ -14,24 +14,24 @@ def create_dummy_archive_with_samples(
 ) -> DummyArchive:
     archive = DummyArchive(max_size=max_size)
     for i in range(num_samples):
-        archive.add(sample=np.array([0, int(i)]), fitness=float(i))
+        archive.add(DummyArchiveEntry(sample=np.array([0, int(i)]), fitness=float(i)))
     return archive
 
 
-def test_archive_action_space_translate():
+def test_archive_action_space_pick():
     archive = create_dummy_archive_with_samples(num_samples=5, max_size=10)
     act_space = MultiDiscrete([archive.max_size] * 3)
     action_space = ArchiveActionSpace(archive, act_space)
 
     action = [0, 2, 1]
-    picked = action_space.translate(action)
+    picked = action_space.pick(action)
     for i, p in enumerate(picked):
         assert p == archive.get(
             action[i]
         ), f"Picked sample {p} does not match expected {archive.get(action[i])}"
         assert (
-            p[1] == archive.added_samples[action[i]][1]
-        ), f"Picked fitness {p[1]} does not match expected {archive.added_samples[action[i]][1]}"
+            p.fitness == archive.added_samples[action[i]].fitness
+        ), f"Picked fitness {p.fitness} does not match expected {archive.added_samples[action[i]].fitness}"
 
 
 def test_sample():
@@ -68,7 +68,9 @@ def test_contains():
 
 
 def test_uniform_crossover_action_space_translate():
-    config = UniformCrossoverActionSpaceConfig(num_parents=3)
+    config = UniformCrossoverActionSpaceConfig(
+        crossover_attribute="sample", num_parents=3
+    )
     archive = create_dummy_archive_with_samples(num_samples=5, max_size=10)
     action_space = COF.create(UniformCrossoverActionSpace, config, archive=archive)
 
@@ -80,10 +82,12 @@ def test_uniform_crossover_action_space_translate():
 
 
 def test_simple():
-    config = UniformCrossoverActionSpaceConfig(num_parents=1)
+    config = UniformCrossoverActionSpaceConfig(
+        crossover_attribute="sample", num_parents=1
+    )
     archive = DummyArchive(max_size=5)
     for i in range(5):
-        archive.add(sample=i, fitness=float(i))
+        archive.add(DummyArchiveEntry(sample=np.array([i]), fitness=float(i)))
     action_space = COF.create(UniformCrossoverActionSpace, config, archive=archive)
     for i in range(5):
         trans_act = action_space.translate([i])

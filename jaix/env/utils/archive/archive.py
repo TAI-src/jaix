@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
+from typing import Any, Generic, TypeVar
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from typing import TypeVar, Generic, Any
 
 T = TypeVar("T")
 
@@ -36,6 +36,14 @@ class Archive(ABC):
     def reset(self) -> None:
         self.stats_rows: list[dict] = []
         self._stats: pd.DataFrame = pd.DataFrame()
+
+    @property
+    @abstractmethod
+    def archive_entry_type(self) -> type[ArchiveEntry]:
+        """
+        Specify the type of archive entry that this archive uses. This needs to be implemented by the subclass.
+        """
+        ...
 
     @property
     def stats(self) -> pd.DataFrame:

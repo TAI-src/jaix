@@ -58,7 +58,7 @@ def get_archive(pre_fill=False, allow_close_elites=True):
         max_fitness=10.0,
         binning_strategy=DummyBinningStrategy,
         binning_config=DummyBinningStrategyConfig(),
-        archive_entry_type=DummyArchiveEntry,
+        archive_entry_class=DummyArchiveEntry,
         np_bin=2,
         coverage_weight=0.7,
         allow_close_elites=allow_close_elites,

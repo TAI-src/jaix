@@ -1,4 +1,5 @@
-from typing import Any, TypeVar, Generic
+from abc import ABC, abstractmethod
+from typing import Any, Generic, TypeVar
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,7 +12,6 @@ from ttex.config import ConfigurableObjectFactory as COF
 
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 from jaix.env.utils.archive.binning_strategy import BinningStrategy
-from abc import ABC, abstractmethod
 
 T = TypeVar("T")
 
@@ -42,7 +42,7 @@ class BinArchiveConfig(Config, Generic[T]):
         max_fitness: float,  # maximum fitness value for normalisation
         binning_strategy: type[BinningStrategy[T]],
         binning_config: Config,
-        archive_entry_type: type[BinArchiveEntry[T]],
+        archive_entry_class: type[BinArchiveEntry[T]],
         np_bin: int = 1,
         coverage_weight: float = 0.5,  # weight for coverage in the score function
         allow_close_elites: bool = True,  # whether to allow getting closest elites when a bin is empty
@@ -55,7 +55,7 @@ class BinArchiveConfig(Config, Generic[T]):
         self.binning_strategy = binning_strategy
         self.binning_config = binning_config
         self.allow_close_elites = allow_close_elites
-        self.archive_entry_type = archive_entry_type
+        self.archive_entry_class = archive_entry_class
 
         assert np_bin >= 1, "np_bin must be at least 1"
 
@@ -76,6 +76,10 @@ class BinArchive(ConfigurableObject, Archive):
         # But since we want the get_i to correspond to the bin index, we set max_size to n_bins
         self.binner = COF.create(self.binning_strategy, self.binning_config, **kwargs)
         self.reset()
+
+    @property
+    def archive_entry_type(self) -> type[BinArchiveEntry]:
+        return self.archive_entry_class
 
     def reset(self) -> None:
         self.map: dict[int, list[BinArchiveEntry]] = {
@@ -288,13 +292,13 @@ class BinArchive(ConfigurableObject, Archive):
         else:
             return self.get_elite(bin_idx)
 
-    def get_all(self) -> list[tuple[Any, float]]:
+    def get_all(self) -> list[ArchiveEntry]:
         """
-        Return all samples in the archive as a list of tuples (sample, fitness)
+        Return all entries in the archive as a list, regardless of bin index
         """
-        all_samples = []
-        for bin_samples in self.map.values():
-            all_samples.extend(bin_samples)
+        all_samples: list[ArchiveEntry] = [
+            entry for elite_list in self.map.values() for entry in elite_list
+        ]
         return all_samples
 
     def plot_stats(

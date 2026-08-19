@@ -13,11 +13,18 @@ class DummyArchiveEntry(ArchiveEntry[Dict[str, Any]]):
 
 
 class DummyArchive(Archive):
-    def __init__(self, max_size: int):
+    def __init__(
+        self,
+        max_size: int,
+    ):
         super().__init__(max_size=max_size)
         self._score = 0.0
         self.num_points = 0
-        self.added_samples = []
+        self.added_samples = []  #
+
+    @property
+    def archive_entry_type(self) -> type[ArchiveEntry]:
+        return DummyArchiveEntry
 
     @property
     def score(self) -> float:
@@ -31,7 +38,7 @@ class DummyArchive(Archive):
         # Simple archive of max_size, we just remove the oldest sample if we exceed max_size
         if self.max_size is not None and self.num_points >= self.max_size:
             self.added_samples.pop(0)
-        self.added_samples.append(entry.parse())
+        self.added_samples.append(entry)
         self.num_points += 1
         self._score += entry.fitness
         return self.get_archive_stats()
