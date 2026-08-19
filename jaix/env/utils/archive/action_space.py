@@ -47,6 +47,14 @@ class ArchiveActionSpace(Space, ABC):
         return all(p is not None for p in picked)
 
 
+class IndexArchiveActionSpace(ArchiveActionSpace):
+    def translate(self, action: np.ndarray) -> Any:
+        assert self.action_space.contains(action), "Action is not in the action space"
+        # Pick the solutions from the archive based on the action parameters
+        picked = self.pick(action)
+        return picked
+
+
 class UniformCrossoverActionSpaceConfig(Config):
     def __init__(self, crossover_attribute: str, num_parents: int = 2):
         Config.__init__(self)

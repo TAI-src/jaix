@@ -1,7 +1,7 @@
 from jaix.env.utils.archive.action_space import (
-    ArchiveActionSpace,
     UniformCrossoverActionSpace,
     UniformCrossoverActionSpaceConfig,
+    IndexArchiveActionSpace,
 )
 from ttex.config import ConfigurableObjectFactory as COF
 from .test_archive import DummyArchive, DummyArchiveEntry
@@ -21,7 +21,7 @@ def create_dummy_archive_with_samples(
 def test_archive_action_space_pick():
     archive = create_dummy_archive_with_samples(num_samples=5, max_size=10)
     act_space = MultiDiscrete([archive.max_size] * 3)
-    action_space = ArchiveActionSpace(archive, act_space)
+    action_space = IndexArchiveActionSpace(archive, act_space)
 
     action = [0, 2, 1]
     picked = action_space.pick(action)
@@ -37,7 +37,7 @@ def test_archive_action_space_pick():
 def test_sample():
     archive = create_dummy_archive_with_samples(num_samples=5, max_size=10)
     act_space = MultiDiscrete([archive.max_size] * 3)
-    action_space = ArchiveActionSpace(archive, act_space)
+    action_space = IndexArchiveActionSpace(archive, act_space)
     sampled_action = action_space.sample()
 
     assert len(sampled_action) == 3, "Sampled action should have length 3"
@@ -49,7 +49,7 @@ def test_sample():
 def test_contains():
     archive = create_dummy_archive_with_samples(num_samples=5, max_size=10)
     act_space = MultiDiscrete([archive.max_size] * 3)
-    action_space = ArchiveActionSpace(archive, act_space)
+    action_space = IndexArchiveActionSpace(archive, act_space)
 
     action = [0, 2, 1]
     assert action_space.contains(
