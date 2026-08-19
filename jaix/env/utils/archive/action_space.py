@@ -1,5 +1,5 @@
 import numbers
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import Any
 
 import numpy as np
@@ -9,7 +9,7 @@ from ttex.config import Config, ConfigurableObject
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 
 
-class ArchiveActionSpace(Space):
+class ArchiveActionSpace(Space, ABC):
     def __init__(self, archive: Archive, action_space: Space):
         self.archive = archive
         self.action_space = action_space

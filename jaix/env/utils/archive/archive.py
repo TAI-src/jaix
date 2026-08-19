@@ -81,12 +81,12 @@ class Archive(ABC):
         Return the score of the archive as a float
         """
 
-    def simulate_add(self, sample: Any, fitness: float, **kwargs) -> tuple[bool, float]:
+    def simulate_add(self, entry: ArchiveEntry, **kwargs) -> tuple[bool, float]:
         """
-        Simulate adding a sample to the archive without actually adding it
+        Simulate adding an entry to the archive without actually adding it
         Returns a tuple (added, reward) where added is a boolean
-        indicating if the sample would be added and
-        reward is the reward that would be obtained from adding the sample
+        indicating if the entry would be added and
+        reward is the reward that would be obtained from adding the entry
         """
         raise NotImplementedError(
             "simulate_add is not implemented for this archive type"
@@ -95,7 +95,7 @@ class Archive(ABC):
     @abstractmethod
     def _add(self, entry: ArchiveEntry) -> dict[str, Any]:
         """
-        Internal method to add a sample to the archive
+        Internal method to add an entry to the archive
         Returns a dictionary with the result of the addition
         """
 
