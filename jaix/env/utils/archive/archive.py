@@ -1,10 +1,25 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Generic, TypeVar
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+
+T = TypeVar("T")
+
+
+class ArchiveEntry(ABC, Generic[T]):
+    """
+    A general archive entry class that stores all information about an entry in the archive.
+    """
+
+    @abstractmethod
+    def parse(self) -> T:
+        """
+        Return the parsed representation of this entry (type `T`).
+        Subclasses define the exact return type needed by the concrete archive implementation.
+        """
 
 
 class Archive(ABC):
@@ -21,6 +36,14 @@ class Archive(ABC):
     def reset(self) -> None:
         self.stats_rows: list[dict] = []
         self._stats: pd.DataFrame = pd.DataFrame()
+
+    @property
+    @abstractmethod
+    def archive_entry_type(self) -> type[ArchiveEntry]:
+        """
+        Specify the type of archive entry that this archive uses. This needs to be implemented by the subclass.
+        """
+        ...
 
     @property
     def stats(self) -> pd.DataFrame:
@@ -58,43 +81,43 @@ class Archive(ABC):
         Return the score of the archive as a float
         """
 
-    def simulate_add(self, sample: Any, fitness: float, **kwargs) -> tuple[bool, float]:
+    def simulate_add(self, entry: ArchiveEntry, **kwargs) -> tuple[bool, float]:
         """
-        Simulate adding a sample to the archive without actually adding it
+        Simulate adding an entry to the archive without actually adding it
         Returns a tuple (added, reward) where added is a boolean
-        indicating if the sample would be added and
-        reward is the reward that would be obtained from adding the sample
+        indicating if the entry would be added and
+        reward is the reward that would be obtained from adding the entry
         """
         raise NotImplementedError(
             "simulate_add is not implemented for this archive type"
         )
 
     @abstractmethod
-    def _add(self, sample: Any, fitness: float) -> dict[str, Any]:
+    def _add(self, entry: ArchiveEntry) -> dict[str, Any]:
         """
-        Internal method to add a sample to the archive
+        Internal method to add an entry to the archive
         Returns a dictionary with the result of the addition
         """
 
-    def add(self, sample: Any, fitness: float) -> float:
+    def add(self, entry: ArchiveEntry) -> float:
         """
-        Add a sample to the archive and return the reward obtained from adding it
+        Add an entry to the archive and return the reward obtained from adding it.
         """
         prev_score = self.score
-        result_dict = self._add(sample, fitness)
+        result_dict = self._add(entry)
         self.stats_rows.append(result_dict)
         new_score = self.score
         reward = new_score - prev_score
         return reward
 
     @abstractmethod
-    def get_all(self) -> list[Any]:
+    def get_all(self) -> list[ArchiveEntry]:
         """
         Return all samples in the archive
         """
 
     @abstractmethod
-    def get(self, index: int) -> tuple[Any, float] | None:
+    def get(self, index: int) -> ArchiveEntry | None:
         """
         Return the archive entry at the given index as (sample, fitness), or None if unavailable.
         """

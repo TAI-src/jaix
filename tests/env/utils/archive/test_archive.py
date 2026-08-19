@@ -1,14 +1,30 @@
-from jaix.env.utils.archive.archive import Archive
+from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 from typing import Any, Dict
 import os.path as osp
 
 
+class DummyArchiveEntry(ArchiveEntry[Dict[str, Any]]):
+    def __init__(self, sample: Any, fitness: float):
+        self.sample = sample
+        self.fitness = fitness
+
+    def parse(self) -> Dict[str, Any]:
+        return {"sample": self.sample, "fitness": self.fitness}
+
+
 class DummyArchive(Archive):
-    def __init__(self, max_size: int):
+    def __init__(
+        self,
+        max_size: int,
+    ):
         super().__init__(max_size=max_size)
         self._score = 0.0
         self.num_points = 0
-        self.added_samples = []
+        self.added_samples = []  #
+
+    @property
+    def archive_entry_type(self) -> type[ArchiveEntry]:
+        return DummyArchiveEntry
 
     @property
     def score(self) -> float:
@@ -17,13 +33,14 @@ class DummyArchive(Archive):
     def get_archive_stats(self) -> Dict[str, Any]:
         return {"score": self._score, "num_points": self.num_points}
 
-    def _add(self, sample: Any, fitness: float, **kwargs) -> Dict[str, Any]:
+    def _add(self, entry: ArchiveEntry) -> Dict[str, Any]:
+        assert isinstance(entry, DummyArchiveEntry), "Entry must be a DummyArchiveEntry"
         # Simple archive of max_size, we just remove the oldest sample if we exceed max_size
         if self.max_size is not None and self.num_points >= self.max_size:
             self.added_samples.pop(0)
-        self.added_samples.append((sample, fitness))
+        self.added_samples.append(entry)
         self.num_points += 1
-        self._score += fitness
+        self._score += entry.fitness
         return self.get_archive_stats()
 
     @property
@@ -46,7 +63,7 @@ def test_archive_add():
     initial_num_points = archive.num_points
 
     # Add a sample with fitness 10.0
-    reward = archive.add(sample="sample1", fitness=10.0)
+    reward = archive.add(DummyArchiveEntry(sample="sample1", fitness=10.0))
     assert reward == 10.0, "Reward should be equal to the fitness value"
     assert archive.score == initial_score + 10.0, "Score should be updated correctly"
     assert (
@@ -54,7 +71,7 @@ def test_archive_add():
     ), "Number of points should be incremented"
 
     # Add another sample with fitness 5.0
-    reward = archive.add(sample="sample2", fitness=5.0)
+    reward = archive.add(DummyArchiveEntry(sample="sample2", fitness=5.0))
     assert reward == 5.0, "Reward should be equal to the fitness value"
     assert archive.score == initial_score + 15.0, "Score should be updated correctly"
     assert (
@@ -75,7 +92,7 @@ def test_plot(tmp_path):
     archive = DummyArchive(max_size=10)
     # Add some samples to the archive
     for i in range(5):
-        archive.add(sample=f"sample{i}", fitness=i * 2.0)
+        archive.add(DummyArchiveEntry(sample=f"sample{i}", fitness=float(i) * 2))
 
     fig_path = osp.join(tmp_path, "archive_stats.png")
     fig, ax = archive.plot_stats(

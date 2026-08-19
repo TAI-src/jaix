@@ -2,7 +2,7 @@ from jaix.env.wrapper.archive_action_wrapper import (
     ArchiveActionWrapper,
     ArchiveActionWrapperConfig,
 )
-from ..utils.archive.test_archive import DummyArchive
+from .test_archive_wrapper import DummyStepArchive, DummyStepArchivEntry
 from jaix.env.utils.archive.action_space import (
     UniformCrossoverActionSpace,
     UniformCrossoverActionSpaceConfig,
@@ -17,13 +17,15 @@ def create_dummy_archive_action_wrapper(
 
     # Create a dummy archive with samples
     archive_config = ArchiveWrapperConfig(
-        archive_class=DummyArchive,
+        archive_class=DummyStepArchive,
         archive_config=None,
         replace_reward=True,
         passthrough=True,
     )
 
-    action_space_config = UniformCrossoverActionSpaceConfig(num_parents=1)
+    action_space_config = UniformCrossoverActionSpaceConfig(
+        crossover_attribute="action", num_parents=1
+    )
 
     wrapper_config = ArchiveActionWrapperConfig(
         archive_wrapper_config=archive_config,
@@ -40,7 +42,16 @@ def create_dummy_archive_action_wrapper(
     # Add samples to the archive
     for i in range(num_samples):
         sample = env.action_space.sample()  # Sample from the environment's action space
-        wrapper.archive.add(sample=sample, fitness=float(i))
+        wrapper.archive.add(
+            DummyStepArchivEntry(
+                action=sample,
+                obs=None,
+                reward=float(i),
+                terminated=False,
+                truncated=False,
+                info={},
+            )
+        )
 
     return wrapper
 
@@ -51,19 +62,22 @@ def test_step():
     obs, info = wrapped_env.reset()
     n_points_old = wrapped_env.archive.get_archive_stats()["num_points"]
     action = wrapped_env.action_space.sample()
-    expected_offspring = wrapped_env.archive.get(action[0])[0]
+    expected_offspring = wrapped_env.archive.get(action[0])
+    expected_attribute = getattr(
+        expected_offspring, wrapped_env.action_space.crossover_attribute
+    )
     obs, reward, term, trunc, info = wrapped_env.step(action)
     n_points_new = wrapped_env.archive.get_archive_stats()["num_points"]
     assert (
         n_points_new == n_points_old + 1
     ), "Number of points in the archive should have increased by 1"
     assert (
-        info["archive_action"] == expected_offspring
+        info["archive_action"] == expected_attribute
     ), "The offspring in the info should match the expected offspring"
-    added_sample, added_fitness = wrapped_env.archive.get(9)
+    entry = wrapped_env.archive.get(9)
     assert (
-        added_sample == expected_offspring
+        entry.action == expected_attribute
     ), "The added sample should match the expected offspring"
     assert (
-        added_fitness == reward
+        entry.reward == reward
     ), "The added fitness should match the reward returned by the step function"

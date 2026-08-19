@@ -1,13 +1,66 @@
-from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
+from jaix.env.wrapper.archive_wrapper import (
+    ArchiveWrapper,
+    ArchiveWrapperConfig,
+    EnvironmentStepEntry,
+)
 import gymnasium as gym
-from jaix.env.utils.archive.bin_archive import BinArchive, BinArchiveConfig
+from jaix.env.utils.archive.bin_archive import (
+    BinArchive,
+    BinArchiveConfig,
+    BinArchiveEntry,
+)
 from jaix.env.utils.archive.rv_binning_strategy import (
     RVBinningStrategy,
     RVBinningStrategyConfig,
 )
 import numpy as np
 import pytest
-from ..utils.archive.test_archive import DummyArchive
+from ..utils.archive.test_archive import DummyArchive, DummyArchiveEntry
+from typing import Any
+from jaix.env.utils.archive.archive import ArchiveEntry
+
+
+class DummyEnvironmentStepEntry(
+    EnvironmentStepEntry[tuple[np.ndarray, float]], BinArchiveEntry[np.ndarray]
+):
+    def __init__(
+        self,
+        action: np.ndarray,
+        obs: np.ndarray,
+        reward: float,
+        terminated: bool,
+        truncated: bool,
+        info: dict,
+    ):
+        super().__init__(action, obs, reward, terminated, truncated, info)
+
+    def parse(self) -> tuple[np.ndarray, float]:
+        return self.obs, self.reward
+
+
+class DummyStepArchivEntry(
+    DummyArchiveEntry,
+    EnvironmentStepEntry[dict[str, Any]],
+):
+    def __init__(
+        self,
+        action: Any,
+        obs: Any,
+        reward: float,
+        terminated: bool,
+        truncated: bool,
+        info: dict,
+    ):
+        DummyArchiveEntry.__init__(self, sample=obs, fitness=reward)
+        EnvironmentStepEntry.__init__(
+            self, action, obs, reward, terminated, truncated, info
+        )
+
+
+class DummyStepArchive(DummyArchive):
+    @property
+    def archive_entry_type(self) -> type[ArchiveEntry]:
+        return DummyStepArchivEntry
 
 
 def do_init(replace_reward=True):
@@ -16,6 +69,7 @@ def do_init(replace_reward=True):
         max_fitness=10.0,
         binning_strategy=RVBinningStrategy,
         binning_config=RVBinningStrategyConfig(),
+        archive_entry_class=DummyEnvironmentStepEntry,
         np_bin=1,
         coverage_weight=0.7,
     )
@@ -32,6 +86,7 @@ def do_init(replace_reward=True):
     wrapped_env = ArchiveWrapper(
         config, env, ref_dirs=ref_dirs, ideal=ideal, nadir=nadir
     )
+    assert wrapped_env.environment_step_class is DummyEnvironmentStepEntry
     return wrapped_env
 
 
@@ -62,13 +117,13 @@ def test_step(replace_reward):
 def test_simple_archive():
     env = gym.make("MountainCar-v0", render_mode="rgb_array")
     config = ArchiveWrapperConfig(
-        archive_class=DummyArchive,
+        archive_class=DummyStepArchive,
         archive_config=None,
         replace_reward=True,
         passthrough=True,
     )
     wrapped_env = ArchiveWrapper(config, env, max_size=10)
-    assert isinstance(wrapped_env.archive, DummyArchive)
+    assert isinstance(wrapped_env.archive, DummyStepArchive)
 
     wrapped_env.reset()
 

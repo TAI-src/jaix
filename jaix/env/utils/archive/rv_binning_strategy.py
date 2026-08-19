@@ -11,7 +11,7 @@ class RVBinningStrategyConfig(Config):
         super().__init__()
 
 
-class RVBinningStrategy(BinningStrategy, ConfigurableObject):
+class RVBinningStrategy(BinningStrategy[np.ndarray], ConfigurableObject):
     config_class = RVBinningStrategyConfig
 
     def __init__(
@@ -29,12 +29,12 @@ class RVBinningStrategy(BinningStrategy, ConfigurableObject):
             ref_dirs
         )  # Build a KDTree for efficient nearest neighbor search
 
-    def get_bin(self, F: np.ndarray) -> int:
+    def get_bin(self, sample: np.ndarray) -> int:
         """
         Given an objective vector, return the bin index it belongs to.
         """
         niches, _, _ = associate_to_niches(
-            F.reshape(1, -1), self.ref_dirs, self.ideal, self.nadir
+            sample.reshape(1, -1), self.ref_dirs, self.ideal, self.nadir
         )
         return niches[0]  # Return the index of the niche/bin
 
