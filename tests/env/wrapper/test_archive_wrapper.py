@@ -86,9 +86,7 @@ def do_init(replace_reward=True):
     wrapped_env = ArchiveWrapper(
         config, env, ref_dirs=ref_dirs, ideal=ideal, nadir=nadir
     )
-    assert isinstance(
-        wrapped_env.environment_step_class, type(DummyEnvironmentStepEntry)
-    )
+    assert wrapped_env.environment_step_class is DummyEnvironmentStepEntry
     return wrapped_env
 
 

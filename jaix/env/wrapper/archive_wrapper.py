@@ -46,7 +46,7 @@ class ArchiveWrapperConfig(Config):
 
 class ArchiveWrapper(ConfigurableObject, PassthroughWrapper):
     """
-    A wrapper that maintains an archive with enties that record the environment's step information.
+    A wrapper that maintains an archive with entries that record the environment's step information.
     This is just for recording purposes, and does not affect the environment's behavior.
     The reward is based on the archive's evaluation of the solution, which may be different from the environment's reward.
     """
