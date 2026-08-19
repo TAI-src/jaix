@@ -17,8 +17,8 @@ class ArchiveEntry(ABC, Generic[T]):
     @abstractmethod
     def parse(self) -> T:
         """
-        Return a dictionary with the parsed information from the archive entry
-        This needs to be implemented by the subclass, and should return a dictionary with the information needed for the archive to store the entry.
+        Return the parsed representation of this entry (type `T`).
+        Subclasses define the exact return type needed by the concrete archive implementation.
         """
 
 
@@ -101,7 +101,7 @@ class Archive(ABC):
 
     def add(self, entry: ArchiveEntry) -> float:
         """
-        Add a sample to the archive and return the reward obtained from adding it
+        Add an entry to the archive and return the reward obtained from adding it.
         """
         prev_score = self.score
         result_dict = self._add(entry)

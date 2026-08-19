@@ -9,15 +9,15 @@ import numpy as np
 import pytest
 import os.path as osp
 import random
-from typing import Any, Tuple
+from typing import Any
 
 
-class DummyArchiveEntry(BinArchiveEntry[Tuple[Any, float]]):
+class DummyArchiveEntry(BinArchiveEntry[Any]):
     def __init__(self, sample: Any, fitness: float):
         self.sample = sample
         self._fitness = fitness
 
-    def parse(self) -> Tuple[Any, float]:
+    def parse(self) -> tuple[Any, float]:
         return self.sample, self._fitness
 
 
