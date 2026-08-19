@@ -1,3 +1,4 @@
+import numbers
 from abc import abstractmethod
 from typing import Any
 
@@ -6,7 +7,6 @@ from gymnasium.spaces import MultiDiscrete, Space
 from ttex.config import Config, ConfigurableObject
 
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
-import numbers
 
 
 class ArchiveActionSpace(Space):
