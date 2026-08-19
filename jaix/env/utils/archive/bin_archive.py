@@ -253,7 +253,7 @@ class BinArchive(ConfigurableObject, Archive):
         # If no non-empty bin found, return -1
         return -1
 
-    def get(self, bin_idx: int) -> tuple[Any, float] | None:
+    def get(self, bin_idx: int) -> tuple[Any, float]:
         if self.allow_close_elites:
             return self.get_closest_elite(bin_idx)[:2]
         else:

@@ -18,11 +18,9 @@ class ArchiveActionSpace(Space):
         picked = [self.archive.get(i) for i in action]
         return picked
 
-    def sample(
-        self, mask: Any | None = None, probability: Any | None = None
-    ) -> np.ndarray:
+    def sample(self, **kwargs) -> np.ndarray:
         # Sample a random action from the action space
-        sample = self.action_space.sample(mask, probability)
+        sample = self.action_space.sample(**kwargs)
         return sample
 
     @property

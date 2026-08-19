@@ -23,7 +23,7 @@ class ArchiveWrapperConfig(Config):
 
 class ArchiveWrapper(ConfigurableObject, PassthroughWrapper):
     """
-    A wrapper that maintains an archive of solutions based on the observations and rewards from the environment.
+    A wrapper that maintains an archive of solutions based on the actions and rewards from the environment.
     This is just for recording purposes, and does not affect the environment's behavior.
     The reward is based on the archive's evaluation of the solution, which may be different from the environment's reward.
     """
