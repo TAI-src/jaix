@@ -70,8 +70,10 @@ class UniformCrossoverActionSpace(ArchiveActionSpace, ConfigurableObject):
             # try to convert to dtype of underlying action space
             offspring = np.asarray(offspring, dtype=self.action_space.dtype)
 
-            # For scalar action spaces, convert the offspring to a scalar value
-            if offspring.shape == ():
+            if self.action_space.dtype.shape != ():
+                offspring = offspring.reshape(self.action_space.dtype.shape)
+            else:
+                # For scalar action spaces, convert the offspring to a scalar value
                 offspring = self.action_space.dtype.type(offspring.item())
 
         return offspring
