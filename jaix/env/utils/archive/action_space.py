@@ -4,7 +4,8 @@ import numpy as np
 from gymnasium.spaces import MultiDiscrete, Space
 from ttex.config import Config, ConfigurableObject
 
-from jaix.env.utils.archive.archive import Archive
+from jaix.env.utils.archive.archive import Archive, ArchiveEntry
+from ABC import abstractmethod
 
 
 class ArchiveActionSpace(Space):
@@ -12,7 +13,14 @@ class ArchiveActionSpace(Space):
         self.archive = archive
         self.action_space = action_space
 
+    @abstractmethod
     def translate(self, action: np.ndarray) -> Any:
+        """
+        Translate the action into the archive's action space. This method should be implemented by subclasses.
+        """
+        ...
+
+    def pick(self, action: np.ndarray) -> list[ArchiveEntry | None]:
         assert self.action_space.contains(action), "Action is not in the action space"
         # Pick the solutions from the archive based on the action parameters
         picked = [self.archive.get(i) for i in action]
@@ -34,7 +42,7 @@ class ArchiveActionSpace(Space):
         if self.action_space.contains(action) is False:
             return False
         # Check if the action is in the action space
-        picked = self.translate(action)
+        picked = self.pick(action)
         return all(p is not None for p in picked)
 
 
@@ -55,16 +63,18 @@ class UniformCrossoverActionSpace(ArchiveActionSpace, ConfigurableObject):
         )
 
     def translate(self, action: np.ndarray) -> Any:
-        archive_content = super().translate(action)
-        parents = []
-        for p in archive_content:
-            # parents are tuples of (sample, fitness), we only want the sample
-            assert p is not None, "Parent is None, cannot perform crossover"
-            assert len(p) == 2, "Parent should be a tuple of (sample, fitness)"
-            assert self.action_space.contains(
-                action
-            ), "Action is not in the action space"
-            parents.append(p[0])
+        assert self.action_space.contains(action), "Action is not in the action space"
+        archive_content = self.pick(action)
+        parents = [getattr(p, "x", None) for p in archive_content if p is not None]
+        assert (
+            len(parents) == self.num_parents
+        ), "Not enough parents found in the archive"
+        assert all(
+            isinstance(p, np.ndarray) for p in parents
+        ), "All parents must be numpy arrays"
+
+        # Create narrowed list of parents to avoid issues with None values
+        parents = [p for p in parents if isinstance(p, np.ndarray)]
         offspring = np.mean(parents, axis=0)
         if self.action_space.dtype is not None:
             # try to convert to dtype of underlying action space

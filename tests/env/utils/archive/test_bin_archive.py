@@ -1,10 +1,24 @@
-from jaix.env.utils.archive.bin_archive import BinArchive, BinArchiveConfig
+from jaix.env.utils.archive.bin_archive import (
+    BinArchive,
+    BinArchiveConfig,
+    BinArchiveEntry,
+)
 from ttex.config import ConfigurableObjectFactory as COF, Config, ConfigurableObject
 from jaix.env.utils.archive.binning_strategy import BinningStrategy
 import numpy as np
 import pytest
 import os.path as osp
 import random
+from typing import Any, Tuple
+
+
+class DummyArchiveEntry(BinArchiveEntry[Tuple[Any, float]]):
+    def __init__(self, sample: Any, fitness: float):
+        self.sample = sample
+        self._fitness = fitness
+
+    def parse(self) -> Tuple[Any, float]:
+        return self.sample, self._fitness
 
 
 class DummyBinningStrategyConfig(Config):
@@ -18,7 +32,7 @@ class DummyBinningStrategyConfig(Config):
         self.binning_strategy = "linear"
 
 
-class DummyBinningStrategy(BinningStrategy, ConfigurableObject):
+class DummyBinningStrategy(BinningStrategy[Any], ConfigurableObject):
     config_class = DummyBinningStrategyConfig
 
     def __init__(self, config):
@@ -44,6 +58,7 @@ def get_archive(pre_fill=False, allow_close_elites=True):
         max_fitness=10.0,
         binning_strategy=DummyBinningStrategy,
         binning_config=DummyBinningStrategyConfig(),
+        archive_entry_type=DummyArchiveEntry,
         np_bin=2,
         coverage_weight=0.7,
         allow_close_elites=allow_close_elites,
@@ -53,7 +68,8 @@ def get_archive(pre_fill=False, allow_close_elites=True):
         for i in range(5 * 2):  # Fill each bin with 2 samples
             sample = np.array([i, i + 1])
             fitness = float(10 - i)
-            archive.add(sample, fitness)
+            entry = DummyArchiveEntry(sample, fitness)
+            archive.add(entry)
     return archive
 
 
@@ -68,49 +84,52 @@ def test_init():
 
 def test_append():
     archive = get_archive()
-    sample = np.array([1.0, 2.0])
-    fitness = 5.0
-    added = archive._append(sample, fitness, bin_idx=0)
+    entry = DummyArchiveEntry(sample=np.array([1.0, 2.0]), fitness=5.0)
+    added = archive._append(entry, bin_idx=0)
     assert added, "Sample should be added to the archive"
-    x, f = archive.map[0][0]
-    assert np.array_equal(x, sample), "Sample in archive should match the added sample"
-    assert f == fitness, "Fitness in archive should match the added fitness"
-    added = archive._append(sample, fitness, bin_idx=0)
+    map_entry = archive.map[0][0]
+    assert np.array_equal(
+        map_entry.bin_sample, entry.bin_sample
+    ), "Sample in archive should match the added sample"
+    assert (
+        entry.fitness == map_entry.fitness
+    ), "Fitness in archive should match the added fitness"
+    added = archive._append(entry, bin_idx=0)
     assert added, "Sample should be added to the archive even if it already exists"
-    added = archive._append(sample, fitness, bin_idx=1)
+    added = archive._append(entry, bin_idx=1)
     assert added, "Sample should be added to a different bin"
     assert len(archive.map[1]) == 1, "There should be one sample in bin 1"
     with pytest.raises(AssertionError):
-        archive._append(sample, fitness, bin_idx=0)
+        archive._append(entry, bin_idx=0)
 
 
 def test_replace():
     archive = get_archive()
-    sample1 = np.array([1.0, 2.0])
-    fitness1 = 5.0
-    archive._append(sample1, fitness1, bin_idx=0)
-    sample2 = np.array([3.0, 4.0])
-    fitness2 = 7.0
+    entry_1 = DummyArchiveEntry(sample=np.array([1.0, 2.0]), fitness=5.0)
+    archive._append(entry_1, bin_idx=0)
+    entry_2 = DummyArchiveEntry(sample=np.array([3.0, 4.0]), fitness=7.0)
     with pytest.raises(AssertionError):
-        archive._replace(sample2, fitness2, bin_idx=0)
+        archive._replace(entry_2, bin_idx=0)
 
-    archive._append(sample1, fitness1, bin_idx=0)
-    replaced = archive._replace(sample2, fitness2, bin_idx=0)
+    archive._append(entry_1, bin_idx=0)
+    replaced = archive._replace(entry_2, bin_idx=0)
     assert not replaced, "Sample should not replace since it has worse fitness"
     assert (
         len(archive.map[0]) == archive.np_bin
     ), "There should be only 2 samples in bin 0 after replacement attempt"
-    replaced = archive._replace(sample2, 3.0, bin_idx=0)
+    entry_3 = DummyArchiveEntry(sample=entry_2.sample, fitness=3.0)
+    replaced = archive._replace(entry_3, bin_idx=0)
     assert replaced, "Sample should replace since it has better fitness"
+    entry_4 = archive.map[0][1]
     assert (
-        archive.map[0][1][1] == 3.0
+        entry_4.fitness == 3.0
     ), "Fitness in archive should be updated to the new fitness"
 
 
 def test_get_elite():
     archive = get_archive(pre_fill=True)
-    _, fit = archive.get_elite(0)
-    assert fit == 1.0, "Elite fitness in bin 0 should be 1.0"
+    entry = archive.get_elite(0)
+    assert entry.fitness == 1.0, "Elite fitness in bin 0 should be 1.0"
 
 
 def test_get_all():
@@ -163,34 +182,34 @@ def test_closest_elite():
     archive = get_archive(pre_fill=True)
     sample = np.array([2.0, 3.0])
     bin = archive.binner.get_bin(sample)
-    elite_sample, elite_fitness, closest_bin = archive.get_closest_elite(bin)
+    elite_entry, closest_bin = archive.get_closest_elite(bin)
     assert closest_bin == bin, "Closest bin index should be 0 for the given sample"
 
-    elite_sample, elite_fitness, closest_bin = archive.get_closest_elite(bin + 2)
+    elite_entry, closest_bin = archive.get_closest_elite(bin + 2)
     assert closest_bin == bin, "Closest bin index should be 0 for the given sample"
     assert (
-        elite_fitness == archive.get_elite(bin)[1]
+        elite_entry.fitness == archive.get_elite(bin).fitness
     ), "Elite fitness should match the fitness of the closest bin"
 
 
 def test_get():
     archive = get_archive(pre_fill=True)
-    sample, fitness = archive.get(0)
-    assert sample is not None, "Sample should not be None for valid index"
+    entry = archive.get(0)
+    assert entry is not None, "Entry should not be None for valid index"
 
-    sample, fitness = archive.get(2)
+    entry = archive.get(2)
     assert (
-        sample is not None
-    ), "Sample should not be None for valid index if closest is allowed"
+        entry is not None
+    ), "Entry should not be None for valid index if closest is allowed"
 
-    sample, fitness = archive.get(100)
-    assert sample is None, "Sample should be None for out-of-range bin index"
+    entry = archive.get(100)
+    assert entry is None, "entry should be None for out-of-range bin index"
 
     archive = get_archive(pre_fill=True, allow_close_elites=False)
-    sample, fitness = archive.get(2)
+    entry = archive.get(2)
     assert (
-        sample is None
-    ), "Sample should be None for invalid index if closest is not allowed"
+        entry is None
+    ), "entry should be None for empty bin index when closest is not allowed"
 
 
 def test_size():

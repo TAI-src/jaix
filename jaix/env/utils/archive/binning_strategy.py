@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import TypeVar, Generic
+
+T = TypeVar("T")
 
 
-class BinningStrategy(ABC):
+class BinningStrategy(ABC, Generic[T]):
     @abstractmethod
-    def get_bin(self, sample: Any) -> int:
+    def get_bin(self, sample: T) -> int:
         """
         Given a sample, return the bin index it belongs to.
         """

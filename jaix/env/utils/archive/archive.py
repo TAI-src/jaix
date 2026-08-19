@@ -1,28 +1,24 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from typing import TypeVar, Generic, Any
+
+T = TypeVar("T")
 
 
-class ArchiveEntry(ABC):
+class ArchiveEntry(ABC, Generic[T]):
     """
     A general archive entry class that stores all information about an entry in the archive.
     """
 
-
-class ArchiveEntryParser(ABC):
-    """
-    A general archive entry parser class that can be used to parse the information from an archive entry,
-    based on what the archive needs for storage (e.g. a location and fitness value for a grid archive).
-    """
-
     @abstractmethod
-    def parse(self, entry: ArchiveEntry) -> dict[str, Any]:
+    def parse(self) -> T:
         """
         Return a dictionary with the parsed information from the archive entry
+        This needs to be implemented by the subclass, and should return a dictionary with the information needed for the archive to store the entry.
         """
 
 
@@ -89,31 +85,31 @@ class Archive(ABC):
         )
 
     @abstractmethod
-    def _add(self, sample: Any, fitness: float) -> dict[str, Any]:
+    def _add(self, entry: ArchiveEntry) -> dict[str, Any]:
         """
         Internal method to add a sample to the archive
         Returns a dictionary with the result of the addition
         """
 
-    def add(self, sample: Any, fitness: float) -> float:
+    def add(self, entry: ArchiveEntry) -> float:
         """
         Add a sample to the archive and return the reward obtained from adding it
         """
         prev_score = self.score
-        result_dict = self._add(sample, fitness)
+        result_dict = self._add(entry)
         self.stats_rows.append(result_dict)
         new_score = self.score
         reward = new_score - prev_score
         return reward
 
     @abstractmethod
-    def get_all(self) -> list[Any]:
+    def get_all(self) -> list[ArchiveEntry]:
         """
         Return all samples in the archive
         """
 
     @abstractmethod
-    def get(self, index: int) -> tuple[Any, float] | None:
+    def get(self, index: int) -> ArchiveEntry | None:
         """
         Return the archive entry at the given index as (sample, fitness), or None if unavailable.
         """

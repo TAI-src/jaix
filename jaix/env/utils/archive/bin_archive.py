@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, TypeVar, Generic
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,17 +9,40 @@ from matplotlib.patches import Rectangle
 from ttex.config import Config, ConfigurableObject
 from ttex.config import ConfigurableObjectFactory as COF
 
-from jaix.env.utils.archive.archive import Archive
+from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 from jaix.env.utils.archive.binning_strategy import BinningStrategy
+from abc import ABC, abstractmethod
+
+T = TypeVar("T")
 
 
-class BinArchiveConfig(Config):
+class BinArchiveEntry(ArchiveEntry[tuple[T, float]], ABC, Generic[T]):
+
+    @abstractmethod
+    def parse(self) -> tuple[T, float]:
+        """
+        The bin archive expects the parse method to return the following values
+        - a np.ndarray that allow to identify which bin the sample belongs to
+        - a float that represents the fitness of the sample
+        """
+
+    @property
+    def fitness(self) -> float:
+        return self.parse()[1]  # Return the fitness value from the parsed tuple
+
+    @property
+    def bin_sample(self) -> T:
+        return self.parse()[0]  # Return the sample value from the parsed tuple
+
+
+class BinArchiveConfig(Config, Generic[T]):
     def __init__(
         self,
         n_bins: int,
         max_fitness: float,  # maximum fitness value for normalisation
-        binning_strategy: type[BinningStrategy],
+        binning_strategy: type[BinningStrategy[T]],
         binning_config: Config,
+        archive_entry_type: type[BinArchiveEntry[T]],
         np_bin: int = 1,
         coverage_weight: float = 0.5,  # weight for coverage in the score function
         allow_close_elites: bool = True,  # whether to allow getting closest elites when a bin is empty
@@ -32,6 +55,7 @@ class BinArchiveConfig(Config):
         self.binning_strategy = binning_strategy
         self.binning_config = binning_config
         self.allow_close_elites = allow_close_elites
+        self.archive_entry_type = archive_entry_type
 
         assert np_bin >= 1, "np_bin must be at least 1"
 
@@ -54,7 +78,7 @@ class BinArchive(ConfigurableObject, Archive):
         self.reset()
 
     def reset(self) -> None:
-        self.map: dict[int, list[tuple[float, float]]] = {
+        self.map: dict[int, list[BinArchiveEntry]] = {
             bin_idx: [] for bin_idx in range(self.n_bins)
         }
         self.n_points = 0
@@ -130,7 +154,7 @@ class BinArchive(ConfigurableObject, Archive):
             # Add bin-specific stats to the stats rows
             pbin_fit = {
                 f"fbin_{bidx}": (
-                    np.min([fit for _, fit in self.map[bidx]])
+                    np.min([entry.fitness for entry in self.map[bidx]])
                     if len(self.map[bidx]) > 0
                     else np.nan
                 )
@@ -143,73 +167,78 @@ class BinArchive(ConfigurableObject, Archive):
 
         return stat_dict
 
-    def _add(self, sample: Any, fitness: float) -> dict[str, Any]:
+    def _add(self, archive_entry: ArchiveEntry) -> dict[str, Any]:
         """
         Add a sample to the archive if it is better than the current best in the bin.
         If the bin is empty, add the sample directly.
         If the bin is full, replace the worst sample if the new sample is better.
         Assuming lower fitness is better
         """
-        bin_idx = self.binner.get_bin(sample)
+        assert isinstance(
+            archive_entry, BinArchiveEntry
+        ), "archive_entry must be a BinArchiveEntry"
+        bin_idx = self.binner.get_bin(archive_entry.bin_sample)
         self.hit_counter[bin_idx] += 1  # Increment hit counter for this bin
 
         if len(self.map[bin_idx]) < self.np_bin:
             # bin has space, add the sample
-            added = self._append(sample, fitness, bin_idx)
+            added = self._append(archive_entry, bin_idx)
         else:
-            added = self._replace(sample, fitness, bin_idx)
+            added = self._replace(archive_entry, bin_idx)
         # Update stats after adding/replacing
         stats = self.get_archive_stats(bin_stats=True, hit_bin=bin_idx, added=added)
         return stats
 
-    def _append(self, sample: Any, fitness: float, bin_idx: int) -> bool:
+    def _append(self, archive_entry: BinArchiveEntry, bin_idx: int) -> bool:
         """
-        Logic for adding a sample to bin that still has space
+        Logic for adding an entry to a bin that is not full
         """
-        assert len(self.map[bin_idx]) < self.np_bin, "bin is full, cannot add sample"
+        assert len(self.map[bin_idx]) < self.np_bin, "bin is full, cannot add entry"
         # bin is not full, add the sample
-        self.map[bin_idx].append((sample, fitness))
+        self.map[bin_idx].append(archive_entry)
         self.n_points += 1
         if bin_idx not in self.bin_set:
             self.covered_bins += 1
             self.bin_set.add(bin_idx)
         self.add_counter[bin_idx] += 1  # Increment add counter for this bin
-        self.total_fitness += fitness  # Update total fitness
+        self.total_fitness += archive_entry.fitness  # Update total fitness
         return True
 
-    def _replace(self, sample: Any, fitness: float, bin_idx: int) -> bool:
+    def _replace(self, archive_entry: BinArchiveEntry, bin_idx: int) -> bool:
         """
-        Logic for replacing the worst sample in a full bin
+        Logic for replacing the worst entry in a full bin
         """
         assert (
             len(self.map[bin_idx]) == self.np_bin
-        ), "bin is not full, cannot replace sample"
-        # bin is full, check if we can replace the worst sample
-        worst_sample, worst_fitness = max(self.map[bin_idx], key=lambda x: x[1])
-        if fitness < worst_fitness:
-            # Replace the worst sample with the new one
-            self.map[bin_idx].remove((worst_sample, worst_fitness))
-            self.map[bin_idx].append((sample, fitness))
+        ), "bin is not full, cannot replace entry"
+        # bin is full, check if we can replace the worst entry
+        worst_entry = max(self.map[bin_idx], key=lambda x: x.fitness)
+        if (
+            archive_entry.fitness < worst_entry.fitness
+        ):  # Assuming lower fitness is better
+            # Replace the worst entry with the new one
+            self.map[bin_idx].remove(worst_entry)
+            self.map[bin_idx].append(archive_entry)
             self.replace_counter[bin_idx] += 1  # Increment replace counter for this bin
             # Update total fitness
-            self.total_fitness += fitness - worst_fitness
+            self.total_fitness += archive_entry.fitness - worst_entry.fitness
             return True
         else:
             return False
 
-    def get_elite(self, bin_idx: int) -> tuple[Any, float]:
+    def get_elite(self, bin_idx: int) -> BinArchiveEntry | None:
         """
-        Return the best sample and its fitness in the given bin
+        Return the best archive_entry in the given bin index, or None if the bin is empty
         """
         if len(self.map[bin_idx]) == 0:
-            return None, np.nan
+            return None
         # Return the sample with the best fitness in the bin
-        best_sample, best_fitness = min(self.map[bin_idx], key=lambda x: x[1])
-        return best_sample, best_fitness
+        archive_entry = min(self.map[bin_idx], key=lambda x: x.fitness)
+        return archive_entry
 
     def get_closest_elite(
         self, bin_idx: int, safety_k: int = 5, max_k: int = -1
-    ) -> tuple[Any, float, int]:
+    ) -> tuple[BinArchiveEntry | None, int]:
         """
         Return the best sample and its fitness in the closest non-empty bin to the given bin index
         If the given bin index is non-empty, return its best sample and fitness directly.
@@ -218,9 +247,9 @@ class BinArchive(ConfigurableObject, Archive):
         """
         closest_bin_idx = self.get_closest_non_empty_bin(bin_idx, safety_k, max_k)
         if closest_bin_idx == -1:
-            return None, np.nan, -1
-        best_sample, best_fitness = self.get_elite(closest_bin_idx)
-        return best_sample, best_fitness, closest_bin_idx
+            return None, -1
+        archive_entry = self.get_elite(closest_bin_idx)
+        return archive_entry, closest_bin_idx
 
     def get_closest_non_empty_bin(
         self,
@@ -253,9 +282,9 @@ class BinArchive(ConfigurableObject, Archive):
         # If no non-empty bin found, return -1
         return -1
 
-    def get(self, bin_idx: int) -> tuple[Any, float]:
+    def get(self, bin_idx: int) -> ArchiveEntry | None:
         if self.allow_close_elites:
-            return self.get_closest_elite(bin_idx)[:2]
+            return self.get_closest_elite(bin_idx)[0]
         else:
             return self.get_elite(bin_idx)
 
