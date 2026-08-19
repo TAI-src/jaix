@@ -186,7 +186,7 @@ def test_get():
     sample, fitness = archive.get(100)
     assert (
         sample is None
-    ), "Sample should be None for invalid index if closest is not allowed"
+    ), "Sample should be None for out-of-range bin index"
 
     archive = get_archive(pre_fill=True, allow_close_elites=False)
     sample, fitness = archive.get(2)

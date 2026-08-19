@@ -94,9 +94,9 @@ class Archive(ABC):
         """
 
     @abstractmethod
-    def get(self, index: int) -> Any | None:
+    def get(self, index: int) -> tuple[Any, float] | None:
         """
-        Return the sample at the given index
+        Return the archive entry at the given index as (sample, fitness), or None if unavailable.
         """
 
     def plot_stats(
