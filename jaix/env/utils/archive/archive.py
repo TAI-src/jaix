@@ -8,10 +8,19 @@ from matplotlib.figure import Figure
 
 
 class Archive(ABC):
-    def __init__(self):
+    """
+    A general archive class that can be used to store samples and their fitness values.
+    This mainly implements recording and plotting stats over time, but the actual archive implementation is left to the subclasses.
+    """
+
+    def __init__(self, max_size: int | None = None):
         # Record stats over time
-        self.stats_rows = []  # List to store stats for each call
-        self._stats = pd.DataFrame()
+        self._max_size = max_size
+        self.reset()
+
+    def reset(self) -> None:
+        self.stats_rows: list[dict] = []
+        self._stats: pd.DataFrame = pd.DataFrame()
 
     @property
     def stats(self) -> pd.DataFrame:
@@ -24,6 +33,17 @@ class Archive(ABC):
         if len(self.stats_rows) != len(self._stats):
             self._stats = pd.DataFrame(self.stats_rows)
         return self._stats
+
+    @property
+    def max_size(self) -> int | None:
+        return self._max_size
+
+    @property
+    @abstractmethod
+    def size(self) -> int:
+        """
+        Return the current size of the archive
+        """
 
     @abstractmethod
     def get_archive_stats(self) -> dict[str, Any]:
@@ -71,6 +91,12 @@ class Archive(ABC):
     def get_all(self) -> list[Any]:
         """
         Return all samples in the archive
+        """
+
+    @abstractmethod
+    def get(self, index: int) -> tuple[Any, float] | None:
+        """
+        Return the archive entry at the given index as (sample, fitness), or None if unavailable.
         """
 
     def plot_stats(

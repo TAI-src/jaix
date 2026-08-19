@@ -7,6 +7,7 @@ from jaix.env.utils.archive.rv_binning_strategy import (
 )
 import numpy as np
 import pytest
+from ..utils.archive.test_archive import DummyArchive
 
 
 def do_init(replace_reward=True):
@@ -44,10 +45,7 @@ def test_init():
 @pytest.mark.parametrize("replace_reward", [True, False])
 def test_step(replace_reward):
     wrapped_env = do_init(replace_reward=replace_reward)
-    ref_dirs = np.array([[1.0], [0.5], [0.0]])
-    ideal = np.array([0.0])
-    nadir = np.array([10.0])
-    wrapped_env.reset(ref_dirs=ref_dirs, ideal=ideal, nadir=nadir)
+    wrapped_env.reset()
 
     obs, reward, term, trunc, info = wrapped_env.step(wrapped_env.action_space.sample())
     assert isinstance(obs, np.ndarray)
@@ -59,3 +57,26 @@ def test_step(replace_reward):
     assert wrapped_env.archive is not None
     assert wrapped_env.archive.coverage >= 0.0
     assert wrapped_env.archive.coverage <= 1.0
+
+
+def test_simple_archive():
+    env = gym.make("MountainCar-v0", render_mode="rgb_array")
+    config = ArchiveWrapperConfig(
+        archive_class=DummyArchive,
+        archive_config=None,
+        replace_reward=True,
+        passthrough=True,
+    )
+    wrapped_env = ArchiveWrapper(config, env, max_size=10)
+    assert isinstance(wrapped_env.archive, DummyArchive)
+
+    wrapped_env.reset()
+
+    obs, reward, term, trunc, info = wrapped_env.step(wrapped_env.action_space.sample())
+    assert isinstance(obs, np.ndarray)
+    assert isinstance(reward, float)
+    assert isinstance(term, bool)
+    assert isinstance(trunc, bool)
+    assert isinstance(info, dict)
+
+    assert wrapped_env.archive.size == 1
