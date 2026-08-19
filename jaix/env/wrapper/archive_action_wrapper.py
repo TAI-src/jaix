@@ -8,7 +8,7 @@ from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfi
 
 class ArchiveActionWrapperConfig(Config):
     """
-    Configuration for the PopulationActionWrapper.
+    Configuration for the ArchiveActionWrapper.
     """
 
     def __init__(
