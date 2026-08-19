@@ -7,6 +7,25 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 
+class ArchiveEntry(ABC):
+    """
+    A general archive entry class that stores all information about an entry in the archive.
+    """
+
+
+class ArchiveEntryParser(ABC):
+    """
+    A general archive entry parser class that can be used to parse the information from an archive entry,
+    based on what the archive needs for storage (e.g. a location and fitness value for a grid archive).
+    """
+
+    @abstractmethod
+    def parse(self, entry: ArchiveEntry) -> dict[str, Any]:
+        """
+        Return a dictionary with the parsed information from the archive entry
+        """
+
+
 class Archive(ABC):
     """
     A general archive class that can be used to store samples and their fitness values.
