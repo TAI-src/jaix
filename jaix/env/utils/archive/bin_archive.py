@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
-import gymnasium as gym
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
