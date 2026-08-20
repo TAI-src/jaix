@@ -20,7 +20,7 @@ class RVBinningStrategy(BinningStrategy[np.ndarray], ConfigurableObject):
         ref_dirs: np.ndarray,
         ideal: np.ndarray,
         nadir: np.ndarray,
-        **kwargs
+        **kwargs,
     ):
         ConfigurableObject.__init__(self, config)
         self.ref_dirs = ref_dirs
