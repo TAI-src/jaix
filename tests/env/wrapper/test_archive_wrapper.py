@@ -1,9 +1,9 @@
-from jaix.env.wrapper.archive_wrapper import (
-    ArchiveWrapper,
-    ArchiveWrapperConfig,
-    EnvironmentStepEntry,
-)
+from typing import Any
+
 import gymnasium as gym
+import numpy as np
+import pytest
+from jaix.env.utils.archive.archive import ArchiveEntry
 from jaix.env.utils.archive.bin_archive import (
     BinArchive,
     BinArchiveConfig,
@@ -13,11 +13,13 @@ from jaix.env.utils.archive.rv_binning_strategy import (
     RVBinningStrategy,
     RVBinningStrategyConfig,
 )
-import numpy as np
-import pytest
+from jaix.env.wrapper.archive_wrapper import (
+    ArchiveWrapper,
+    ArchiveWrapperConfig,
+    EnvironmentStepEntry,
+)
+
 from ..utils.archive.test_archive import DummyArchive, DummyArchiveEntry
-from typing import Any
-from jaix.env.utils.archive.archive import ArchiveEntry
 
 
 class DummyEnvironmentStepEntry(

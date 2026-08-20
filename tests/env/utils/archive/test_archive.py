@@ -1,26 +1,25 @@
-from jaix.env.utils.archive.archive import Archive, ArchiveEntry
-from typing import Any, Dict
 import os.path as osp
+from typing import Any
+
+import gymnasium as gym
+from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 
 
-class DummyArchiveEntry(ArchiveEntry[Dict[str, Any]]):
+class DummyArchiveEntry(ArchiveEntry[dict[str, Any]]):
     def __init__(self, sample: Any, fitness: float):
         self.sample = sample
         self.fitness = fitness
 
-    def parse(self) -> Dict[str, Any]:
+    def parse(self) -> dict[str, Any]:
         return {"sample": self.sample, "fitness": self.fitness}
 
 
 class DummyArchive(Archive):
-    def __init__(
-        self,
-        max_size: int,
-    ):
+    def __init__(self, max_size: int, **kwargs):
         super().__init__(max_size=max_size)
         self._score = 0.0
         self.num_points = 0
-        self.added_samples = []  #
+        self.added_samples = []
 
     @property
     def archive_entry_type(self) -> type[ArchiveEntry]:
@@ -30,10 +29,10 @@ class DummyArchive(Archive):
     def score(self) -> float:
         return self._score
 
-    def get_archive_stats(self) -> Dict[str, Any]:
+    def get_archive_stats(self) -> dict[str, Any]:
         return {"score": self._score, "num_points": self.num_points}
 
-    def _add(self, entry: ArchiveEntry) -> Dict[str, Any]:
+    def _add(self, entry: ArchiveEntry) -> dict[str, Any]:
         assert isinstance(entry, DummyArchiveEntry), "Entry must be a DummyArchiveEntry"
         # Simple archive of max_size, we just remove the oldest sample if we exceed max_size
         if self.max_size is not None and self.num_points >= self.max_size:

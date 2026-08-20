@@ -1,15 +1,17 @@
+import os.path as osp
+import random
+from typing import Any
+
+import numpy as np
+import pytest
 from jaix.env.utils.archive.bin_archive import (
     BinArchive,
     BinArchiveConfig,
     BinArchiveEntry,
 )
-from ttex.config import ConfigurableObjectFactory as COF, Config, ConfigurableObject
 from jaix.env.utils.archive.binning_strategy import BinningStrategy
-import numpy as np
-import pytest
-import os.path as osp
-import random
-from typing import Any
+from ttex.config import Config, ConfigurableObject
+from ttex.config import ConfigurableObjectFactory as COF
 
 
 class DummyArchiveEntry(BinArchiveEntry[Any]):

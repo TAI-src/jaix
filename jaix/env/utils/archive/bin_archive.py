@@ -65,7 +65,7 @@ class BinArchive(ConfigurableObject, Archive):
     A bin-based archive that stores samples in discrete bins based on a binning strategy.
     """
 
-    config_class = BinArchiveConfig
+    config_class: type[Config] = BinArchiveConfig
 
     def __init__(self, config: BinArchiveConfig, **kwargs):
         ConfigurableObject.__init__(self, config)

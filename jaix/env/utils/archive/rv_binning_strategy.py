@@ -20,6 +20,7 @@ class RVBinningStrategy(BinningStrategy[np.ndarray], ConfigurableObject):
         ref_dirs: np.ndarray,
         ideal: np.ndarray,
         nadir: np.ndarray,
+        **kwargs,
     ):
         ConfigurableObject.__init__(self, config)
         self.ref_dirs = ref_dirs
@@ -43,6 +44,8 @@ class RVBinningStrategy(BinningStrategy[np.ndarray], ConfigurableObject):
         Given a bin index, return the indices of the k nearest bins.
         """
         assert 0 <= bidx < len(self.ref_dirs), "Bin index out of range."
+        # k must be less than or equal to the number of training points minus 1 (to exclude the point itself)
+        k = min(k, len(self.ref_dirs) - 1)
         _, indices = self.kdtree.query(
             self.ref_dirs[bidx].reshape(1, -1), k=k + 1
         )  # +1 to include the bin itself

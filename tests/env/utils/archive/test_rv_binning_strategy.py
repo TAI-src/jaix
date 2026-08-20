@@ -1,8 +1,8 @@
+import numpy as np
 from jaix.env.utils.archive.rv_binning_strategy import (
     RVBinningStrategy,
     RVBinningStrategyConfig,
 )
-import numpy as np
 
 
 def test_get_bin():

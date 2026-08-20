@@ -8,21 +8,18 @@ COPY cobi/pyproject.toml .
 COPY cobi/requirements.txt .
 COPY cobi/src src
 
-RUN pip install -r requirements.txt
-RUN pip install .
+RUN pip install --prefix=/opt/cobi -r requirements.txt
+RUN pip install --prefix=/opt/cobi .
 
 FROM python:3.12
+
+COPY --from=taisrc/cobi /opt/cobi/ /usr/local
 
 COPY --from=taisrc/jaix_base:latest /jaix /jaix
 WORKDIR /jaix
 
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir -e .
-
-COPY --from=taisrc/cobi /cobi /cobi
-WORKDIR /cobi
-RUN pip install -r requirements.txt
-RUN pip install .
 
 WORKDIR /tests
 

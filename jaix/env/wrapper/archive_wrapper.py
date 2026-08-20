@@ -56,6 +56,7 @@ class ArchiveWrapper(ConfigurableObject, PassthroughWrapper):
     def __init__(self, config: ArchiveWrapperConfig, env: gym.Env, **kwargs):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, config.passthrough)
+        kwargs.setdefault("env", env)
         if config.archive_config is None:
             self.archive = config.archive_class(**kwargs)
         else:
