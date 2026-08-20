@@ -68,7 +68,7 @@ class BinArchive(ConfigurableObject, Archive):
 
     config_class: type[Config] = BinArchiveConfig
 
-    def __init__(self, config: BinArchiveConfig, env=gym.Env, **kwargs):
+    def __init__(self, config: BinArchiveConfig, **kwargs):
         ConfigurableObject.__init__(self, config)
         Archive.__init__(
             self, max_size=self.n_bins

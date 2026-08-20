@@ -15,11 +15,7 @@ class DummyArchiveEntry(ArchiveEntry[dict[str, Any]]):
 
 
 class DummyArchive(Archive):
-    def __init__(
-        self,
-        max_size: int,
-        env: gym.Env | None = None,
-    ):
+    def __init__(self, max_size: int, **kwargs):
         super().__init__(max_size=max_size)
         self._score = 0.0
         self.num_points = 0

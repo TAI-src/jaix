@@ -1,4 +1,9 @@
-from jaix.env.utils.mo_sizing import get_ref_dirs, get_num_refpoints
+from jaix.env.utils.mo_sizing import (
+    get_ref_dirs,
+    get_num_refpoints,
+    cache_dir,
+    cache_enabled,
+)
 
 
 def test_get_ref_dirs():
@@ -41,3 +46,10 @@ def test_get_num_refpoints():
     # Test for inbetween values (interpolation)
     assert get_num_refpoints(4, "original") == 150  # Interpolated between 3 and 5
     assert get_num_refpoints(6, "energy_small") == 133  # Interpolated between 5 and 8
+
+
+def test_env_values():
+    assert cache_enabled is True, "Cache should be enabled by default"
+    assert (
+        cache_dir == "/tmp/jaix-cache"
+    ), f"Expected cache_dir to be '/tmp/jaix-cache', got {cache_dir}"

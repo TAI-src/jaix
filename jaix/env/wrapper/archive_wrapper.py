@@ -56,9 +56,7 @@ class ArchiveWrapper(ConfigurableObject, PassthroughWrapper):
     def __init__(self, config: ArchiveWrapperConfig, env: gym.Env, **kwargs):
         ConfigurableObject.__init__(self, config)
         PassthroughWrapper.__init__(self, env, config.passthrough)
-        kwargs["env"] = (
-            env  # For archives that need access to the environment, we pass it in the kwargs. This is useful for archives that need to know the observation space or action space of the environment.
-        )
+        kwargs.setdefault("env", env)
         if config.archive_config is None:
             self.archive = config.archive_class(**kwargs)
         else:

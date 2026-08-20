@@ -73,7 +73,7 @@ class MoomapArchive(BinArchive):
 
     config_class: type[Config] = MoomapArchiveConfig
 
-    def __init__(self, config: MoomapArchiveConfig, env: gym.Env):
+    def __init__(self, config: MoomapArchiveConfig, env: gym.Env, **kwargs):
         assert isinstance(
             env.unwrapped, ECEnvironment
         ), "MoomapArchive can only be used with ECEnvironment"

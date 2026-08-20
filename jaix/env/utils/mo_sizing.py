@@ -1,7 +1,16 @@
+import os
+from pathlib import Path
+
 from joblib import Memory
 from pymoo.util.ref_dirs import get_reference_directions
 
-memory = Memory("cache", verbose=0)
+cache_enabled = os.getenv("JAIX_CACHE_ENABLED", "1") != "0"
+cache_dir = os.getenv("JAIX_CACHE_DIR", "/tmp/jaix-cache")
+
+memory = Memory(
+    location=Path(cache_dir) if cache_enabled else None,
+    verbose=0,
+)
 
 
 def get_num_refpoints(m: int, method: str):

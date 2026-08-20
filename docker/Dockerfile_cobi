@@ -13,7 +13,7 @@ RUN pip install --prefix=/opt/cobi .
 
 FROM python:3.12
 
-COPY --from=taisrc/cobi /opt/cobi /usr/local
+COPY --from=taisrc/cobi /opt/cobi/ /usr/local
 
 COPY --from=taisrc/jaix_base:latest /jaix /jaix
 WORKDIR /jaix

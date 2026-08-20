@@ -115,7 +115,7 @@ def test_with_wrapper():
         replace_reward=True,
         passthrough=True,
     )
-    wrapped_env = ArchiveWrapper(wrapper_config, env)
+    wrapped_env = ArchiveWrapper(config=wrapper_config, env=env)
 
     action = wrapped_env.action_space.sample()
     obs, reward, terminated, truncated, info = wrapped_env.step(action)
