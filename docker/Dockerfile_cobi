@@ -8,7 +8,7 @@ COPY cobi/pyproject.toml .
 COPY cobi/requirements.txt .
 COPY cobi/src src
 
-RUN pip install -r requirements.txt
+RUN pip install --prefix=/opt/cobi -r requirements.txt
 RUN pip install --prefix=/opt/cobi .
 
 FROM python:3.12

@@ -9,6 +9,8 @@ from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from ttex.config import ConfigurableObjectFactory as COF
 import numpy as np
 
+from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
+
 
 @pytest.fixture(scope="session", autouse=True)
 def skip_remaining_tests():
@@ -102,3 +104,25 @@ def test_get():
     # Get the entry from the archive
     retrieved_entry = archive.get(0)
     assert retrieved_entry is not None, "Retrieved entry should not be None"
+
+
+def test_with_wrapper():
+    env = create_env()
+    archive_config = MoomapArchiveConfig(np_bin=1, coverage_weight=0.5)
+    wrapper_config = ArchiveWrapperConfig(
+        archive_class=MoomapArchive,
+        archive_config=archive_config,
+        replace_reward=True,
+        passthrough=True,
+    )
+    wrapped_env = ArchiveWrapper(wrapper_config, env)
+
+    action = wrapped_env.action_space.sample()
+    obs, reward, terminated, truncated, info = wrapped_env.step(action)
+
+    # Check if the archive has been updated
+    assert hasattr(wrapped_env, "archive"), "Wrapped env should have an archive"
+    assert len(wrapped_env.archive.map) > 0, "Archive should have entries after step"
+    assert (
+        wrapped_env.archive.coverage > 0.0
+    ), "Archive coverage should be greater than 0 after step"
