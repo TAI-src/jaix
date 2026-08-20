@@ -1,14 +1,15 @@
-from jaix.env.wrapper.archive_action_wrapper import (
-    ArchiveActionWrapper,
-    ArchiveActionWrapperConfig,
-)
-from .test_archive_wrapper import DummyStepArchive, DummyStepArchivEntry
+import gymnasium as gym
 from jaix.env.utils.archive.action_space import (
     UniformCrossoverActionSpace,
     UniformCrossoverActionSpaceConfig,
 )
+from jaix.env.wrapper.archive_action_wrapper import (
+    ArchiveActionWrapper,
+    ArchiveActionWrapperConfig,
+)
 from jaix.env.wrapper.archive_wrapper import ArchiveWrapperConfig
-import gymnasium as gym
+
+from .test_archive_wrapper import DummyStepArchive, DummyStepArchivEntry
 
 
 def create_dummy_archive_action_wrapper(

@@ -1,12 +1,13 @@
-from jaix.env.utils.archive.action_space import (
-    UniformCrossoverActionSpace,
-    UniformCrossoverActionSpaceConfig,
-    IndexArchiveActionSpace,
-)
-from ttex.config import ConfigurableObjectFactory as COF
-from .test_archive import DummyArchive, DummyArchiveEntry
 import numpy as np
 from gymnasium.spaces import MultiDiscrete
+from jaix.env.utils.archive.action_space import (
+    IndexArchiveActionSpace,
+    UniformCrossoverActionSpace,
+    UniformCrossoverActionSpaceConfig,
+)
+from ttex.config import ConfigurableObjectFactory as COF
+
+from .test_archive import DummyArchive, DummyArchiveEntry
 
 
 def create_dummy_archive_with_samples(
