@@ -162,3 +162,10 @@ cython_debug/
 
 # Tabrepo
 *.out
+
+# Data
+*.pkl
+*.csv
+
+# Related to R language
+.Rhistory

@@ -6,6 +6,8 @@ memory = Memory("cache", verbose=0)
 
 
 def get_num_refpoints(m: int, method: str):
+    if m == 2:
+        return 100
     if method == "original":
         lookup_dict = {3: 91, 5: 210, 8: 156, 10: 275, 15: 135}
     elif method == "energy_small":
@@ -37,7 +39,13 @@ def get_num_refpoints(m: int, method: str):
 
 
 @memory.cache
-def get_ref_dirs(m: int, method: str):
-    num_refpoints = get_num_refpoints(m, method)
-    ref_dirs = get_reference_directions("energy", m, num_refpoints)
+def get_ref_dirs(m: int, num_refpoints: int | str):
+
+    if isinstance(num_refpoints, int):
+        if num_refpoints <= 0:
+            raise ValueError("num_refpoints must be a positive integer")
+        int_num_refpoints = num_refpoints
+    elif isinstance(num_refpoints, str):
+        int_num_refpoints = get_num_refpoints(m=m, method=num_refpoints)
+    ref_dirs = get_reference_directions("energy", m, int_num_refpoints)
     return ref_dirs

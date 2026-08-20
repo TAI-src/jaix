@@ -1,6 +1,7 @@
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 from typing import Any, Dict
 import os.path as osp
+import gymnasium as gym
 
 
 class DummyArchiveEntry(ArchiveEntry[Dict[str, Any]]):
@@ -16,6 +17,7 @@ class DummyArchive(Archive):
     def __init__(
         self,
         max_size: int,
+        env: gym.Env | None = None,
     ):
         super().__init__(max_size=max_size)
         self._score = 0.0

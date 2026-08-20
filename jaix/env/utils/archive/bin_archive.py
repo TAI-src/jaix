@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
+import gymnasium as gym
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -67,7 +68,7 @@ class BinArchive(ConfigurableObject, Archive):
 
     config_class = BinArchiveConfig
 
-    def __init__(self, config: BinArchiveConfig, **kwargs):
+    def __init__(self, config: BinArchiveConfig, env=gym.Env, **kwargs):
         ConfigurableObject.__init__(self, config)
         Archive.__init__(
             self, max_size=self.n_bins
