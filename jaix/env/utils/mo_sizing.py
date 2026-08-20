@@ -1,6 +1,5 @@
-from pymoo.util.ref_dirs import get_reference_directions
-
 from joblib import Memory
+from pymoo.util.ref_dirs import get_reference_directions
 
 memory = Memory("cache", verbose=0)
 

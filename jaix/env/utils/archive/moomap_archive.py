@@ -1,16 +1,19 @@
+from typing import cast
+
+import gymnasium as gym
+import numpy as np
+from ttex.config import Config, ConfigurableObject
+from ttex.config import ConfigurableObjectFactory as COF
+
 from jaix.env.singular.ec_env import ECEnvironment
-from jaix.env.wrapper.archive_wrapper import EnvironmentStepEntry
-from ttex.config import Config, ConfigurableObject, ConfigurableObjectFactory as COF
-from jaix.env.utils.archive.bin_archive import BinArchive, BinArchiveEntry
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
-from jaix.env.utils.mo_sizing import get_ref_dirs
-from jaix.env.utils.problem.static_problem import StaticProblem
+from jaix.env.utils.archive.bin_archive import BinArchive, BinArchiveEntry
 from jaix.env.utils.archive.rv_binning_strategy import (
     RVBinningStrategy,
     RVBinningStrategyConfig,
 )
-import numpy as np
-import gymnasium as gym
+from jaix.env.utils.mo_sizing import get_ref_dirs
+from jaix.env.wrapper.archive_wrapper import EnvironmentStepEntry
 
 
 class MoomapArchiveConfig(Config):
@@ -25,7 +28,7 @@ class MoomapArchiveConfig(Config):
         self.np_bin = np_bin
         self.coverage_weight = coverage_weight
         self.allow_close_elites = allow_close_elites
-        self.num_refpoints = num_refpoints
+        self.num_refpoints: int | str = num_refpoints
 
 
 class MoomapArchiveEntry(
@@ -68,7 +71,7 @@ class MoomapArchive(BinArchive):
     A BinArchive that uses reference directions for binning.
     """
 
-    config_class = MoomapArchiveConfig
+    config_class: type[Config] = MoomapArchiveConfig
 
     def __init__(self, config: MoomapArchiveConfig, env: gym.Env):
         assert isinstance(
@@ -79,12 +82,14 @@ class MoomapArchive(BinArchive):
         assert self.func.num_objectives > 1, "Function must be multi-objective"
 
         # Generate reference directions
-        self.ref_dirs = get_ref_dirs(self.func.num_objectives, self.num_refpoints)
-        self.num_refpoints = len(self.ref_dirs)
-        self.ideal_point = getattr(self.func, "ideal_point", None)
-        self.nadir_point = getattr(self.func, "nadir_point", None)
-        assert self.ideal_point is not None, "Function must have ideal_point attribute"
-        assert self.nadir_point is not None, "Function must have nadir_point attribute"
+        self.ref_dirs = get_ref_dirs(self.func.num_objectives, config.num_refpoints)
+        self.num_refpoints: int = len(self.ref_dirs)
+        ideal_point = getattr(self.func, "ideal_point", None)
+        nadir_point = getattr(self.func, "nadir_point", None)
+        assert ideal_point is not None, "Function must have ideal_point attribute"
+        assert nadir_point is not None, "Function must have nadir_point attribute"
+        self.ideal_point: np.ndarray = cast(np.ndarray, ideal_point)
+        self.nadir_point: np.ndarray = cast(np.ndarray, nadir_point)
 
         # Create the binning strategy
         self.binning_config = RVBinningStrategyConfig()

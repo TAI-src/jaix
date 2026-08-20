@@ -1,15 +1,15 @@
-from ..problem import CobiProblem, CobiProblemConfig
+import numpy as np
 import pytest
+from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.archive.moomap_archive import (
     MoomapArchive,
-    MoomapArchiveEntry,
     MoomapArchiveConfig,
+    MoomapArchiveEntry,
 )
-from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
-from ttex.config import ConfigurableObjectFactory as COF
-import numpy as np
-
 from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
+from ttex.config import ConfigurableObjectFactory as COF
+
+from ..problem import CobiProblem, CobiProblemConfig
 
 
 @pytest.fixture(scope="session", autouse=True)

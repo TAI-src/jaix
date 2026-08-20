@@ -151,11 +151,11 @@ class CobiProblem(ConfigurableObject, StaticProblem):
         )
 
     @property
-    def nadir_point(self) -> list[float]:
+    def nadir_point(self) -> np.ndarray:
         return self.cobi_problem.nadir_point()
 
     @property
-    def ideal_point(self) -> list[float]:
+    def ideal_point(self) -> np.ndarray:
         return self.cobi_problem.ideal_point()
 
     def _eval(self, x):
