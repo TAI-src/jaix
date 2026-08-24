@@ -1,0 +1,52 @@
+name: Create PR on updates to re problems from the submodule
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"  # Run every week
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-vendor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Update submodule
+        run: git submodule update --remote --merge deps/reproblems
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Update vendored files
+        run: python scripts/copy_reproblems.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "Update vendored dependency"
+          title: "Update vendored dependency"
+          body: |
+            Updates the vendored files from the upstream submodule.
+
+            Please review the changes before merging.
+          branch: update-vendored-dependency
