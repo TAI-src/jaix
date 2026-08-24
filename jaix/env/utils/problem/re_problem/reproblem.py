@@ -40,7 +40,6 @@ class RE21:
         x4 = x[3]
 
         F = 10.0
-        sigma = 10.0
         E = 2.0 * 1e5
         L = 200.0
 
@@ -350,8 +349,6 @@ class RE25:
         K = (G * x3 * x3 * x3 * x3) / (8 * x1 * x2 * x2 * x2)
         lmax = 14.0
         lf = (Fmax / K) + 1.05 * (x1 + 2) * x3
-        dmin = 0.2
-        Dmax = 3
         Fp = 300.0
         sigmaP = Fp / K
         sigmaPM = 6
@@ -550,7 +547,7 @@ class RE34:
 
     def evaluate(self, x):
         f = np.zeros(self.n_objectives)
-        g = np.zeros(self.n_original_constraints)
+        np.zeros(self.n_original_constraints)
 
         x1 = x[0]
         x2 = x[1]
@@ -1084,7 +1081,7 @@ class RE91:
 
     def evaluate(self, x):
         f = np.zeros(self.n_objectives)
-        g = np.zeros(self.n_original_constraints)
+        np.zeros(self.n_original_constraints)
 
         x1 = x[0]
         x2 = x[1]
@@ -1759,18 +1756,18 @@ if __name__ == "__main__":
     fun = RE21()
 
     x = fun.lbound + (fun.ubound - fun.lbound) * np.random.rand(fun.n_variables)
-    print("Problem = {}".format(fun.problem_name))
-    print("Number of objectives = {}".format(fun.n_objectives))
-    print("Number of variables = {}".format(fun.n_variables))
-    print("Number of constraints = {}".format(fun.n_constraints))
+    print(f"Problem = {fun.problem_name}")
+    print(f"Number of objectives = {fun.n_objectives}")
+    print(f"Number of variables = {fun.n_variables}")
+    print(f"Number of constraints = {fun.n_constraints}")
     print("Lower bounds = ", fun.lbound)
     print("Upper bounds = ", fun.ubound)
     print("x = ", x)
 
     if "CRE" in fun.problem_name:
         f, g = fun.evaluate(x)
-        print("f(x) = {}".format(f))
-        print("g(x) = {}".format(g))
+        print(f"f(x) = {f}")
+        print(f"g(x) = {g}")
     else:
         f = fun.evaluate(x)
-        print("f(x) = {}".format(f))
+        print(f"f(x) = {f}")
