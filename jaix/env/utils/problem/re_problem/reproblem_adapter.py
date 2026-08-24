@@ -1,8 +1,18 @@
-import numpy as np
 import os
+from typing import ClassVar
+
+import numpy as np
 from ttex.config import Config, ConfigurableObject
-from jaix.env.utils.problem.static_problem import StaticProblem
+
 from jaix.env.utils.problem.re_problem.reproblem import (
+    CRE21,
+    CRE22,
+    CRE23,
+    CRE24,
+    CRE25,
+    CRE31,
+    CRE32,
+    CRE51,
     RE21,
     RE22,
     RE23,
@@ -19,15 +29,8 @@ from jaix.env.utils.problem.re_problem.reproblem import (
     RE42,
     RE61,
     RE91,
-    CRE21,
-    CRE22,
-    CRE23,
-    CRE24,
-    CRE25,
-    CRE31,
-    CRE32,
-    CRE51,
 )
+from jaix.env.utils.problem.static_problem import StaticProblem
 
 
 class REProblemConfig(Config):
@@ -38,7 +41,7 @@ class REProblemConfig(Config):
 
 class REProblem(ConfigurableObject, StaticProblem):
     config_class = REProblemConfig
-    problem_map = {
+    problem_map: ClassVar[dict[str, type]] = {
         "RE21": RE21,  # 0
         "RE22": RE22,  # 1
         "RE23": RE23,  # 2
@@ -64,7 +67,7 @@ class REProblem(ConfigurableObject, StaticProblem):
         "CRE32": CRE32,  # 22
         "CRE51": CRE51,  # 23
     }
-    unconstrained_version_map = {
+    unconstrained_version_map: ClassVar[dict[str, str]] = {
         "CRE21": "RE31",
         "CRE22": "RE32",
         "CRE23": "RE33",
@@ -86,7 +89,7 @@ class REProblem(ConfigurableObject, StaticProblem):
             self.problem_name
         ]()  # Instantiate the problem class
         self.constrained = (
-            self.re_problem.n_constraints > 0
+            getattr(self.re_problem, "n_constraints", 0) > 0
         )  # Determine if the problem is constrained
         if self.constrained:
             self.unconstrained_problem_name = REProblem.unconstrained_version_map[
@@ -96,12 +99,12 @@ class REProblem(ConfigurableObject, StaticProblem):
             self.unconstrained_problem_name = self.problem_name
 
         # Initialize StaticProblem accordingly
-        self.lower_bounds = self.re_problem.lbound
-        self.upper_bounds = self.re_problem.ubound
+        self.lower_bounds = getattr(self.re_problem, "lbound", [])
+        self.upper_bounds = getattr(self.re_problem, "ubound", [])
         StaticProblem.__init__(
             self,
-            dimension=self.re_problem.n_variables,
-            num_objectives=self.re_problem.n_objectives,
+            dimension=getattr(self.re_problem, "n_var", -1),
+            num_objectives=getattr(self.re_problem, "n_obj", -1),
             precision=None,
         )
 
