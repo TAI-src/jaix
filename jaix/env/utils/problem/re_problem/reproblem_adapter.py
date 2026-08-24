@@ -100,11 +100,12 @@ class REProblem(ConfigurableObject, StaticProblem):
 
         # Initialize StaticProblem accordingly
         self.lower_bounds = getattr(self.re_problem, "lbound", [])
+        assert len(self.lower_bounds) > 0
         self.upper_bounds = getattr(self.re_problem, "ubound", [])
         StaticProblem.__init__(
             self,
-            dimension=getattr(self.re_problem, "n_var", -1),
-            num_objectives=getattr(self.re_problem, "n_obj", -1),
+            dimension=getattr(self.re_problem, "n_variables", -1),
+            num_objectives=getattr(self.re_problem, "n_objectives", -1),
             precision=None,
         )
 
