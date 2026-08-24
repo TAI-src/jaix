@@ -11,8 +11,7 @@
 """
 import numpy as np
 
-
-class RE21:
+class RE21():
     def __init__(self):
         self.problem_name = 'RE21'
         self.n_objectives = 2
@@ -39,6 +38,7 @@ class RE21:
         x4 = x[3]
 
         F = 10.0
+        sigma = 10.0
         E = 2.0 * 1e5
         L = 200.0
 
@@ -47,7 +47,7 @@ class RE21:
 
         return f
 
-class RE22:
+class RE22():
     def __init__(self):
         self.problem_name = 'RE22'
         self.n_objectives = 2
@@ -86,7 +86,7 @@ class RE22:
         
         return f
 
-class RE23:
+class RE23():
     def __init__(self):
         self.problem_name = 'RE23'
         self.n_objectives = 2
@@ -126,7 +126,7 @@ class RE23:
         
         return f
     
-class RE24:
+class RE24():
     def __init__(self):
         self.problem_name = 'RE24'
         self.n_objectives = 2
@@ -169,7 +169,7 @@ class RE24:
         
         return f
 
-class RE25:
+class RE25():
     def __init__(self):
         self.problem_name = 'RE25'
         self.n_objectives = 2
@@ -209,6 +209,8 @@ class RE25:
         K  = (G * x3 * x3 * x3 * x3) / (8 * x1 * x2 * x2 * x2)
         lmax = 14.0
         lf = (Fmax / K) + 1.05 *  (x1 + 2) * x3
+        dmin = 0.2
+        Dmax = 3
         Fp = 300.0
         sigmaP = Fp / K
         sigmaPM = 6
@@ -226,7 +228,7 @@ class RE25:
         
         return f
 
-class RE31:
+class RE31():
     def __init__(self):
         self.problem_name = 'RE31'
         self.n_objectives = 3
@@ -265,7 +267,7 @@ class RE31:
         
         return f
 
-class RE32:
+class RE32():
     def __init__(self):
         self.problem_name = 'RE32'
         self.n_objectives = 3
@@ -332,7 +334,7 @@ class RE32:
     
         return f
 
-class RE33:
+class RE33():
     def __init__(self):
         self.problem_name = 'RE33'
         self.n_objectives = 3
@@ -375,7 +377,7 @@ class RE33:
     
         return f
 
-class RE34:
+class RE34():
     def __init__(self):
         self.problem_name = 'RE34'
         self.n_objectives = 3
@@ -388,7 +390,7 @@ class RE34:
         
     def evaluate(self, x):
         f = np.zeros(self.n_objectives)
-        np.zeros(self.n_original_constraints)
+        g = np.zeros(self.n_original_constraints)
 
         x1 = x[0]
         x2 = x[1]
@@ -402,7 +404,7 @@ class RE34:
     
         return f
 
-class RE35:
+class RE35():
     def __init__(self):
         self.problem_name = 'RE35'
         self.n_objectives = 3
@@ -464,7 +466,7 @@ class RE35:
     
         return f
     
-class RE36:
+class RE36():
     def __init__(self):
         self.problem_name = 'RE36'
         self.n_objectives = 3
@@ -497,7 +499,7 @@ class RE36:
     
         return f
 
-class RE37:
+class RE37():
     def __init__(self):
         self.problem_name = 'RE37'
         self.n_objectives = 3
@@ -525,7 +527,7 @@ class RE37:
     
         return f
     
-class RE41:
+class RE41():
     def __init__(self):
         self.problem_name = 'RE41'
         self.n_objectives = 4
@@ -588,7 +590,7 @@ class RE41:
 
         return f
         
-class RE42:
+class RE42():
     def __init__(self):
         self.problem_name = 'RE42'
         self.n_objectives = 4
@@ -688,7 +690,7 @@ class RE42:
 
         return f
     
-class RE61:
+class RE61():
     def __init__(self):
         self.problem_name = 'RE61'
         self.n_objectives = 6
@@ -734,7 +736,7 @@ class RE61:
 
         return f
 
-class RE91:
+class RE91():
     def __init__(self):
         self.problem_name = 'RE91'
         self.n_objectives = 9
@@ -761,7 +763,7 @@ class RE91:
                 
     def evaluate(self, x):
         f = np.zeros(self.n_objectives)
-        np.zeros(self.n_original_constraints)
+        g = np.zeros(self.n_original_constraints)
 
         x1 = x[0]
         x2 = x[1]
@@ -798,7 +800,7 @@ class RE91:
 
         return f
         
-class CRE21:
+class CRE21():
     def __init__(self):
         self.problem_name = 'CRE21'
         self.n_objectives = 2
@@ -835,7 +837,7 @@ class CRE21:
         
         return f, g
 
-class CRE22:
+class CRE22():
     def __init__(self):
         self.problem_name = 'CRE22'
         self.n_objectives = 2
@@ -900,7 +902,7 @@ class CRE22:
     
         return f, g
 
-class CRE23:
+class CRE23():
     def __init__(self):
         self.problem_name = 'CRE23'
         self.n_objectives = 2
@@ -941,7 +943,7 @@ class CRE23:
     
         return f, g
     
-class CRE24:
+class CRE24():
     def __init__(self):
         self.problem_name = 'CRE24'
         self.n_objectives = 2
@@ -1002,7 +1004,7 @@ class CRE24:
     
         return f, g
     
-class CRE25:
+class CRE25():
     def __init__(self):
         self.problem_name = 'CRE25'
         self.n_objectives = 2
@@ -1033,7 +1035,7 @@ class CRE25:
     
         return f, g
 
-class CRE31:
+class CRE31():
     def __init__(self):
         self.problem_name = 'CRE31'
         self.n_objectives = 3
@@ -1093,7 +1095,7 @@ class CRE31:
 
         return f, g
 
-class CRE32:
+class CRE32():
     def __init__(self):
         self.problem_name = 'CRE32'
         self.n_objectives = 3
@@ -1190,7 +1192,7 @@ class CRE32:
 
         return f, constraintFuncs
 
-class CRE51:
+class CRE51():
     def __init__(self):
         self.problem_name = 'CRE51'
         self.n_objectives = 5
@@ -1238,18 +1240,18 @@ if __name__ == '__main__':
     fun = RE21()
 
     x = fun.lbound + (fun.ubound - fun.lbound) * np.random.rand(fun.n_variables)      
-    print(f"Problem = {fun.problem_name}")    
-    print(f"Number of objectives = {fun.n_objectives}")
-    print(f"Number of variables = {fun.n_variables}")
-    print(f"Number of constraints = {fun.n_constraints}")    
+    print("Problem = {}".format(fun.problem_name))    
+    print("Number of objectives = {}".format(fun.n_objectives))
+    print("Number of variables = {}".format(fun.n_variables))
+    print("Number of constraints = {}".format(fun.n_constraints))    
     print("Lower bounds = ", fun.lbound)        
     print("Upper bounds = ", fun.ubound)        
     print("x = ", x)
 
     if 'CRE' in fun.problem_name:
         f, g = fun.evaluate(x)        
-        print(f"f(x) = {f}")
-        print(f"g(x) = {g}")
+        print("f(x) = {}".format(f))
+        print("g(x) = {}".format(g))
     else:
         f = fun.evaluate(x)
-        print(f"f(x) = {f}")
+        print("f(x) = {}".format(f))
