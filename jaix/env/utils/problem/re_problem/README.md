@@ -12,3 +12,5 @@ python scripts/update_reproblems.py
 ```
 
 To avoid missing out on bug fixes on the original repository, there is also a [GitHub action](../../../../../.github/workflows/re_problems.yml) that periodically runs the above commands and creates a pull request if there are any changes.
+
+Note that the version in this repo does go through auto-linting and is thus not the exact same version as in the submodule.
