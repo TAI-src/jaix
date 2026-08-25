@@ -3,76 +3,114 @@ from jaix.env.wrapper.archive_action_wrapper import (
     ArchiveActionWrapper,
     ArchiveActionWrapperConfig,
 )
+from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
+from jaix.environment_factory import EnvironmentConfig
 from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
-from jaix.env.utils.ec_environment import ECEnvironment, ECEnvironmentConfig
-from jaix.problem.cobi_problem import CobiProblem, CobiProblemConfig
+from jaix.env.utils.ec_environment import ECEnvironmentConfig
 from ttex.config import ConfigurableObjectFactory as COF, Config
-from jaix.env.utils.archive.action_space import ArchiveActionSpace
 
-cobi_config = CobiProblemConfig(
-    n_var=3, n_constraints={"Linear": 0, "Quadratic": 0, "Multi": 0}, domain=(-4, 4)
+
+from jaix.environment_factory import EnvironmentFactory as EF
+from jaix.problem.reproblem import REProblem, ReProblemConfig
+from jaix.env.utils.archive.action_space import (
+    UniformCrossoverActionSpace,
+    UniformCrossoverActionSpaceConfig,
 )
-ec_env_config = ECEnvironmentConfig(budget_multiplier=1)
-archive_config = MoomapArchiveConfig(np_bin=1, coverage_weight=0.5)
+from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
 
 
 class MoomapXConfig(Config):
     def __init__(
         self,
-        cobi_config: CobiProblemConfig,
-        ec_env_config: ECEnvironmentConfig,
-        archive_config: MoomapArchiveConfig,
-        action_space_class: type[ArchiveActionSpace],
-        action_space_config: Config,
+        moomap_config: MoomapArchiveConfig,  # Configuration for the Moomap archive
+        env_budget_multiplier: int,  # Budget multiplier for the EC environment
+        num_samples: int,  # Number of random samples to prefill the archive with
+        num_trials: int,  # Number of trials to run for measuring the success of archive actions
+        mode: str = "reproblem",  # Mode for the environment, either "cobi" or "reproblem"
+        seed: int | None = None,  # Seed for reproducibility
     ):
         super().__init__()
-        self.cobi_config = cobi_config
-        self.ec_env_config = ec_env_config
-        self.archive_config = archive_config
-        self.archive_wrapper_config = ArchiveWrapperConfig(
+        self.moomap_config = moomap_config
+        self.env_budget_multiplier = env_budget_multiplier
+        self.num_samples = num_samples
+        self.num_trials = num_trials
+        self.seed = seed
+        self.mode = mode
+
+    def generate_archive_wrapper_config(self) -> ArchiveWrapperConfig:
+        return ArchiveWrapperConfig(
             archive_class=MoomapArchive,
-            archive_config=archive_config,
+            archive_config=self.moomap_config,
             replace_reward=False,
             passthrough=True,
         )
-        self.archive_action_wrapper_config = ArchiveActionWrapperConfig(
-            archive_wrapper_config=self.archive_wrapper_config,
-            action_space_class=action_space_class,
-            action_space_config=action_space_config,
+
+    def generate_archive_action_wrapper_config(self) -> ArchiveActionWrapperConfig:
+        return ArchiveActionWrapperConfig(
+            archive_wrapper_config=self.generate_archive_wrapper_config(),
+            action_space_class=UniformCrossoverActionSpace,
+            action_space_config=UniformCrossoverActionSpaceConfig(
+                crossover_attribute="info.original_action", num_parents=2
+            ),
         )
+
+    def generate_env_config(self) -> EnvironmentConfig:
+
+        ec_env_config = ECEnvironmentConfig(
+            budget_multiplier=self.env_budget_multiplier
+        )
+        if self.mode == "cobi":
+            raise NotImplementedError("Cobi mode is not implemented yet.")
+        elif self.mode == "reproblem":
+            ec_suite_config = ECSuiteConfig(
+                func_classes=[REProblem],
+                func_configs=ReProblemConfig(),
+                env_config=ec_env_config,
+                instances=list(range(23)),  # 23 instances of ReProblem
+                agg_instances=1,
+            )
+
+        env_config = EnvironmentConfig(
+            suite_class=ECSuite,
+            suite_config=ec_suite_config,
+            env_wrappers=None,
+            comp_config=None,
+            seed=self.seed,
+        )
+        return env_config
 
 
 class MoomapX:
 
     @staticmethod
-    def create_env(config: MoomapXConfig):
-        func = COF.create(CobiProblem, config.cobi_config, 1)
-        env = COF.create(ECEnvironment, config.ec_env_config, func, 0, 1)
-
-        wrapped_env = ArchiveActionWrapper(config.archive_action_wrapper_config, env)
-
-        return wrapped_env
-
-    @staticmethod
     def run(config: MoomapXConfig):
-        env = MoomapX.create_env(config)
-        obs = env.reset()
+        env_config = config.generate_env_config()
+        for env in EF.get_envs(env_config):
+            archive_wrapper_config = config.generate_archive_wrapper_config()
+            wa_env = WEF.wrap(env, archive_wrapper_config)
+            obs = wa_env.reset()
+            for _ in range(config.num_samples):
+                action = wa_env.action_space.sample()
+                obs, reward, terminated, truncated, info = wa_env.step(action)
 
-        # Prefill the archive with random actions
-        for _ in range(10):
-            action = env.action_space.sample()
-            # TODO: step without wrapper to avoid double translation of action
-            obs, reward, terminated, truncated, info = env.step(action)
+            archive_action_wrapper_config = (
+                config.generate_archive_action_wrapper_config()
+            )
+            waa_env = WEF.wrap(env, archive_action_wrapper_config)
+            # Transfer archive from wa_env to waa_env
+            waa_env.archive = wa_env.archive
 
-        # Now measure the success of archive actions
-        for _ in range(10):
-            action = env.action_space.sample()  # Sample from the archive action space
-            # TODO: get current state of the archive
-            obs, reward, terminated, truncated, info = env.step(action)
-            # TODO: evaluate the success of the action based on if a new sample was added
-            # TODO: also determine the distance in objective and search space between the parents
-            #
-            # For now, just print the info
+            # Now measure the success of archive actions
+            for _ in range(config.num_trials):
+                action = (
+                    waa_env.action_space.sample()
+                )  # Sample from the archive action space
+                # TODO: get current state of the archive
+                obs, reward, terminated, truncated, info = waa_env.step(action)
+                # TODO: evaluate the success of the action based on if a new sample was added
+                # TODO: also determine the distance in objective and search space between the parents
+                #
+                # For now, just print the info
 
         # TODO: turn into a dataframe
         # TODO: figure out which cobi problems are interesting
