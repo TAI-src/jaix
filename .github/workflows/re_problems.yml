@@ -30,10 +30,11 @@ jobs:
       - name: Update vendored files
         run: python scripts/copy_reproblems.py
 
-      - name: Install ruff and run linter as preprocessing
+      - name: Preprocess with formatter and linter
         run: |
           python -m pip install --upgrade pip
-          pip install ruff
+          pip install ruff black
+          black . -t py37 -t py312
           ruff check jaix --fix --unsafe-fixes
 
       - name: Check for changes
