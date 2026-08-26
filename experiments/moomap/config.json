@@ -1,0 +1,17 @@
+{
+  "MoomapXConfig": {
+    "moomap_config": {
+      "jaix.env.utils.archive.moomap_archive.MoomapArchiveConfig": {
+        "np_bin": 1,
+        "coverage_weight": 0.5,
+        "allow_close_elites": true,
+        "num_refpoints": "original"
+      }
+    },
+    "env_budget_multiplier": 1,
+    "num_samples": 10,
+    "num_trials": 10,
+    "mode": "reproblem",
+    "seed": 24
+  }
+}

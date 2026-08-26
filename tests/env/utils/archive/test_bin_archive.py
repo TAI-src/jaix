@@ -71,7 +71,22 @@ def get_archive(pre_fill=False, allow_close_elites=True):
             sample = np.array([i, i + 1])
             fitness = float(10 - i)
             entry = DummyArchiveEntry(sample, fitness)
+            a_stats = archive.get_archive_stats()
+            prev_counter = a_stats["add_counter_5"] + a_stats["replace_counter_5"]
             archive.add(entry)
+            assert (
+                entry.bin_idx is not None
+            ), "Entry should have a bin index after being added"
+            a_stats = archive.get_archive_stats()
+            new_counter = a_stats["add_counter_5"] + a_stats["replace_counter_5"]
+            if new_counter > prev_counter:
+                assert (
+                    entry.added is True
+                ), "Entry should be marked as added if it increased the archive size"
+            else:
+                assert (
+                    entry.added is False
+                ), "Entry should not be marked as added if it did not increase the archive size"
     return archive
 
 

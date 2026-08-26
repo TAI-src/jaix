@@ -43,6 +43,7 @@ class MoomapXConfig(Config):
         self.num_trials = num_trials
         self.seed = seed
         self.mode = mode
+        self.num_parents = 2  # Number of parents for the uniform crossover action space
 
     def generate_archive_wrapper_config(self) -> ArchiveWrapperConfig:
         return ArchiveWrapperConfig(
@@ -57,7 +58,7 @@ class MoomapXConfig(Config):
             archive_wrapper_config=self.generate_archive_wrapper_config(),
             action_space_class=UniformCrossoverActionSpace,
             action_space_config=UniformCrossoverActionSpaceConfig(
-                crossover_attribute="info.original_action", num_parents=2
+                crossover_attribute="info.original_action", num_parents=self.num_parents
             ),
         )
 
@@ -90,28 +91,50 @@ class MoomapXConfig(Config):
 class MoomapX:
 
     @staticmethod
+    def prefill_archive(env, config: MoomapXConfig):
+        archive_wrapper_config = config.generate_archive_wrapper_config()
+        wrappers = [(ArchiveWrapper, archive_wrapper_config)]
+        wa_env = WEF.wrap(env, wrappers)
+        for _ in range(config.num_samples):
+            action = wa_env.action_space.sample()
+            obs, reward, terminated, truncated, info = wa_env.step(action)
+        MoomapX.process_archive(wa_env.archive)
+        return wa_env.archive
+
+    @staticmethod
+    def process_archive(archive: MoomapArchive):
+        for entry in archive.get_all():
+            # Add original action info to assure same format for entries added from archive action
+            info = getattr(entry, "info", {})
+            info["original_action"] = getattr(entry, "action", None)
+            setattr(entry, "info", info)
+
+    @staticmethod
     def run(config: MoomapXConfig):
         env_config = config.generate_env_config()
         for env in EF.get_envs(env_config):
-            archive_wrapper_config = config.generate_archive_wrapper_config()
-            wa_env = WEF.wrap(env, archive_wrapper_config)
-            obs = wa_env.reset()
-            for _ in range(config.num_samples):
-                action = wa_env.action_space.sample()
-                obs, reward, terminated, truncated, info = wa_env.step(action)
+            archive = MoomapX.prefill_archive(env, config)
 
             archive_action_wrapper_config = (
                 config.generate_archive_action_wrapper_config()
             )
-            waa_env = WEF.wrap(env, archive_action_wrapper_config)
+            wrappers = [(ArchiveActionWrapper, archive_action_wrapper_config)]
+            waa_env = WEF.wrap(env, wrappers)
             # Transfer archive from wa_env to waa_env
-            waa_env.archive = wa_env.archive
+            waa_env.action_space = COF.create(
+                waa_env.action_space_class, waa_env.action_space_config, archive=archive
+            )
+
+            print(waa_env.archive.get_archive_stats())
 
             # Now measure the success of archive actions
             for _ in range(config.num_trials):
                 action = (
                     waa_env.action_space.sample()
                 )  # Sample from the archive action space
+                print(action)
+                print(waa_env.archive.bin_set)
+                print(waa_env.archive.get(action[0]))
                 # TODO: get current state of the archive
                 obs, reward, terminated, truncated, info = waa_env.step(action)
                 # TODO: evaluate the success of the action based on if a new sample was added
