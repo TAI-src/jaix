@@ -25,6 +25,14 @@ def main():
             shutil.copytree(source, destination, dirs_exist_ok=True)
         elif source.is_file():
             shutil.copy2(source, destination)
+            # Check if we copied a python file
+            if source.suffix == ".py":
+                # Check if it contains a shebang line
+                with open(source, "r") as f:
+                    first_line = f.readline()
+                    if first_line.startswith("#!"):
+                        # Make the copied file executable
+                        destination.chmod(destination.stat().st_mode | 0o111)
         else:
             raise FileNotFoundError(source)
 
