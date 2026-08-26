@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.archive.moomap_archive import (
     MoomapArchive,
@@ -8,28 +7,15 @@ from jaix.env.utils.archive.moomap_archive import (
 )
 from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
 from ttex.config import ConfigurableObjectFactory as COF
-
-from ..problem import CobiProblem, CobiProblemConfig
-
-
-@pytest.fixture(scope="session", autouse=True)
-def skip_remaining_tests():
-    try:
-        import cobi  # noqa: F401
-
-        assert CobiProblem is not None
-    except ImportError:
-        assert CobiProblem is None
-        pytest.skip(
-            "Skipping CobiProblem tests. If this is unexpected, check that the jaix_cobi docker image is used."
-        )
+from jaix.env.utils.problem.re_problem.reproblem_adapter import (
+    REProblem,
+    REProblemConfig,
+)
 
 
 def create_env():
-    config = CobiProblemConfig(
-        n_var=3, n_constraints={"Linear": 0, "Quadratic": 0, "Multi": 0}, domain=(-4, 4)
-    )
-    func = COF.create(CobiProblem, config, 1)
+
+    func = COF.create(REProblem, REProblemConfig(), 1)
     env_config = ECEnvironmentConfig(budget_multiplier=1)
     env = COF.create(ECEnvironment, env_config, func, 0, 1)
     return env

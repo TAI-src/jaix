@@ -4,6 +4,7 @@ from ttex.config import ConfigurableObjectFactory as COF
 
 from jaix.env.utils.archive.action_space import ArchiveActionSpace
 from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
+from jaix.env.utils.archive.archive import Archive
 
 
 class ArchiveActionWrapperConfig(Config):
@@ -39,10 +40,14 @@ class ArchiveActionWrapper(ArchiveWrapper):
             self.action_space_class, self.action_space_config, archive=self.archive
         )
 
+    def set_archive(self, archive: Archive):
+        self.action_space.archive = archive
+        super().set_archive(archive)
+
     def step(self, action):
         # Translate the action into the archive's action space
         translated_action = self.action_space.translate(action)
         obs, reward, term, trunc, info = super().step(translated_action)
-        info["archive_action"] = translated_action
-        info["original_action"] = action
+        info["env_action"] = translated_action
+        info["archive_action"] = action
         return obs, reward, term, trunc, info

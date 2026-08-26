@@ -7,6 +7,7 @@ import seaborn as sns
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
+from enum import Enum
 from ttex.config import Config, ConfigurableObject
 from ttex.config import ConfigurableObjectFactory as COF
 
@@ -35,6 +36,12 @@ class BinArchiveEntry(ArchiveEntry[tuple[T, float]], ABC, Generic[T]):
         return self.parse()[0]  # Return the sample value from the parsed tuple
 
 
+class EliteSelectionStrategy(Enum):
+    BEST = "best"
+    RANDOM = "random"
+    FITPROP = "fitprop"  # Fitness proportional selection
+
+
 class BinArchiveConfig(Config, Generic[T]):
     def __init__(
         self,
@@ -46,6 +53,7 @@ class BinArchiveConfig(Config, Generic[T]):
         np_bin: int = 1,
         coverage_weight: float = 0.5,  # weight for coverage in the score function
         allow_close_elites: bool = True,  # whether to allow getting closest elites when a bin is empty
+        elite_selection_strategy: EliteSelectionStrategy = EliteSelectionStrategy.BEST,  # strategy for selecting the elite in a bin (best, random, etc.)
     ):
         Config.__init__(self)
         self.n_bins = n_bins
@@ -56,6 +64,7 @@ class BinArchiveConfig(Config, Generic[T]):
         self.binning_config = binning_config
         self.allow_close_elites = allow_close_elites
         self.archive_entry_class = archive_entry_class
+        self.elite_selection_strategy = elite_selection_strategy
 
         assert np_bin >= 1, "np_bin must be at least 1"
 
@@ -240,8 +249,20 @@ class BinArchive(ConfigurableObject, Archive):
         """
         if len(self.map[bin_idx]) == 0:
             return None
-        # Return the sample with the best fitness in the bin
-        archive_entry = min(self.map[bin_idx], key=lambda x: x.fitness)
+        if self.elite_selection_strategy == EliteSelectionStrategy.RANDOM:
+            return np.random.choice(self.map[bin_idx])
+        elif self.elite_selection_strategy == EliteSelectionStrategy.FITPROP:
+            fitnesses = np.array([entry.fitness for entry in self.map[bin_idx]])
+            print(self.map[bin_idx][0].__dict__)
+            print(fitnesses)  # Debugging line to check fitnesses
+            # Convert fitness to a probability distribution (lower fitness = higher probability)
+            probabilities = 1 / (fitnesses + 1e-8)  # Avoid division by zero
+            probabilities /= probabilities.sum()  # Normalize to sum to 1
+            print(probabilities)  # Debugging line to check probabilities
+            return np.random.choice(self.map[bin_idx], p=probabilities)
+        elif self.elite_selection_strategy == EliteSelectionStrategy.BEST:
+            # Return the sample with the best fitness in the bin
+            archive_entry = min(self.map[bin_idx], key=lambda x: x.fitness)
         return archive_entry
 
     def get_closest_elite(

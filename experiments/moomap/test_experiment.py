@@ -1,4 +1,8 @@
-from jaix.env.utils.archive.moomap_archive import MoomapArchive, MoomapArchiveConfig
+from jaix.env.utils.archive.moomap_archive import (
+    MoomapArchive,
+    MoomapArchiveConfig,
+    EliteSelectionStrategy,
+)
 from experiment import MoomapX, MoomapXConfig
 from jaix.env.wrapper.archive_wrapper import (
     ArchiveWrapperConfig,
@@ -17,6 +21,7 @@ def get_config():
             coverage_weight=0.5,
             allow_close_elites=True,
             num_refpoints="original",
+            elite_selection_strategy=EliteSelectionStrategy.FITPROP,
         ),
         env_budget_multiplier=1,
         num_samples=100,
@@ -50,7 +55,7 @@ def test_prefill():
         entries = archive.get_all()
         assert len(entries) > 0
         for entry in entries:
-            assert entry.info["original_action"] is not None
+            assert entry.info["env_action"] is not None
             break
         break  # Only test one environment for speed
 

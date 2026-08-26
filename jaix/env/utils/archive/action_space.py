@@ -77,13 +77,6 @@ class UniformCrossoverActionSpace(ArchiveActionSpace, ConfigurableObject):
         assert self.action_space.contains(action), "Action is not in the action space"
         assert self.action_space.dtype is not None, "Action space dtype is not defined"
         archive_content = self.pick(action)
-        print("hello")
-        print(self.pick(np.array([0, 1])))
-        print(self.archive.get(0))
-        print(self.archive.get_archive_stats())
-        for p in archive_content:
-            print(f"Picked parent: {p.__dir__}")
-            print(p)
         parents = [
             Parser().retrieve_val(p, self.crossover_attribute)
             for p in archive_content

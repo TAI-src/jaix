@@ -1,3 +1,4 @@
+from re import A
 from jaix.env.utils.archive.moomap_archive import MoomapArchive, MoomapArchiveConfig
 from jaix.env.wrapper.archive_action_wrapper import (
     ArchiveActionWrapper,
@@ -58,7 +59,7 @@ class MoomapXConfig(Config):
             archive_wrapper_config=self.generate_archive_wrapper_config(),
             action_space_class=UniformCrossoverActionSpace,
             action_space_config=UniformCrossoverActionSpaceConfig(
-                crossover_attribute="info.original_action", num_parents=self.num_parents
+                crossover_attribute="info.env_action", num_parents=self.num_parents
             ),
         )
 
@@ -106,8 +107,16 @@ class MoomapX:
         for entry in archive.get_all():
             # Add original action info to assure same format for entries added from archive action
             info = getattr(entry, "info", {})
-            info["original_action"] = getattr(entry, "action", None)
+            info["env_action"] = getattr(entry, "action", None)
             setattr(entry, "info", info)
+
+    @staticmethod
+    def count_successes(archive: MoomapArchive):
+        archive_stats = archive.get_archive_stats()
+        return (
+            archive_stats[f"add_counter_{archive.n_bins}"]
+            + archive_stats[f"replace_counter_{archive.n_bins}"]
+        )
 
     @staticmethod
     def run(config: MoomapXConfig):
@@ -120,27 +129,37 @@ class MoomapX:
             )
             wrappers = [(ArchiveActionWrapper, archive_action_wrapper_config)]
             waa_env = WEF.wrap(env, wrappers)
-            # Transfer archive from wa_env to waa_env
-            waa_env.action_space = COF.create(
-                waa_env.action_space_class, waa_env.action_space_config, archive=archive
-            )
 
-            print(waa_env.archive.get_archive_stats())
+            waa_env.set_archive(
+                archive
+            )  # Set the prefilled archive in the wrapped environment
 
+            prev_n_success = MoomapX.count_successes(archive)
             # Now measure the success of archive actions
             for _ in range(config.num_trials):
                 action = (
                     waa_env.action_space.sample()
                 )  # Sample from the archive action space
-                print(action)
-                print(waa_env.archive.bin_set)
-                print(waa_env.archive.get(action[0]))
+                archive_stats = archive.get_archive_stats()
                 # TODO: get current state of the archive
-                obs, reward, terminated, truncated, info = waa_env.step(action)
-                # TODO: evaluate the success of the action based on if a new sample was added
-                # TODO: also determine the distance in objective and search space between the parents
-                #
-                # For now, just print the info
+                try:
+                    obs, reward, terminated, truncated, info = waa_env.step(action)
+                except AssertionError as e:
+                    assert str(e) == "Not enough parents found in the archive"
+                    continue
+                new_n_success = MoomapX.count_successes(archive)
+                if new_n_success > prev_n_success:
+                    print(f"Action {action} was successful!")
+                else:
+                    print(f"Action {action} was NOT successful. ")
+                prev_n_success = new_n_success
+
+            env.close()
+
+            # TODO: evaluate the success of the action based on if a new sample was added
+            # TODO: also determine the distance in objective and search space between the parents
+            #
+            # For now, just print the info
 
         # TODO: turn into a dataframe
         # TODO: figure out which cobi problems are interesting

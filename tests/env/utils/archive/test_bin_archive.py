@@ -8,6 +8,7 @@ from jaix.env.utils.archive.bin_archive import (
     BinArchive,
     BinArchiveConfig,
     BinArchiveEntry,
+    EliteSelectionStrategy,
 )
 from jaix.env.utils.archive.binning_strategy import BinningStrategy
 from ttex.config import Config, ConfigurableObject
@@ -54,7 +55,11 @@ class DummyBinningStrategy(BinningStrategy[Any], ConfigurableObject):
         return sampled
 
 
-def get_archive(pre_fill=False, allow_close_elites=True):
+def get_archive(
+    pre_fill=False,
+    allow_close_elites=True,
+    elite_selection_strategy=EliteSelectionStrategy.BEST,
+) -> BinArchive:
     config = BinArchiveConfig(
         n_bins=5,
         max_fitness=10.0,
@@ -64,6 +69,7 @@ def get_archive(pre_fill=False, allow_close_elites=True):
         np_bin=2,
         coverage_weight=0.7,
         allow_close_elites=allow_close_elites,
+        elite_selection_strategy=elite_selection_strategy,
     )
     archive = COF.create(BinArchive, config)
     if pre_fill:
@@ -232,3 +238,29 @@ def test_get():
 def test_size():
     archive = get_archive(pre_fill=True)
     assert archive.size == archive.covered_bins
+
+
+def test_elite_sel_best():
+    archive = get_archive(
+        pre_fill=True, elite_selection_strategy=EliteSelectionStrategy.BEST
+    )
+    entry = archive.get_elite(0)
+    all_entries = archive.map[0]
+    fitnesses = [e.fitness for e in all_entries]
+    assert entry.fitness == min(
+        fitnesses
+    ), "Elite should be the best fitness in the bin"
+
+
+@pytest.mark.parametrize(
+    "sel_strat",
+    [
+        EliteSelectionStrategy.BEST,
+        EliteSelectionStrategy.RANDOM,
+    ],
+)
+def test_elite_sel_random(sel_strat):
+    archive = get_archive(pre_fill=True, elite_selection_strategy=sel_strat)
+    entry = archive.get_elite(0)
+    all_entries = archive.map[0]
+    assert entry in all_entries, "Elite should be one of the entries in the bin"
