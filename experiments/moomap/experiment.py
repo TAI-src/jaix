@@ -6,17 +6,24 @@ from jaix.env.wrapper.archive_action_wrapper import (
 from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
 from jaix.environment_factory import EnvironmentConfig
 from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
-from jaix.env.utils.ec_environment import ECEnvironmentConfig
+from jaix.env.singular.ec_env import ECEnvironmentConfig
 from ttex.config import ConfigurableObjectFactory as COF, Config
 
 
 from jaix.environment_factory import EnvironmentFactory as EF
-from jaix.problem.reproblem import REProblem, ReProblemConfig
+from jaix.env.utils.problem.re_problem.reproblem_adapter import (
+    REProblem,
+    REProblemConfig,
+)
 from jaix.env.utils.archive.action_space import (
     UniformCrossoverActionSpace,
     UniformCrossoverActionSpaceConfig,
 )
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
+
+from ttex.config.config import ConfigFactory as CF
+import argparse
+import json
 
 
 class MoomapXConfig(Config):
@@ -64,7 +71,7 @@ class MoomapXConfig(Config):
         elif self.mode == "reproblem":
             ec_suite_config = ECSuiteConfig(
                 func_classes=[REProblem],
-                func_configs=ReProblemConfig(),
+                func_configs=[REProblemConfig()],
                 env_config=ec_env_config,
                 instances=list(range(23)),  # 23 instances of ReProblem
                 agg_instances=1,
@@ -118,3 +125,21 @@ class MoomapX:
         #
         #
         #
+        #
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run MoomapX experiment")
+    parser.add_argument(
+        "--config_file", type=str, help="Path to the configuration file"
+    )
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    with open(args.config_file, "r") as f:
+        run_config = json.load(f)
+    config = CF.from_dict(run_config)
+    MoomapX.run(config)
