@@ -198,10 +198,8 @@ class BinArchive(ConfigurableObject, Archive):
             added = self._append(archive_entry, bin_idx)
         else:
             added = self._replace(archive_entry, bin_idx)
-        setattr(archive_entry, "bin_idx", bin_idx)  # Store the bin index in the entry
-        setattr(
-            archive_entry, "added", added
-        )  # Store whether the entry was added or not
+        archive_entry.bin_idx = bin_idx  # Store the bin index in the entry
+        archive_entry.added = added  # Store whether the entry was added or not
         # Update stats after adding/replacing
         stats = self.get_archive_stats(bin_stats=True, hit_bin=bin_idx, added=added)
         return stats
