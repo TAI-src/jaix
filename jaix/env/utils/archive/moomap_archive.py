@@ -7,7 +7,11 @@ from ttex.config import ConfigurableObjectFactory as COF
 
 from jaix.env.singular.ec_env import ECEnvironment
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
-from jaix.env.utils.archive.bin_archive import BinArchive, BinArchiveEntry
+from jaix.env.utils.archive.bin_archive import (
+    BinArchive,
+    BinArchiveEntry,
+    EliteSelectionStrategy,
+)
 from jaix.env.utils.archive.rv_binning_strategy import (
     RVBinningStrategy,
     RVBinningStrategyConfig,
@@ -23,12 +27,14 @@ class MoomapArchiveConfig(Config):
         coverage_weight: float,
         allow_close_elites: bool = True,
         num_refpoints: int | str = "original",
+        elite_selection_strategy: EliteSelectionStrategy = EliteSelectionStrategy.BEST,
     ):
         super().__init__()
         self.np_bin = np_bin
         self.coverage_weight = coverage_weight
         self.allow_close_elites = allow_close_elites
         self.num_refpoints: int | str = num_refpoints
+        self.elite_selection_strategy: EliteSelectionStrategy = elite_selection_strategy
 
 
 class MoomapArchiveEntry(

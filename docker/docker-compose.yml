@@ -11,7 +11,7 @@
 x-jaix-base: &jaix_base # Template for the execution environments
   env_file: .env
   volumes:
-    - ../jaix:/jaix
+    - ../jaix:/jaix/jaix
     - ../tests:/tests
     - ../experiments:/experiments
   shm_size: '16gb'

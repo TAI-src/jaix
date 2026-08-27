@@ -1,4 +1,6 @@
+import random
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any, Generic, TypeVar
 
 import matplotlib.pyplot as plt
@@ -17,6 +19,8 @@ T = TypeVar("T")
 
 
 class BinArchiveEntry(ArchiveEntry[tuple[T, float]], ABC, Generic[T]):
+    bin_idx: int | None = None  # The index of the bin this entry belongs to
+    added: bool | None = None  # Whether the entry was added to the archive
 
     @abstractmethod
     def parse(self) -> tuple[T, float]:
@@ -35,6 +39,12 @@ class BinArchiveEntry(ArchiveEntry[tuple[T, float]], ABC, Generic[T]):
         return self.parse()[0]  # Return the sample value from the parsed tuple
 
 
+class EliteSelectionStrategy(Enum):
+    BEST = "best"
+    RANDOM = "random"
+    FITPROP = "fitprop"  # Fitness proportional selection
+
+
 class BinArchiveConfig(Config, Generic[T]):
     def __init__(
         self,
@@ -46,6 +56,7 @@ class BinArchiveConfig(Config, Generic[T]):
         np_bin: int = 1,
         coverage_weight: float = 0.5,  # weight for coverage in the score function
         allow_close_elites: bool = True,  # whether to allow getting closest elites when a bin is empty
+        elite_selection_strategy: EliteSelectionStrategy = EliteSelectionStrategy.BEST,  # strategy for selecting the elite in a bin (best, random, etc.)
     ):
         Config.__init__(self)
         self.n_bins = n_bins
@@ -56,6 +67,7 @@ class BinArchiveConfig(Config, Generic[T]):
         self.binning_config = binning_config
         self.allow_close_elites = allow_close_elites
         self.archive_entry_class = archive_entry_class
+        self.elite_selection_strategy = elite_selection_strategy
 
         assert np_bin >= 1, "np_bin must be at least 1"
 
@@ -182,6 +194,11 @@ class BinArchive(ConfigurableObject, Archive):
             archive_entry, BinArchiveEntry
         ), "archive_entry must be a BinArchiveEntry"
         bin_idx = self.binner.get_bin(archive_entry.bin_sample)
+        if bin_idx == -1:  # Invalid bin index, do not add the sample
+            archive_entry.bin_idx = bin_idx  # Store the bin index in the entry
+            archive_entry.added = False  # Store whether the entry was added or not
+            stats = self.get_archive_stats(bin_stats=True, hit_bin=bin_idx, added=False)
+            return stats
         self.hit_counter[bin_idx] += 1  # Increment hit counter for this bin
 
         if len(self.map[bin_idx]) < self.np_bin:
@@ -189,6 +206,8 @@ class BinArchive(ConfigurableObject, Archive):
             added = self._append(archive_entry, bin_idx)
         else:
             added = self._replace(archive_entry, bin_idx)
+        archive_entry.bin_idx = bin_idx  # Store the bin index in the entry
+        archive_entry.added = added  # Store whether the entry was added or not
         # Update stats after adding/replacing
         stats = self.get_archive_stats(bin_stats=True, hit_bin=bin_idx, added=added)
         return stats
@@ -236,8 +255,19 @@ class BinArchive(ConfigurableObject, Archive):
         """
         if len(self.map[bin_idx]) == 0:
             return None
-        # Return the sample with the best fitness in the bin
-        archive_entry = min(self.map[bin_idx], key=lambda x: x.fitness)
+        if self.elite_selection_strategy == EliteSelectionStrategy.RANDOM:
+            return random.choice(self.map[bin_idx])
+        elif self.elite_selection_strategy == EliteSelectionStrategy.FITPROP:
+            fitnesses = np.array([entry.fitness for entry in self.map[bin_idx]])
+            # Convert fitness to a probability distribution (lower fitness = higher probability)
+            probabilities = 1 / (fitnesses + 1e-8)  # Avoid division by zero
+            probabilities /= probabilities.sum()  # Normalize to sum to 1
+            return random.choices(
+                self.map[bin_idx], weights=probabilities.tolist(), k=1
+            )[0]
+        elif self.elite_selection_strategy == EliteSelectionStrategy.BEST:
+            # Return the sample with the best fitness in the bin
+            archive_entry = min(self.map[bin_idx], key=lambda x: x.fitness)
         return archive_entry
 
     def get_closest_elite(

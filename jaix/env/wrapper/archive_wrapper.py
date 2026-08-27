@@ -58,11 +58,13 @@ class ArchiveWrapper(ConfigurableObject, PassthroughWrapper):
         PassthroughWrapper.__init__(self, env, config.passthrough)
         kwargs.setdefault("env", env)
         if config.archive_config is None:
-            self.archive = config.archive_class(**kwargs)
+            archive = config.archive_class(**kwargs)
         else:
-            self.archive = COF.create(
-                config.archive_class, config.archive_config, **kwargs
-            )
+            archive = COF.create(config.archive_class, config.archive_config, **kwargs)
+        self.set_archive(archive)
+
+    def set_archive(self, archive: Archive):
+        self.archive = archive
         assert issubclass(self.archive.archive_entry_type, EnvironmentStepEntry)
         self.environment_step_class: type[EnvironmentStepEntry] = (
             self.archive.archive_entry_type
