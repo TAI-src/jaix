@@ -1,7 +1,8 @@
-from typing import Dict, Optional, Tuple, Union
-from ttex.config import Config
+
 from cobi import create_random_problem
-from jaix.env.utils.problem.cobi_problem import CobiProblemConfig, CobiProblem
+from ttex.config import Config
+
+from jaix.env.utils.problem.cobi_problem import CobiProblemConfig
 
 
 class RandomCobiProblemConfig(Config):
@@ -12,25 +13,23 @@ class RandomCobiProblemConfig(Config):
     def __init__(
         self,
         n_var: int = 2,
-        domain: Tuple[float, float] = (-5, 5),
-        n_peaks: Tuple[Union[int, Tuple[int, int]], Union[int, Tuple[int, int]]] = (
+        domain: tuple[float, float] = (-5, 5),
+        n_peaks: tuple[int | tuple[int, int], int | tuple[int, int]] = (
             (2, 5),
             (2, 5),
         ),
-        peaks_value_shift: Union[float, Tuple[float, float]] = 10,
-        peaks_condition_number: Optional[Union[float, Tuple[float, float]]] = None,
-        n_constraints: Optional[Dict[str, Union[int, Tuple[int, int]]]] = None,
+        peaks_value_shift: float | tuple[float, float] = 10,
+        peaks_condition_number: float | tuple[float, float] | None = None,
+        n_constraints: dict[str, int | tuple[int, int]] | None = None,
         boundary_constraints: bool = True,
-        quadratic_constraints_size: Union[float, Tuple[float, float]] = 10,
-        quadratic_constraints_condition_number: Optional[
-            Union[float, Tuple[float, float]]
-        ] = None,
-        n_multi_constraints_groups: Union[int, Tuple[int, int]] = 2,
-        n_multi_constraints_group_linear: Union[int, Tuple[int, int]] = (0, 1),
-        n_multi_constraints_group_quadratic: Union[int, Tuple[int, int]] = (2, 3),
+        quadratic_constraints_size: float | tuple[float, float] = 10,
+        quadratic_constraints_condition_number: float | tuple[float, float] | None = None,
+        n_multi_constraints_groups: int | tuple[int, int] = 2,
+        n_multi_constraints_group_linear: int | tuple[int, int] = (0, 1),
+        n_multi_constraints_group_quadratic: int | tuple[int, int] = (2, 3),
         constraints_feasible: bool = True,
         perpendicular_linear_constraints: bool = False,
-        n_digits: Optional[int] = None,
+        n_digits: int | None = None,
     ):
         super().__init__()
         self.n_var = n_var
