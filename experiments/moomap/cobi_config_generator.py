@@ -3,6 +3,7 @@
 
 import numpy as np
 from jaix.env.utils.problem.cobi_problem import CobiProblemConfig
+from ttex.config.config import ConfigFactory as CF
 
 
 def _no_constraints():
@@ -257,17 +258,13 @@ def get_config(func_id: int):
     }
     if func_id not in func_map:
         raise ValueError(f"Invalid function ID {func_id}. Must be between 1 and 7.")
-    return func_map[func_id]()
+    config_dict = {
+        "jaix.env.utils.problem.cobi_problem.CobiProblemConfig": func_map[func_id]()
+    }
+
+    return CF.from_dict(config_dict)
 
 
-# main function for quick testing
-def main():
-    for func_id in range(1, 8):
-        config = get_config(func_id)
-        print(f"Function ID {func_id}:")
-        print(config)
-        print()
-
-
-if __name__ == "__main__":
-    main()
+def get_configs():
+    """Get configurations for all example problems."""
+    return [get_config(func_id) for func_id in range(1, 8)]
