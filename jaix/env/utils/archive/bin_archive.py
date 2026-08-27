@@ -18,6 +18,8 @@ T = TypeVar("T")
 
 
 class BinArchiveEntry(ArchiveEntry[tuple[T, float]], ABC, Generic[T]):
+    bin_idx: int | None = None  # The index of the bin this entry belongs to
+    added: bool | None = None  # Whether the entry was added to the archive
 
     @abstractmethod
     def parse(self) -> tuple[T, float]:
