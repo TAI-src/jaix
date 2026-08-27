@@ -1,17 +1,19 @@
+from pathlib import Path
+
 from jaix.env.utils.archive.moomap_archive import (
-    MoomapArchive,
-    MoomapArchiveConfig,
     EliteSelectionStrategy,
-)
-from experiment import MoomapX, MoomapXConfig
-from jaix.env.wrapper.archive_wrapper import (
-    ArchiveWrapperConfig,
+    MoomapArchiveConfig,
 )
 from jaix.env.wrapper.archive_action_wrapper import (
     ArchiveActionWrapperConfig,
 )
+from jaix.env.wrapper.archive_wrapper import (
+    ArchiveWrapperConfig,
+)
 from jaix.environment_factory import EnvironmentConfig
 from jaix.environment_factory import EnvironmentFactory as EF
+
+from experiment import MoomapX, MoomapXConfig, main
 
 
 def get_config():
@@ -23,8 +25,7 @@ def get_config():
             num_refpoints="original",
             elite_selection_strategy=EliteSelectionStrategy.FITPROP,
         ),
-        env_budget_multiplier=1,
-        num_samples=100,
+        num_samples=2,
         num_trials=10,
         mode="reproblem",
         seed=1337,
@@ -60,6 +61,19 @@ def test_prefill():
         break  # Only test one environment for speed
 
 
-def test_run():
+def test_run(tmp_path):
     config = get_config()
-    MoomapX.run(config)
+    MoomapX.run(config, out_dir=tmp_path)
+    assert (tmp_path / "experiment_info.json").exists()
+    # check the number of csv files in the outdir. It should be one for each instance of reproblems
+    num_csv_files = len(list(tmp_path.glob("*.csv")))
+    assert num_csv_files == 23, f"Expected 23 CSV files, but found {num_csv_files}"
+
+
+def test_main(tmp_path):
+    config_file = "test_config.json"
+    out_dir = main(config_file=config_file, out_dir=tmp_path)
+    # check that there is a folder with experiment id in the outpath
+    assert Path(out_dir).exists() and Path(out_dir).is_dir()
+    # check that there is a experiment_info.json file in the outpath
+    assert (Path(out_dir) / "experiment_info.json").exists()

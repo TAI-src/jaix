@@ -1,37 +1,40 @@
-from re import A
-from jaix.env.utils.archive.moomap_archive import MoomapArchive, MoomapArchiveConfig
-from jaix.env.wrapper.archive_action_wrapper import (
-    ArchiveActionWrapper,
-    ArchiveActionWrapperConfig,
-)
-from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
-from jaix.environment_factory import EnvironmentConfig
-from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
+import argparse
+import json
+import os
+import uuid
+
+import pandas as pd
 from jaix.env.singular.ec_env import ECEnvironmentConfig
-from ttex.config import ConfigurableObjectFactory as COF, Config
-
-
-from jaix.environment_factory import EnvironmentFactory as EF
-from jaix.env.utils.problem.re_problem.reproblem_adapter import (
-    REProblem,
-    REProblemConfig,
-)
 from jaix.env.utils.archive.action_space import (
     UniformCrossoverActionSpace,
     UniformCrossoverActionSpaceConfig,
 )
+from jaix.env.utils.archive.moomap_archive import (
+    MoomapArchive,
+    MoomapArchiveConfig,
+    MoomapArchiveEntry,
+)
+from jaix.env.utils.problem.re_problem.reproblem_adapter import (
+    REProblem,
+    REProblemConfig,
+)
+from jaix.env.wrapper.archive_action_wrapper import (
+    ArchiveActionWrapper,
+    ArchiveActionWrapperConfig,
+)
+from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
 from jaix.env.wrapper.wrapped_env_factory import WrappedEnvFactory as WEF
-
+from jaix.environment_factory import EnvironmentConfig
+from jaix.environment_factory import EnvironmentFactory as EF
+from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
+from ttex.config import Config
 from ttex.config.config import ConfigFactory as CF
-import argparse
-import json
 
 
 class MoomapXConfig(Config):
     def __init__(
         self,
         moomap_config: MoomapArchiveConfig,  # Configuration for the Moomap archive
-        env_budget_multiplier: int,  # Budget multiplier for the EC environment
         num_samples: int,  # Number of random samples to prefill the archive with
         num_trials: int,  # Number of trials to run for measuring the success of archive actions
         mode: str = "reproblem",  # Mode for the environment, either "cobi" or "reproblem"
@@ -39,7 +42,6 @@ class MoomapXConfig(Config):
     ):
         super().__init__()
         self.moomap_config = moomap_config
-        self.env_budget_multiplier = env_budget_multiplier
         self.num_samples = num_samples
         self.num_trials = num_trials
         self.seed = seed
@@ -50,7 +52,7 @@ class MoomapXConfig(Config):
         return ArchiveWrapperConfig(
             archive_class=MoomapArchive,
             archive_config=self.moomap_config,
-            replace_reward=False,
+            replace_reward=True,
             passthrough=True,
         )
 
@@ -66,7 +68,7 @@ class MoomapXConfig(Config):
     def generate_env_config(self) -> EnvironmentConfig:
 
         ec_env_config = ECEnvironmentConfig(
-            budget_multiplier=self.env_budget_multiplier
+            budget_multiplier=1  # This is overriden anyway since we do not stop based on the enviornment
         )
         if self.mode == "cobi":
             raise NotImplementedError("Cobi mode is not implemented yet.")
@@ -98,7 +100,7 @@ class MoomapX:
         wa_env = WEF.wrap(env, wrappers)
         for _ in range(config.num_samples):
             action = wa_env.action_space.sample()
-            obs, reward, terminated, truncated, info = wa_env.step(action)
+            _obs, _reward, _terminated, _truncated, _info = wa_env.step(action)
         MoomapX.process_archive(wa_env.archive)
         return wa_env.archive
 
@@ -108,19 +110,26 @@ class MoomapX:
             # Add original action info to assure same format for entries added from archive action
             info = getattr(entry, "info", {})
             info["env_action"] = getattr(entry, "action", None)
-            setattr(entry, "info", info)
+            entry.info = info
 
     @staticmethod
-    def count_successes(archive: MoomapArchive):
-        archive_stats = archive.get_archive_stats()
-        return (
-            archive_stats[f"add_counter_{archive.n_bins}"]
-            + archive_stats[f"replace_counter_{archive.n_bins}"]
-        )
+    def parse_entry(entry: MoomapArchiveEntry, str_prefix: str = "") -> dict:
+        x = entry.info["env_action"]
+        y = entry.obs
+        fit = entry._fitness
+        bin = entry.bin_idx
+        return {
+            f"{str_prefix}x": x,
+            f"{str_prefix}y": y,
+            f"{str_prefix}fitness": fit,
+            f"{str_prefix}bin": bin,
+        }
 
     @staticmethod
-    def run(config: MoomapXConfig):
+    def run(config: MoomapXConfig, out_dir: str = "."):
         env_config = config.generate_env_config()
+        config_dict = env_config.to_dict()  # Ensure the config is serializable
+        env_list = []
         for env in EF.get_envs(env_config):
             archive = MoomapX.prefill_archive(env, config)
 
@@ -134,42 +143,64 @@ class MoomapX:
                 archive
             )  # Set the prefilled archive in the wrapped environment
 
-            prev_n_success = MoomapX.count_successes(archive)
+            env_id = uuid.uuid4().hex
+            env_info = {
+                "id": env_id,
+                "name": env.name,
+                "func_id": env.func_id,
+                "inst": env.inst,
+                "ref_dirs": archive.binner.ref_dirs.tolist(),
+                "ideal": archive.binner.ideal.tolist(),
+                "nadir": archive.binner.nadir.tolist(),
+            }
+            env_list.append(env_info)
+            res_list = []
+
             # Now measure the success of archive actions
             for _ in range(config.num_trials):
                 action = (
                     waa_env.action_space.sample()
                 )  # Sample from the archive action space
-                archive_stats = archive.get_archive_stats()
-                # TODO: get current state of the archive
+                res_dict = {f"a{i}_bin": v for i, v in enumerate(action)}
+                res_dict["id"] = env_id
+                # add prefix to all keys in archive_stats
+                archive_stats = {
+                    f"old_{k}": v for k, v in archive.get_archive_stats().items()
+                }
+                res_dict.update(archive_stats)
                 try:
-                    obs, reward, terminated, truncated, info = waa_env.step(action)
+                    _obs, reward, _terminated, _truncated, info = waa_env.step(action)
+                    for i, p in enumerate(info["parents"]):
+                        res_dict.update(MoomapX.parse_entry(p, str_prefix=f"p{i}_"))
+                    child = archive.last_entry
+                    res_dict.update(MoomapX.parse_entry(child, str_prefix="c_"))
+                    res_dict["reward"] = reward
+                    res_dict["added"] = child.added
+                    archive_stats = {
+                        f"new_{k}": v for k, v in archive.get_archive_stats().items()
+                    }
+                    res_dict.update(archive_stats)
                 except AssertionError as e:
                     assert str(e) == "Not enough parents found in the archive"
-                    continue
-                new_n_success = MoomapX.count_successes(archive)
-                if new_n_success > prev_n_success:
-                    print(f"Action {action} was successful!")
-                else:
-                    print(f"Action {action} was NOT successful. ")
-                prev_n_success = new_n_success
-
+                # TODO: add HV as a metric to the archive stats
+                res_list.append(res_dict)
             env.close()
-
-            # TODO: evaluate the success of the action based on if a new sample was added
-            # TODO: also determine the distance in objective and search space between the parents
-            #
-            # For now, just print the info
-
-        # TODO: turn into a dataframe
-        # TODO: figure out which cobi problems are interesting
-        # Might still need to create a suite so that I don't have to create a new config for each new one
-        #
-        #
-        #
-        #
+            df = pd.DataFrame(res_list)
+            df.to_csv(os.path.join(out_dir, f"results_{env_id}.csv"), index=False)
+        # save experiment and envs info
+        experiment_info = {
+            "config": config_dict,
+            "envs": env_list,
+        }
+        with open(os.path.join(out_dir, "experiment_info.json"), "w") as f:
+            json.dump(experiment_info, f, indent=4)
 
 
+# TODO: Postprocessing that also determines distances
+# TODO: figure out which cobi problems are interesting
+# TODO: add HV as metric to archive stats by implementing an unbounded HV archive + non_dominated
+#
+#
 def parse_args():
     parser = argparse.ArgumentParser(description="Run MoomapX experiment")
     parser.add_argument(
@@ -179,9 +210,18 @@ def parse_args():
     return args
 
 
+def main(config_file: str, out_dir: str = "."):
+    with open(config_file, "r") as f:
+        run_config = json.load(f)
+    config = CF.from_dict(run_config, context=globals())
+    experiment_id = uuid.uuid4().hex
+    # Make folder for experiment results for this experiment run
+    out_dir = os.path.join(out_dir, f"x_{experiment_id}")
+    os.makedirs(out_dir, exist_ok=False)
+    MoomapX.run(config, out_dir=out_dir)
+    return out_dir
+
+
 if __name__ == "__main__":
     args = parse_args()
-    with open(args.config_file, "r") as f:
-        run_config = json.load(f)
-    config = CF.from_dict(run_config)
-    MoomapX.run(config)
+    main(args.config_file, out_dir=".")

@@ -1,4 +1,6 @@
+import random
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any, Generic, TypeVar
 
 import matplotlib.pyplot as plt
@@ -7,7 +9,6 @@ import seaborn as sns
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
-from enum import Enum
 from ttex.config import Config, ConfigurableObject
 from ttex.config import ConfigurableObjectFactory as COF
 
@@ -193,6 +194,11 @@ class BinArchive(ConfigurableObject, Archive):
             archive_entry, BinArchiveEntry
         ), "archive_entry must be a BinArchiveEntry"
         bin_idx = self.binner.get_bin(archive_entry.bin_sample)
+        if bin_idx == -1:  # Invalid bin index, do not add the sample
+            archive_entry.bin_idx = bin_idx  # Store the bin index in the entry
+            archive_entry.added = False  # Store whether the entry was added or not
+            stats = self.get_archive_stats(bin_stats=True, hit_bin=bin_idx, added=False)
+            return stats
         self.hit_counter[bin_idx] += 1  # Increment hit counter for this bin
 
         if len(self.map[bin_idx]) < self.np_bin:
@@ -250,16 +256,15 @@ class BinArchive(ConfigurableObject, Archive):
         if len(self.map[bin_idx]) == 0:
             return None
         if self.elite_selection_strategy == EliteSelectionStrategy.RANDOM:
-            return np.random.choice(self.map[bin_idx])
+            return random.choice(self.map[bin_idx])
         elif self.elite_selection_strategy == EliteSelectionStrategy.FITPROP:
             fitnesses = np.array([entry.fitness for entry in self.map[bin_idx]])
-            print(self.map[bin_idx][0].__dict__)
-            print(fitnesses)  # Debugging line to check fitnesses
             # Convert fitness to a probability distribution (lower fitness = higher probability)
             probabilities = 1 / (fitnesses + 1e-8)  # Avoid division by zero
             probabilities /= probabilities.sum()  # Normalize to sum to 1
-            print(probabilities)  # Debugging line to check probabilities
-            return np.random.choice(self.map[bin_idx], p=probabilities)
+            return random.choices(
+                self.map[bin_idx], weights=probabilities.tolist(), k=1
+            )[0]
         elif self.elite_selection_strategy == EliteSelectionStrategy.BEST:
             # Return the sample with the best fitness in the bin
             archive_entry = min(self.map[bin_idx], key=lambda x: x.fitness)
