@@ -76,10 +76,16 @@ def test_uniform_crossover_action_space_translate():
     action_space = COF.create(UniformCrossoverActionSpace, config, archive=archive)
 
     action = [0, 2, 1]
-    child = action_space.translate(action)
+    translate_out = action_space.translate(action)
+    child = translate_out["offspring"]
 
     assert child[0] == 0
     assert child[1] == np.mean(action)
+
+    parents = translate_out["parents"]
+    assert len(parents) == 3
+    for i, p in enumerate(parents):
+        assert p == archive.get(action[i]), f"Parent {i} does not match expected"
 
 
 def test_simple():
@@ -92,4 +98,24 @@ def test_simple():
     action_space = COF.create(UniformCrossoverActionSpace, config, archive=archive)
     for i in range(5):
         trans_act = action_space.translate([i])
-        assert trans_act == i
+        assert trans_act["offspring"] == i
+
+
+def test_with_nested_crossover_attribute():
+    config = UniformCrossoverActionSpaceConfig(
+        crossover_attribute="info.nested.sample", num_parents=2
+    )
+    archive = DummyArchive(max_size=5)
+    for i in range(5):
+        entry = DummyArchiveEntry(sample=np.array([i]), fitness=float(i))
+        setattr(
+            entry,
+            "info",
+            {"nested": {"sample": np.array([i, i + 1], dtype=np.float32)}},
+        )
+        archive.add(entry)
+    action_space = COF.create(UniformCrossoverActionSpace, config, archive=archive)
+    for _ in range(5):
+        random_action = np.random.randint(0, 5, size=2)
+        trans_act = action_space.translate(random_action)
+        assert len(trans_act) == 2

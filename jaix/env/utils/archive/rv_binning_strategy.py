@@ -34,6 +34,9 @@ class RVBinningStrategy(BinningStrategy[np.ndarray], ConfigurableObject):
         """
         Given an objective vector, return the bin index it belongs to.
         """
+        if any(np.isnan(sample)):
+            # RV Binning strategy cannot handle NaN values, return -1 to indicate an invalid bin
+            return -1
         niches, _, _ = associate_to_niches(
             sample.reshape(1, -1), self.ref_dirs, self.ideal, self.nadir
         )

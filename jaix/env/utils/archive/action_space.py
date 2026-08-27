@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 from gymnasium.spaces import MultiDiscrete, Space
 from ttex.config import Config, ConfigurableObject
+from ttex.xp_log.tracker.parser import Parser
 
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 
@@ -77,7 +78,7 @@ class UniformCrossoverActionSpace(ArchiveActionSpace, ConfigurableObject):
         assert self.action_space.dtype is not None, "Action space dtype is not defined"
         archive_content = self.pick(action)
         parents = [
-            getattr(p, self.crossover_attribute)
+            Parser().retrieve_val(p, self.crossover_attribute)
             for p in archive_content
             if p is not None
         ]
@@ -85,15 +86,15 @@ class UniformCrossoverActionSpace(ArchiveActionSpace, ConfigurableObject):
             len(parents) == self.num_parents
         ), "Not enough parents found in the archive"
 
+        offspring: np.ndarray | np.float32
         # Treat numerical values and numpy arrays differently
+        # Convert everthing to floats since we are averaging them, and the action space is defined as float32
         if all(isinstance(p, numbers.Number) for p in parents):
-            offspring = self.action_space.dtype.type(np.mean(parents))
+            offspring = np.float32(np.mean(parents))
         elif all(isinstance(p, np.ndarray) for p in parents):
-            offspring = np.asarray(
-                np.mean(parents, axis=0), dtype=self.action_space.dtype
-            )
+            offspring = np.asarray(np.mean(parents, axis=0), dtype=np.float32)
         else:
             raise TypeError(
                 f"Parents must be all numbers or all numpy arrays, got types: {[type(p) for p in parents]}"
             )
-        return offspring
+        return {"parents": archive_content, "offspring": offspring}

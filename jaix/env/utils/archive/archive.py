@@ -31,6 +31,7 @@ class Archive(ABC):
     def __init__(self, max_size: int | None = None):
         # Record stats over time
         self._max_size = max_size
+        self.last_entry: ArchiveEntry | None = None
         self.reset()
 
     def reset(self) -> None:
@@ -108,6 +109,7 @@ class Archive(ABC):
         self.stats_rows.append(result_dict)
         new_score = self.score
         reward = new_score - prev_score
+        self.last_entry = entry
         return reward
 
     @abstractmethod

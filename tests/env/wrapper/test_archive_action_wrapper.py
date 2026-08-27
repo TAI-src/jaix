@@ -73,7 +73,7 @@ def test_step():
         n_points_new == n_points_old + 1
     ), "Number of points in the archive should have increased by 1"
     assert (
-        info["archive_action"] == expected_attribute
+        info["env_action"] == expected_attribute
     ), "The offspring in the info should match the expected offspring"
     entry = wrapped_env.archive.get(9)
     assert (
