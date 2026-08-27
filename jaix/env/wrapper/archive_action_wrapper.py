@@ -3,8 +3,8 @@ from ttex.config import Config, ConfigurableObject
 from ttex.config import ConfigurableObjectFactory as COF
 
 from jaix.env.utils.archive.action_space import ArchiveActionSpace
-from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
 from jaix.env.utils.archive.archive import Archive
+from jaix.env.wrapper.archive_wrapper import ArchiveWrapper, ArchiveWrapperConfig
 
 
 class ArchiveActionWrapperConfig(Config):

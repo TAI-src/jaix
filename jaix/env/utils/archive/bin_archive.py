@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any, Generic, TypeVar
 
 import matplotlib.pyplot as plt
@@ -7,7 +8,6 @@ import seaborn as sns
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
-from enum import Enum
 from ttex.config import Config, ConfigurableObject
 from ttex.config import ConfigurableObjectFactory as COF
 
