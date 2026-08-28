@@ -16,7 +16,7 @@ from jaix.environment_factory import EnvironmentFactory as EF
 from experiment import MoomapX, MoomapXConfig, main
 
 
-def get_config():
+def get_config(mode="reproblem") -> MoomapXConfig:
     config = MoomapXConfig(
         moomap_config=MoomapArchiveConfig(
             np_bin=1,
@@ -27,7 +27,7 @@ def get_config():
         ),
         num_samples=2,
         num_trials=10,
-        mode="reproblem",
+        mode=mode,
         seed=1337,
     )
     return config
@@ -77,3 +77,16 @@ def test_main(tmp_path):
     assert Path(out_dir).exists() and Path(out_dir).is_dir()
     # check that there is a experiment_info.json file in the outpath
     assert (Path(out_dir) / "experiment_info.json").exists()
+
+
+def test_cobi(tmp_path):
+    try:
+        import cobi
+
+        assert cobi is not None
+    except ImportError:
+        # skipt the test if cobi is not installed
+        return
+    config = get_config(mode="cobi")
+    exp_info = MoomapX.run(config, out_dir=tmp_path)
+    assert len(exp_info["envs"]) == 7

@@ -2,7 +2,9 @@ import argparse
 import json
 import os
 import uuid
+from typing import Any
 
+import numpy as np
 import pandas as pd
 from jaix.env.singular.ec_env import ECEnvironmentConfig
 from jaix.env.utils.archive.action_space import (
@@ -14,6 +16,7 @@ from jaix.env.utils.archive.moomap_archive import (
     MoomapArchiveConfig,
     MoomapArchiveEntry,
 )
+from jaix.env.utils.problem.cobi_problem import CobiProblem
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
@@ -29,6 +32,8 @@ from jaix.environment_factory import EnvironmentFactory as EF
 from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
 from ttex.config import Config
 from ttex.config.config import ConfigFactory as CF
+
+from cobi_config_generator import get_configs as get_cobi_configs
 
 
 class MoomapXConfig(Config):
@@ -71,15 +76,24 @@ class MoomapXConfig(Config):
             budget_multiplier=1  # This is overriden anyway since we do not stop based on the enviornment
         )
         if self.mode == "cobi":
-            raise NotImplementedError("Cobi mode is not implemented yet.")
+            cobi_configs = get_cobi_configs()
+            ec_suite_config = ECSuiteConfig(
+                func_classes=[CobiProblem] * len(cobi_configs),
+                func_configs=cobi_configs,
+                env_config=ec_env_config,
+                instances=[1],  # One instance per Cobi config
+                agg_instances=0,
+            )
         elif self.mode == "reproblem":
             ec_suite_config = ECSuiteConfig(
                 func_classes=[REProblem],
                 func_configs=[REProblemConfig()],
                 env_config=ec_env_config,
                 instances=list(range(23)),  # 23 instances of ReProblem
-                agg_instances=1,
+                agg_instances=0,
             )
+        else:
+            raise ValueError(f"Unknown mode: {self.mode}")
 
         env_config = EnvironmentConfig(
             suite_class=ECSuite,
@@ -108,7 +122,7 @@ class MoomapX:
     def process_archive(archive: MoomapArchive):
         for entry in archive.get_all():
             # Add original action info to assure same format for entries added from archive action
-            info = getattr(entry, "info", {})
+            info: dict[str, Any] = getattr(entry, "info", {})
             info["env_action"] = getattr(entry, "action", None)
             entry.info = info
 
@@ -193,11 +207,16 @@ class MoomapX:
             "envs": env_list,
         }
         with open(os.path.join(out_dir, "experiment_info.json"), "w") as f:
-            json.dump(experiment_info, f, indent=4)
+            json.dump(
+                experiment_info,
+                f,
+                indent=4,
+                default=lambda x: x.tolist() if isinstance(x, np.ndarray) else x.item(),
+            )
+        return experiment_info
 
 
 # TODO: Postprocessing that also determines distances
-# TODO: figure out which cobi problems are interesting
 # TODO: add HV as metric to archive stats by implementing an unbounded HV archive + non_dominated
 #
 #

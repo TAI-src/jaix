@@ -24,12 +24,19 @@ class ECSuiteConfig(SuiteConfig):
         functions = list(range(len(func_classes)))
         instances = list(range(15)) if instances is None else instances
 
+        _agg_instances: list[tuple[int, ...]] | None | int
+        if agg_instances is not None and agg_instances == 0:
+            _agg_instances = [
+                (0,)
+            ]  # FIXME: This is a hack to avoid double-initialisation which causes issues when there is only one instance per function. This should be fixed properly in the future.
+        else:
+            _agg_instances = agg_instances
         super().__init__(
             env_class=ECEnvironment,
             env_config=env_config,
             functions=functions,
             instances=instances,
-            agg_instances=agg_instances,
+            agg_instances=_agg_instances,
         )
 
 

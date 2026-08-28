@@ -1,4 +1,9 @@
-from . import CobiProblem, CobiProblemConfig
+from . import (
+    CobiProblem,
+    CobiProblemConfig,
+    RandomCobiProblemConfig,
+    CobiProblemConfigFactory,
+)
 import numpy as np
 import pytest
 from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
@@ -19,7 +24,8 @@ def skip_remaining_tests():
 
 
 def test_cobi_problem():
-    config = CobiProblemConfig(n_var=3)
+    random_config = RandomCobiProblemConfig(n_var=3)
+    config = CobiProblemConfigFactory.create(random_config, inst=1)
     problem = CobiProblem(config, 1)
     f, _ = problem([0, 0, 0])
     assert len(f) == problem.num_objectives
@@ -28,9 +34,11 @@ def test_cobi_problem():
 
 
 def test_cobi_feasible():
-    config = CobiProblemConfig(
+
+    random_config = RandomCobiProblemConfig(
         n_var=3, n_constraints={"Linear": 0, "Quadratic": 0, "Multi": 0}, domain=(-4, 4)
     )
+    config = CobiProblemConfigFactory.create(random_config, inst=1)
     problem = CobiProblem(config, 1)
     x_feasible = [0, 0, 0]
     f, _ = problem(x_feasible)
@@ -42,7 +50,8 @@ def test_cobi_feasible():
 
 
 def test_env_integration():
-    config = CobiProblemConfig(n_var=3)
+
+    config = CobiProblemConfigFactory.create(RandomCobiProblemConfig(n_var=3), inst=1)
     func = COF.create(CobiProblem, config, 1)
     env_config = ECEnvironmentConfig(budget_multiplier=1)
     env = COF.create(ECEnvironment, env_config, func, 0, 1)
