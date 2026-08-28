@@ -1,5 +1,5 @@
+
 import numpy as np
-from typing import Tuple, Union
 from cobi import CobiProblem as OrigCobiProblem
 from ttex.config import Config, ConfigurableObject
 
@@ -14,10 +14,10 @@ class CobiProblemConfig(Config):
     def __init__(
         self,
         n_var: int,
-        objectives: Tuple[dict, dict],
+        objectives: tuple[dict, dict],
         constraints: dict[str, list] | None = None,
-        domain: Tuple[float, float] = (-5, 5),
-        alpha: Union[float, Tuple[float, float]] = (1, 1),
+        domain: tuple[float, float] = (-5, 5),
+        alpha: float | tuple[float, float] = (1, 1),
         boundary_constraints: bool = True,
     ):
         super().__init__()
