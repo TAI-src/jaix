@@ -13,13 +13,14 @@ RUN pip install --prefix=/opt/cobi .
 
 FROM python:3.12
 
-COPY --from=taisrc/cobi /opt/cobi/ /usr/local
+COPY --from=cobi /opt/cobi/ /usr/local
+COPY --from=jaix_base /jaix /jaix
+COPY --from=jaix_base /opt/jaix/ /usr/local
 
-COPY --from=taisrc/jaix_base:latest /jaix /jaix
 WORKDIR /jaix
 
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir -e .
+ARG EXTRAS
+RUN pip install --no-cache-dir -e .${EXTRAS}
 
 WORKDIR /tests
 
