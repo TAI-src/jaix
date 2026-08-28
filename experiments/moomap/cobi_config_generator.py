@@ -2,7 +2,6 @@
 # https://github.com/numbbo/cobi-problem-generator/blob/6042a433387b36f718dc18108f69ba18aa863bb8/examples/simple_examples.py
 
 import numpy as np
-from jaix.env.utils.problem.cobi_problem import CobiProblemConfig
 from ttex.config.config import ConfigFactory as CF
 
 
@@ -248,13 +247,13 @@ def create_few_local_fronts_problem(peak_exponent=0.25):
 def get_config(func_id: int):
     """Get the configuration for a specific example problem based on its function ID."""
     func_map = {
-        1: create_linear_front_problem,
-        2: create_convex_front_problem,
-        3: create_concave_front_problem,
-        4: create_disconnected_linear_front_problem,
-        5: create_disconnected_convex_parts_problem,
-        6: create_many_local_fronts_problem,
-        7: create_few_local_fronts_problem,
+        0: create_linear_front_problem,
+        1: create_convex_front_problem,
+        2: create_concave_front_problem,
+        3: create_disconnected_linear_front_problem,
+        4: create_disconnected_convex_parts_problem,
+        5: create_many_local_fronts_problem,
+        6: create_few_local_fronts_problem,
     }
     if func_id not in func_map:
         raise ValueError(f"Invalid function ID {func_id}. Must be between 1 and 7.")
@@ -267,4 +266,4 @@ def get_config(func_id: int):
 
 def get_configs():
     """Get configurations for all example problems."""
-    return [get_config(func_id) for func_id in range(1, 8)]
+    return [get_config(func_id) for func_id in range(7)]

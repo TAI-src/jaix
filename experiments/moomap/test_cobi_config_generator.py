@@ -1,5 +1,6 @@
-from cobi_config_generator import get_configs
 from jaix.env.utils.problem.cobi_problem import CobiProblemConfig
+
+from cobi_config_generator import get_configs
 
 
 def test_get_configs():

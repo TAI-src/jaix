@@ -79,13 +79,14 @@ def test_main(tmp_path):
     assert (Path(out_dir) / "experiment_info.json").exists()
 
 
-def test_cobi():
+def test_cobi(tmp_path):
     try:
-        import cobi  # noqa: F401
+        import cobi
 
         assert cobi is not None
     except ImportError:
         # skipt the test if cobi is not installed
         return
     config = get_config(mode="cobi")
-    MoomapX.run(config)
+    exp_info = MoomapX.run(config, out_dir=tmp_path)
+    assert len(exp_info["envs"]) == 7
