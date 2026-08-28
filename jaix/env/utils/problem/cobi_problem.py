@@ -1,4 +1,3 @@
-
 import numpy as np
 from cobi import CobiProblem as OrigCobiProblem
 from ttex.config import Config, ConfigurableObject

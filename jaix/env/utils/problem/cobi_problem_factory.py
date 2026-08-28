@@ -1,4 +1,3 @@
-
 from cobi import create_random_problem
 from ttex.config import Config
 
@@ -23,7 +22,9 @@ class RandomCobiProblemConfig(Config):
         n_constraints: dict[str, int | tuple[int, int]] | None = None,
         boundary_constraints: bool = True,
         quadratic_constraints_size: float | tuple[float, float] = 10,
-        quadratic_constraints_condition_number: float | tuple[float, float] | None = None,
+        quadratic_constraints_condition_number: (
+            float | tuple[float, float] | None
+        ) = None,
         n_multi_constraints_groups: int | tuple[int, int] = 2,
         n_multi_constraints_group_linear: int | tuple[int, int] = (0, 1),
         n_multi_constraints_group_quadratic: int | tuple[int, int] = (2, 3),
