@@ -71,8 +71,9 @@ def test_run(tmp_path):
 
 
 def test_main(tmp_path):
-    config_file = "test_config.json"
-    out_dir = main(config_file=config_file, out_dir=tmp_path)
+    # get config file path based on the current file path
+    config_file = Path(__file__).parent / "test_config.json"
+    out_dir = main(config_file=str(config_file), out_dir=tmp_path)
     # check that there is a folder with experiment id in the outpath
     assert Path(out_dir).exists() and Path(out_dir).is_dir()
     # check that there is a experiment_info.json file in the outpath

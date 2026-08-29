@@ -116,4 +116,5 @@ jobs:
       lint-src: jaix
       pretty: false
       from-scratch: false
+      test-src: "/tests /experiments/moomap"
     secrets: inherit

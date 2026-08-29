@@ -1,0 +1,42 @@
+services:
+  cobi: # Base image for cobi (https://github.com/numbbo/cobi-problem-generator)
+    container_name: cobi
+    env_file: .env
+    image: taisrc/cobi
+    build:
+      context: ../deps
+      dockerfile: ../docker/Dockerfile_cobi
+      target: cobi
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+      cache_from:
+        - taisrc/cobi
+        - type=registry,ref=taisrc/cobi:latest
+
+  kim: # image with kim installed (constant)
+    container_name: kim
+    env_file: .env
+    image: taisrc/kim
+    build:
+      context: ../deps
+      dockerfile: ../docker/Dockerfile_kim
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+      cache_from:
+        - taisrc/kim
+        - type=registry,ref=taisrc/kim:latest
+
+  tabrepo: # Base image for hpo extra (contains tabrepo installation)
+    container_name: tabrepo
+    env_file: .env
+    image: taisrc/tabrepo
+    build:
+        context: ../deps/
+        dockerfile: ../docker/Dockerfile_tabrepo
+        shm_size: '6gb'
+        args:
+            BUILDKIT_INLINE_CACHE: "1"  # to enable explicit caching
+        cache_from:
+            - taisrc/tabrepo
+            - type=registry,ref=taisrc/tabrepo:latest
+    shm_size: '16gb'
