@@ -2,26 +2,17 @@
 
 ## constant images
 
-There are some expensive images to build that can be assumed to be stable. These are not rebuilt with CI/CD to save on testing time.
-These are:
-- tabrepo
-- kim
+Dependencies are built into constant docker images that are not updatedthrough CI/CD. This is to save on unnecessary build time (some of them are expensive), but also to make sure that the builds are reproducible and stable. The images are built from this repository and pushed to DockerHub.
 
-If they do need to be rebuilt, run from this repository
-```
-DOCKER_BUILDKIT=1 docker build --shm-size=16g \
-  -t taisrc/tabrepo \
-  -f Dockerfile_tabrepo \
-  ../deps/
-```
+To modify the images, you can build them locally and push to DockerHub.
 
 ```
-DOCKER_BUILDKIT=1 docker build \
-  -t taisrc/kim \
-  -f Dockerfile_kim \
-  .
+docker compose -f compose.build-deps.yml build
+docker compose -f compose.build-deps.yml push
 ```
 
-To update the versions:
-- tabrepo: pull changes into subrepo
-- kim: change version tag in Dockerfile_kim
+These dependency images are currently:
+
+- kim, containing kimpy and the kim model for jaix_ase
+- tabrepo, containing the tabrepo with preloaded data for jaix_hpo
+- cobi, containing cobi package (since it is not on pypi) for jaix_cobi
