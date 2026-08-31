@@ -53,14 +53,15 @@ class BinArchiveConfig(Config, Generic[T]):
         binning_strategy: type[BinningStrategy[T]],
         binning_config: Config,
         archive_entry_class: type[BinArchiveEntry[T]],
-        np_bin: int = 1,
+        np_bin: (
+            int | list[int]
+        ) = 1,  # -1 indicates unlimited number of points per bin, otherwise it is the maximum number of points per bin
         coverage_weight: float = 0.5,  # weight for coverage in the score function
         allow_close_elites: bool = True,  # whether to allow getting closest elites when a bin is empty
         elite_selection_strategy: EliteSelectionStrategy = EliteSelectionStrategy.BEST,  # strategy for selecting the elite in a bin (best, random, etc.)
     ):
         Config.__init__(self)
         self.n_bins = n_bins
-        self.np_bin = np_bin
         self.coverage_weight = coverage_weight
         self.max_fitness = max_fitness
         self.binning_strategy = binning_strategy
@@ -69,7 +70,10 @@ class BinArchiveConfig(Config, Generic[T]):
         self.archive_entry_class = archive_entry_class
         self.elite_selection_strategy = elite_selection_strategy
 
-        assert np_bin >= 1, "np_bin must be at least 1"
+        if isinstance(np_bin, int):
+            self.np_bin = [np_bin] * n_bins
+        else:
+            self.np_bin = np_bin
 
 
 class BinArchive(ConfigurableObject, Archive):
@@ -183,7 +187,11 @@ class BinArchive(ConfigurableObject, Archive):
 
         return stat_dict
 
-    def _add(self, archive_entry: ArchiveEntry) -> dict[str, Any]:
+    def _add(self, entries: list[ArchiveEntry]) -> list[dict[str, Any]]:
+        stats_list = [self._add_single(entry) for entry in entries]
+        return stats_list
+
+    def _add_single(self, archive_entry: ArchiveEntry) -> dict[str, Any]:
         """
         Add a sample to the archive if it is better than the current best in the bin.
         If the bin is empty, add the sample directly.
@@ -197,11 +205,13 @@ class BinArchive(ConfigurableObject, Archive):
         if bin_idx == -1:  # Invalid bin index, do not add the sample
             archive_entry.bin_idx = bin_idx  # Store the bin index in the entry
             archive_entry.added = False  # Store whether the entry was added or not
-            stats = self.get_archive_stats(bin_stats=True, hit_bin=bin_idx, added=False)
-            return stats
+            stats_dict = self.get_archive_stats(
+                bin_stats=True, hit_bin=bin_idx, added=False
+            )
+            return stats_dict
         self.hit_counter[bin_idx] += 1  # Increment hit counter for this bin
 
-        if len(self.map[bin_idx]) < self.np_bin:
+        if len(self.map[bin_idx]) < self.np_bin[bin_idx] or self.np_bin[bin_idx] == -1:
             # bin has space, add the sample
             added = self._append(archive_entry, bin_idx)
         else:
@@ -209,14 +219,15 @@ class BinArchive(ConfigurableObject, Archive):
         archive_entry.bin_idx = bin_idx  # Store the bin index in the entry
         archive_entry.added = added  # Store whether the entry was added or not
         # Update stats after adding/replacing
-        stats = self.get_archive_stats(bin_stats=True, hit_bin=bin_idx, added=added)
-        return stats
+        return self.get_archive_stats(bin_stats=True, hit_bin=bin_idx, added=added)
 
     def _append(self, archive_entry: BinArchiveEntry, bin_idx: int) -> bool:
         """
         Logic for adding an entry to a bin that is not full
         """
-        assert len(self.map[bin_idx]) < self.np_bin, "bin is full, cannot add entry"
+        assert (
+            len(self.map[bin_idx]) < self.np_bin[bin_idx]
+        ), "bin is full, cannot add entry"
         # bin is not full, add the sample
         self.map[bin_idx].append(archive_entry)
         self.n_points += 1
@@ -232,7 +243,7 @@ class BinArchive(ConfigurableObject, Archive):
         Logic for replacing the worst entry in a full bin
         """
         assert (
-            len(self.map[bin_idx]) == self.np_bin
+            len(self.map[bin_idx]) == self.np_bin[bin_idx]
         ), "bin is not full, cannot replace entry"
         # bin is full, check if we can replace the worst entry
         worst_entry = max(self.map[bin_idx], key=lambda x: x.fitness)

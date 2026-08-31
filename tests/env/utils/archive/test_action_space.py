@@ -14,8 +14,11 @@ def create_dummy_archive_with_samples(
     num_samples: int, max_size: int = 10
 ) -> DummyArchive:
     archive = DummyArchive(max_size=max_size)
-    for i in range(num_samples):
-        archive.add(DummyArchiveEntry(sample=np.array([0, int(i)]), fitness=float(i)))
+    entries = [
+        DummyArchiveEntry(sample=np.array([0, int(i)]), fitness=float(i))
+        for i in range(num_samples)
+    ]
+    archive.add(entries)
     return archive
 
 
@@ -93,8 +96,10 @@ def test_simple():
         crossover_attribute="sample", num_parents=1
     )
     archive = DummyArchive(max_size=5)
-    for i in range(5):
-        archive.add(DummyArchiveEntry(sample=np.array([i]), fitness=float(i)))
+    entries = [
+        DummyArchiveEntry(sample=np.array([i]), fitness=float(i)) for i in range(5)
+    ]
+    archive.add(entries)
     action_space = COF.create(UniformCrossoverActionSpace, config, archive=archive)
     for i in range(5):
         trans_act = action_space.translate([i])
@@ -113,7 +118,7 @@ def test_with_nested_crossover_attribute():
             "info",
             {"nested": {"sample": np.array([i, i + 1], dtype=np.float32)}},
         )
-        archive.add(entry)
+        archive.add([entry])
     action_space = COF.create(UniformCrossoverActionSpace, config, archive=archive)
     for _ in range(5):
         random_action = np.random.randint(0, 5, size=2)

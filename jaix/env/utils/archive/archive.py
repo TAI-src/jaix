@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
@@ -5,6 +6,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+
+from jaix.utils import globals
+
+logger = logging.getLogger(globals.LOGGER_NAME)
 
 T = TypeVar("T")
 
@@ -28,10 +33,11 @@ class Archive(ABC):
     This mainly implements recording and plotting stats over time, but the actual archive implementation is left to the subclasses.
     """
 
-    def __init__(self, max_size: int | None = None):
+    def __init__(self, max_size: int | None = None) -> None:
         # Record stats over time
         self._max_size = max_size
         self.last_entry: ArchiveEntry | None = None
+
         self.reset()
 
     def reset(self) -> None:
@@ -82,7 +88,7 @@ class Archive(ABC):
         Return the score of the archive as a float
         """
 
-    def simulate_add(self, entry: ArchiveEntry, **kwargs) -> tuple[bool, float]:
+    def simulate_add(self, entries: list[ArchiveEntry], **kwargs) -> tuple[bool, float]:
         """
         Simulate adding an entry to the archive without actually adding it
         Returns a tuple (added, reward) where added is a boolean
@@ -94,22 +100,23 @@ class Archive(ABC):
         )
 
     @abstractmethod
-    def _add(self, entry: ArchiveEntry) -> dict[str, Any]:
+    def _add(self, entries: list[ArchiveEntry]) -> list[dict[str, Any]]:
         """
         Internal method to add an entry to the archive
         Returns a dictionary with the result of the addition
         """
 
-    def add(self, entry: ArchiveEntry) -> float:
+    def add(self, entries: list[ArchiveEntry]) -> float:
         """
         Add an entry to the archive and return the reward obtained from adding it.
         """
         prev_score = self.score
-        result_dict = self._add(entry)
-        self.stats_rows.append(result_dict)
+        result_dicts = self._add(entries)
+        self.stats_rows.extend(result_dicts)
         new_score = self.score
         reward = new_score - prev_score
-        self.last_entry = entry
+        self.last_entry = entries[-1] if entries else None
+
         return reward
 
     @abstractmethod

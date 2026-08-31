@@ -32,7 +32,10 @@ class DummyArchive(Archive):
     def get_archive_stats(self) -> dict[str, Any]:
         return {"score": self._score, "num_points": self.num_points}
 
-    def _add(self, entry: ArchiveEntry) -> dict[str, Any]:
+    def _add(self, entries: list[ArchiveEntry]) -> list[dict[str, Any]]:
+        return [self._add_single(entry) for entry in entries]
+
+    def _add_single(self, entry: ArchiveEntry) -> dict[str, Any]:
         assert isinstance(entry, DummyArchiveEntry), "Entry must be a DummyArchiveEntry"
         # Simple archive of max_size, we just remove the oldest sample if we exceed max_size
         if self.max_size is not None and self.num_points >= self.max_size:
@@ -62,7 +65,7 @@ def test_archive_add():
     initial_num_points = archive.num_points
 
     # Add a sample with fitness 10.0
-    reward = archive.add(DummyArchiveEntry(sample="sample1", fitness=10.0))
+    reward = archive.add([DummyArchiveEntry(sample="sample1", fitness=10.0)])
     assert reward == 10.0, "Reward should be equal to the fitness value"
     assert archive.score == initial_score + 10.0, "Score should be updated correctly"
     assert (
@@ -70,7 +73,7 @@ def test_archive_add():
     ), "Number of points should be incremented"
 
     # Add another sample with fitness 5.0
-    reward = archive.add(DummyArchiveEntry(sample="sample2", fitness=5.0))
+    reward = archive.add([DummyArchiveEntry(sample="sample2", fitness=5.0)])
     assert reward == 5.0, "Reward should be equal to the fitness value"
     assert archive.score == initial_score + 15.0, "Score should be updated correctly"
     assert (
@@ -90,9 +93,10 @@ def test_archive_add():
 def test_plot(tmp_path):
     archive = DummyArchive(max_size=10)
     # Add some samples to the archive
-    for i in range(5):
-        archive.add(DummyArchiveEntry(sample=f"sample{i}", fitness=float(i) * 2))
-
+    entries = [
+        DummyArchiveEntry(sample=f"sample{i}", fitness=float(i) * 2) for i in range(5)
+    ]
+    archive.add(entries)
     fig_path = osp.join(tmp_path, "archive_stats.png")
     fig, ax = archive.plot_stats(
         fig_path=fig_path

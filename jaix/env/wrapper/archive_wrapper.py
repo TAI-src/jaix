@@ -85,6 +85,6 @@ class ArchiveWrapper(ConfigurableObject, PassthroughWrapper):
             truncated=trunc,
             info=info,
         )
-        archive_reward = self.archive.add(entry)
+        archive_reward = self.archive.add([entry])
         ret_reward = archive_reward if self.replace_reward else r
         return obs, ret_reward, term, trunc, info

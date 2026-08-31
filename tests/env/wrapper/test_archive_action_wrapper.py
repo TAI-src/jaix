@@ -44,14 +44,16 @@ def create_dummy_archive_action_wrapper(
     for i in range(num_samples):
         sample = env.action_space.sample()  # Sample from the environment's action space
         wrapper.archive.add(
-            DummyStepArchivEntry(
-                action=sample,
-                obs=None,
-                reward=float(i),
-                terminated=False,
-                truncated=False,
-                info={},
-            )
+            [
+                DummyStepArchivEntry(
+                    action=sample,
+                    obs=None,
+                    reward=float(i),
+                    terminated=False,
+                    truncated=False,
+                    info={},
+                )
+            ]
         )
 
     return wrapper
