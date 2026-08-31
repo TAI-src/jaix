@@ -3,12 +3,14 @@
 import logging
 
 import numpy as np
-from gymnasium import spaces
+from gymnasium import spaces, Env
 from ttex.config import Config, ConfigurableObject
 
 from jaix.env.singular.singular_environment import SingularEnvironment
 from jaix.env.utils.problem.static_problem import StaticProblem
 from jaix.utils import globals
+
+from typing import cast
 
 logger = logging.getLogger(globals.LOGGER_NAME)
 
@@ -139,3 +141,20 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
     @property
     def name(self):
         return f"ECEnvironment/{self.func.__class__.__name__}"
+
+
+def get_ideal_nadir(env: Env) -> tuple[np.ndarray, np.ndarray]:
+    assert isinstance(
+        env.unwrapped, ECEnvironment
+    ), "Environment must be an ECEnvironment"
+    func = env.unwrapped.func
+    assert func.num_objectives > 1, "Function must be multi-objective"
+
+    ipoint = getattr(env.func, "ideal_point", None)
+    npoint = getattr(env.func, "nadir_point", None)
+    assert (
+        ipoint is not None and npoint is not None
+    ), "Function must have ideal and nadir points"
+    ideal_point: np.ndarray = cast(np.ndarray, ipoint)
+    nadir_point: np.ndarray = cast(np.ndarray, npoint)
+    return ideal_point, nadir_point

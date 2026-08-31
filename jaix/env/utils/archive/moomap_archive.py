@@ -1,11 +1,9 @@
-from typing import cast
-
 import gymnasium as gym
 import numpy as np
 from ttex.config import Config, ConfigurableObject
 from ttex.config import ConfigurableObjectFactory as COF
 
-from jaix.env.singular.ec_env import ECEnvironment
+from jaix.env.singular.ec_env import get_ideal_nadir
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 from jaix.env.utils.archive.bin_archive import (
     BinArchive,
@@ -80,22 +78,12 @@ class MoomapArchive(BinArchive):
     config_class: type[Config] = MoomapArchiveConfig
 
     def __init__(self, config: MoomapArchiveConfig, env: gym.Env, **kwargs):
-        assert isinstance(
-            env.unwrapped, ECEnvironment
-        ), "MoomapArchive can only be used with ECEnvironment"
-        self.func = env.unwrapped.func
         ConfigurableObject.__init__(self, config)
-        assert self.func.num_objectives > 1, "Function must be multi-objective"
 
         # Generate reference directions
+        self.ideal_point, self.nadir_point = get_ideal_nadir(env)
         self.ref_dirs = get_ref_dirs(self.func.num_objectives, config.num_refpoints)
         self.num_refpoints: int = len(self.ref_dirs)
-        ideal_point = getattr(self.func, "ideal_point", None)
-        nadir_point = getattr(self.func, "nadir_point", None)
-        assert ideal_point is not None, "Function must have ideal_point attribute"
-        assert nadir_point is not None, "Function must have nadir_point attribute"
-        self.ideal_point: np.ndarray = cast(np.ndarray, ideal_point)
-        self.nadir_point: np.ndarray = cast(np.ndarray, nadir_point)
 
         # Create the binning strategy
         self.binning_config = RVBinningStrategyConfig()
