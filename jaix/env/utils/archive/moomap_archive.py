@@ -111,8 +111,6 @@ class MoomapArchive(BinArchive):
         self.n_bins = self.num_refpoints
         if isinstance(self.np_bin, int):
             self.np_bin: list[int] = [self.np_bin] * self.n_bins  # type: ignore
-        else:
-            self.np_bin: list[int] = self.np_bin  # type: ignore
         self.archive_entry_class = MoomapArchiveEntry
         self.max_fitness = np.linalg.norm(self.nadir_point - self.ideal_point)
         Archive.__init__(self, max_size=self.n_bins)
