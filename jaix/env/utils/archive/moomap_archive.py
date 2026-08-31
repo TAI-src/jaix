@@ -30,7 +30,7 @@ class MoomapArchiveConfig(Config):
         elite_selection_strategy: EliteSelectionStrategy = EliteSelectionStrategy.BEST,
     ):
         super().__init__()
-        self._np_bin = np_bin
+        self.np_bin = np_bin
         self.coverage_weight = coverage_weight
         self.allow_close_elites = allow_close_elites
         self.num_refpoints: int | str = num_refpoints
@@ -109,10 +109,10 @@ class MoomapArchive(BinArchive):
         )
         # Manually set the values that are used in the BinArchive
         self.n_bins = self.num_refpoints
-        if isinstance(self._np_bin, int):
-            self.np_bin = [self._np_bin] * self.n_bins
+        if isinstance(self.np_bin, int):
+            self.np_bin: list[int] = [self.np_bin] * self.n_bins  # type: ignore
         else:
-            self.np_bin = self._np_bin
+            self.np_bin: list[int] = self.np_bin  # type: ignore
         self.archive_entry_class = MoomapArchiveEntry
         self.max_fitness = np.linalg.norm(self.nadir_point - self.ideal_point)
         Archive.__init__(self, max_size=self.n_bins)
