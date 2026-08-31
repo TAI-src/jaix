@@ -79,7 +79,7 @@ def get_archive(
             entry = DummyArchiveEntry(sample, fitness)
             a_stats = archive.get_archive_stats()
             prev_counter = a_stats["add_counter_5"] + a_stats["replace_counter_5"]
-            archive.add(entry)
+            archive.add([entry])
             assert (
                 entry.bin_idx is not None
             ), "Entry should have a bin index after being added"
@@ -138,7 +138,7 @@ def test_replace():
     replaced = archive._replace(entry_2, bin_idx=0)
     assert not replaced, "Sample should not replace since it has worse fitness"
     assert (
-        len(archive.map[0]) == archive.np_bin
+        len(archive.map[0]) == archive.np_bin[0]
     ), "There should be only 2 samples in bin 0 after replacement attempt"
     entry_3 = DummyArchiveEntry(sample=entry_2.sample, fitness=3.0)
     replaced = archive._replace(entry_3, bin_idx=0)

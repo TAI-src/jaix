@@ -23,7 +23,7 @@ from jaix.env.wrapper.archive_wrapper import EnvironmentStepEntry
 class MoomapArchiveConfig(Config):
     def __init__(
         self,
-        np_bin: int,
+        np_bin: int | list[int],
         coverage_weight: float,
         allow_close_elites: bool = True,
         num_refpoints: int | str = "original",
@@ -56,7 +56,7 @@ class MoomapArchiveEntry(
         EnvironmentStepEntry.__init__(
             self, action, np.asarray(obs), reward, terminated, truncated, info
         )
-        self._fitness = (
+        self._fitness: float = (
             np.nan
         )  # This is the distance to ideal which is not known at the time of creation. It will be set when the entry is added to the archive.
 
@@ -69,7 +69,7 @@ class MoomapArchiveEntry(
         """
         Set the fitness of the entry based on the distance to the ideal point.
         """
-        self._fitness = np.linalg.norm(self.obs - ideal_point)
+        self._fitness = float(np.linalg.norm(self.obs - ideal_point))
 
 
 class MoomapArchive(BinArchive):
@@ -109,15 +109,18 @@ class MoomapArchive(BinArchive):
         )
         # Manually set the values that are used in the BinArchive
         self.n_bins = self.num_refpoints
+        if isinstance(self.np_bin, int):
+            self.np_bin: list[int] = [self.np_bin] * self.n_bins  # type: ignore
         self.archive_entry_class = MoomapArchiveEntry
         self.max_fitness = np.linalg.norm(self.nadir_point - self.ideal_point)
         Archive.__init__(self, max_size=self.n_bins)
         super().reset()  # Reset the BinArchive, which will also init the bins and the stats
 
-    def add(self, entry: ArchiveEntry):
-        assert isinstance(
-            entry, MoomapArchiveEntry
-        ), "Entry must be a MoomapArchiveEntry"
-        # Set the fitness of the entry based on the distance to the ideal point
-        entry.set_fitness(self.ideal_point)
-        return super().add(entry)
+    def add(self, entries: list[ArchiveEntry]) -> float:
+        for entry in entries:
+            assert isinstance(
+                entry, MoomapArchiveEntry
+            ), "Entry must be a MoomapArchiveEntry"
+            # Set the fitness of the entry based on the distance to the ideal point
+            entry.set_fitness(self.ideal_point)
+        return super().add(entries)

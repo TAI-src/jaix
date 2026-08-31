@@ -1,8 +1,11 @@
+import logging
 import os
 from pathlib import Path
 
 from joblib import Memory
 from pymoo.util.ref_dirs import get_reference_directions
+
+from jaix.utils import globals
 
 cache_enabled = os.getenv("JAIX_CACHE_ENABLED", "1") != "0"
 cache_dir = os.getenv("JAIX_CACHE_DIR", "/tmp/jaix-cache")
@@ -12,9 +15,12 @@ memory = Memory(
     verbose=0,
 )
 
+logger = logging.getLogger(globals.LOGGER_NAME)
+
 
 def get_num_refpoints(m: int, method: str):
     if m == 2:
+        logger.debug("Using 100 reference points for 2 objectives")
         return 100
     if method == "original":
         lookup_dict = {3: 91, 5: 210, 8: 156, 10: 275, 15: 135}
@@ -43,6 +49,9 @@ def get_num_refpoints(m: int, method: str):
                 break
     if ref_points is None:
         raise ValueError(f"Unsupported number of objectives: {m!r}")
+    logger.debug(
+        f"Using {ref_points} reference points for {m} objectives based on method {method!r}"
+    )
     return ref_points
 
 

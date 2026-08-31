@@ -64,7 +64,7 @@ def test_add_entry_to_moomap_archive():
     obs, reward, terminated, truncated, info = env.step(action)
     entry = MoomapArchiveEntry(action, obs, reward, terminated, truncated, info)
     # Add entry to the archive
-    score = archive.add(entry)
+    score = archive.add([entry])
     assert np.isnan(score)  # initial add returns NaN because it is about improvement
 
     # Check if the entry was added
@@ -85,7 +85,7 @@ def test_get():
     obs, reward, terminated, truncated, info = env.step(action)
     entry = MoomapArchiveEntry(action, obs, reward, terminated, truncated, info)
     # Add entry to the archive
-    archive.add(entry)
+    archive.add([entry])
 
     # Get the entry from the archive
     retrieved_entry = archive.get(0)
