@@ -143,7 +143,7 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
         return f"ECEnvironment/{self.func.__class__.__name__}"
 
 
-def get_ideal_nadir(env: Env) -> tuple[np.ndarray, np.ndarray]:
+def get_ideal_nadir(env: Env) -> tuple[np.ndarray, np.ndarray, StaticProblem]:
     assert isinstance(
         env.unwrapped, ECEnvironment
     ), "Environment must be an ECEnvironment"
@@ -157,4 +157,4 @@ def get_ideal_nadir(env: Env) -> tuple[np.ndarray, np.ndarray]:
     ), "Function must have ideal and nadir points"
     ideal_point: np.ndarray = cast(np.ndarray, ipoint)
     nadir_point: np.ndarray = cast(np.ndarray, npoint)
-    return ideal_point, nadir_point
+    return ideal_point, nadir_point, func

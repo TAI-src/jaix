@@ -81,7 +81,7 @@ class MoomapArchive(BinArchive):
         ConfigurableObject.__init__(self, config)
 
         # Generate reference directions
-        self.ideal_point, self.nadir_point = get_ideal_nadir(env)
+        self.ideal_point, self.nadir_point, self.func = get_ideal_nadir(env)
         self.ref_dirs = get_ref_dirs(self.func.num_objectives, config.num_refpoints)
         self.num_refpoints: int = len(self.ref_dirs)
 
