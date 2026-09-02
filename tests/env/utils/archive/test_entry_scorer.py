@@ -39,8 +39,10 @@ def generate_entries(
     n_samples: int, problem: REProblem, critical_front: CriticalFrontModes
 ) -> tuple[list[MOEvalEntry], list[MOEvalEntry]]:
     entries = []
+    # Seed so we are sure that the later assertions are correct
+    rng = np.random.default_rng(0)
     for _ in range(n_samples):
-        x = np.random.uniform(problem.lower_bounds, problem.upper_bounds)
+        x = rng.uniform(problem.lower_bounds, problem.upper_bounds)
         y_raw, _ = problem(x)
         entry = MOEvalEntry(x, np.array(y_raw))
         entries.append(entry)

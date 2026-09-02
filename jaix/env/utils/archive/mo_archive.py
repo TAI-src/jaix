@@ -16,6 +16,7 @@ from jaix.env.singular.ec_env import get_ideal_nadir
 from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 from jaix.env.utils.archive.entry_scorer import EntryScorer
 from jaix.env.utils.mo_sizing import get_ref_dirs
+from jaix.utils.dirty_list import DirtyList
 
 
 class MOArchiveEntry(ArchiveEntry[np.ndarray], ABC):
@@ -63,8 +64,8 @@ class MOArchive(Archive, ConfigurableObject):
     def __init__(self, config: MOArchiveConfig, env: gym.Env, **kwargs) -> None:
         ConfigurableObject.__init__(self, config)
         Archive.__init__(self, max_size=config.max_size)
-        self._archived_entries: list[MOArchiveEntry] = []
-        self._hv: float = np.nan
+        self._archived_entries: DirtyList[MOArchiveEntry] = DirtyList([])
+        self._hv: float = 0  # Empty archive has hypervolume of 0
 
         self.ideal_point, self.nadir_point, self.func = get_ideal_nadir(env)
         self.ref_dirs = get_ref_dirs(self.func.num_objectives, config.num_refpoints)
@@ -77,12 +78,12 @@ class MOArchive(Archive, ConfigurableObject):
         )
 
     @property
-    def archived_entries(self) -> list[MOArchiveEntry]:
+    def archived_entries(self) -> DirtyList[MOArchiveEntry]:
         return self._archived_entries
 
     @archived_entries.setter
     def archived_entries(self, entries: list[MOArchiveEntry]) -> None:
-        self._archived_entries = entries
+        self._archived_entries = DirtyList(entries)
         self._hv = np.nan  # Reset the hypervolume score when the archive changes
 
     def _add(self, entries: list[ArchiveEntry]) -> list[dict[str, Any]]:
@@ -125,9 +126,9 @@ class MOArchive(Archive, ConfigurableObject):
             for entry, score in zip(critical_entries, secondary_scores):
                 entry.secondary_score = score
             remaining_slots = self.max_size - len(self.archived_entries)
-            last_entries = sorted(critical_entries, key=lambda e: e.secondary_score)[
-                :remaining_slots
-            ]
+            last_entries = sorted(
+                critical_entries, key=lambda e: e.secondary_score, reverse=True
+            )[:remaining_slots]
             self.archived_entries.extend(last_entries)
         return [self.get_archive_stats()]
 
@@ -162,8 +163,8 @@ class MOArchive(Archive, ConfigurableObject):
         """
         points = np.array([entry.objectives for entry in entries])
         ranks = pareto_rank(points)
-        for entry in entries:
-            entry.rank = ranks[entries.index(entry)]
+        for i, entry in enumerate(entries):
+            entry.rank = int(ranks[i])
         rank = 0
         added = 0
         while added < max_size and rank <= max(ranks):
@@ -181,7 +182,9 @@ class MOArchive(Archive, ConfigurableObject):
         Return the score of the archive as a float.
         The score is the hypervolume of the non-dominated solutions in the archive.
         """
-        if not np.isnan(self._hv):
+        if len(self.archived_entries) == 0:
+            self._hv = 0.0
+        if not np.isnan(self._hv) and not self.archived_entries.dirty:
             return self._hv
         points = np.array([entry.objectives for entry in self.archived_entries])
         if self.hv_approx_samples is None:
@@ -196,6 +199,7 @@ class MOArchive(Archive, ConfigurableObject):
                 method="Rphi-FWE+",
             )
         self._hv = hv
+        self.archived_entries.mark_clean()
         return hv
 
     def get_archive_stats(self) -> dict[str, Any]:

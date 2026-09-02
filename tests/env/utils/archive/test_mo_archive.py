@@ -21,13 +21,14 @@ from .test_entry_scorer import (
 )
 
 
-@pytest.mark.parametrize("keep_dominated", list(KeepDominated))
+@pytest.mark.parametrize("keep_dominated", [KeepDominated.NONE, KeepDominated.STRICT])
 def test_remove_dominated_entries(keep_dominated):
     problem = get_problem()
     better_ranks, worse_ranks = generate_entries(
         20, problem, critical_front=CriticalFrontModes.MIDDLE
     )
     entries = better_ranks + worse_ranks
+    assert len(worse_ranks) > 0
     entries = MOArchive.remove_dominated(entries, keep_dominated=keep_dominated)
     assert len(entries) <= len(better_ranks)
 
@@ -73,9 +74,10 @@ def test_archive_init(n_samples):
     assert archive.max_size == 10
     assert isinstance(archive.num_refpoints, int)
     archive.nadir_point = np.array([1.0, 1.0])
+    assert archive.score == 0
     entry = MOEvalEntry(np.array([0.0]), np.array([0.5, 0.5]))
     # Force add
-    archive.archived_entries.append(entry)
+    archive.archived_entries = [entry]
     score = archive.score
     assert np.isclose(
         score, 0.25, atol=1e-2
@@ -90,7 +92,7 @@ def test_hv_caching():
         hv_approx_samples=262_144,
     )
     archive = MOArchive(config, env=create_env())
-    assert np.isnan(archive._hv)
+    assert archive._hv == 0
     entry = MOEvalEntry(np.array([0.0]), np.array([0.5, 0.5]))
     with patch(
         "jaix.env.utils.archive.mo_archive.hv_approx", return_value=-1
@@ -106,6 +108,26 @@ def test_hv_caching():
     # Check that the reset works
     archive.archived_entries = [entry]
     assert np.isnan(archive._hv)
+
+
+def test_dirty_state():
+    config = MOArchiveConfig(
+        max_size=10,
+        archive_entry_class=MOEvalEntry,
+        secondary_criterion_class=HVContributionScorer,
+        hv_approx_samples=262_144,
+    )
+    archive = MOArchive(config, env=create_env())
+    assert archive.archived_entries.dirty is False
+    entry = MOEvalEntry(np.array([0.0]), np.array([0.5, 0.5]))
+    archive.archived_entries.append(entry)
+    assert archive.archived_entries.dirty is True
+    _ = archive.score
+    assert archive.archived_entries.dirty is False
+    archive.archived_entries.extend([entry, entry])
+    assert archive.archived_entries.dirty is True
+    _ = archive.score
+    assert archive.archived_entries.dirty is False
 
 
 variants = {
@@ -160,8 +182,20 @@ def test_add_entry_to_archive(config):
     comparison_points = np.array([entry.objectives for entry in comparison_entries])
     ranks_kept = pareto_rank(points)
     ranks_comparison = pareto_rank(comparison_points)
-    max_rank_kept = max(ranks_kept)
-    assert max_rank_kept <= max(ranks_comparison)
-    num_better_comparison = sum(r < max_rank_kept for r in ranks_comparison)
-    num_better_kept = sum(r < max_rank_kept for r in ranks_kept)
-    assert num_better_kept == num_better_comparison
+
+    best_ranks = sorted(ranks_comparison, reverse=False)[: len(ranks_kept)]
+    assert min(best_ranks) == best_ranks[0]  # double check intended order
+    assert set(ranks_kept) == set(best_ranks)
+
+    # check according to secondary criterion if the correct ones survived
+    entry_scorer = HVContributionScorer(nadir_point=problem.nadir_point)
+    if np.isnan(entries[0].secondary_score):
+        # Score was not used for comparison, we need to compute it now for the test
+        scores = entry_scorer.score(entries, [])
+    else:
+        # Score was used and we should not recompue it because it might lead to different values
+        scores = [entry.secondary_score for entry in entries]
+    comparison_scores = entry_scorer.score(comparison_entries, [])
+    best_scores = sorted(comparison_scores, reverse=True)[: len(scores)]
+    assert max(best_scores) == best_scores[0]  # double check intended order
+    assert set(scores) == set(best_scores)
