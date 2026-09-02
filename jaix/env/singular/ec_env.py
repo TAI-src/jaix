@@ -1,9 +1,10 @@
 """Defines environment as in EC context"""
 
 import logging
+from typing import cast
 
 import numpy as np
-from gymnasium import spaces
+from gymnasium import Env, spaces
 from ttex.config import Config, ConfigurableObject
 
 from jaix.env.singular.singular_environment import SingularEnvironment
@@ -139,3 +140,20 @@ class ECEnvironment(ConfigurableObject, SingularEnvironment):
     @property
     def name(self):
         return f"ECEnvironment/{self.func.__class__.__name__}"
+
+
+def get_ideal_nadir(env: Env) -> tuple[np.ndarray, np.ndarray, StaticProblem]:
+    assert isinstance(
+        env.unwrapped, ECEnvironment
+    ), "Environment must be an ECEnvironment"
+    func = env.unwrapped.func
+    assert func.num_objectives > 1, "Function must be multi-objective"
+
+    ipoint = getattr(func, "ideal_point", None)
+    npoint = getattr(func, "nadir_point", None)
+    assert (
+        ipoint is not None and npoint is not None
+    ), "Function must have ideal and nadir points"
+    ideal_point: np.ndarray = cast(np.ndarray, ipoint)
+    nadir_point: np.ndarray = cast(np.ndarray, npoint)
+    return ideal_point, nadir_point, func
