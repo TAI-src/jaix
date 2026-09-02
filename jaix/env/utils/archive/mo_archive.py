@@ -18,6 +18,8 @@ from jaix.env.utils.archive.entry_scorer import EntryScorer
 from jaix.env.utils.mo_sizing import get_ref_dirs
 from jaix.utils.dirty_list import DirtyList
 
+from pymoo.algorithms.moo.nsga3 import associate_to_niches, calc_niche_count, niching
+
 
 class MOArchiveEntry(ArchiveEntry[np.ndarray], ABC):
     rank: int = -1
@@ -206,9 +208,65 @@ class MOArchive(Archive, ConfigurableObject):
         """
         Return a dictionary with the current archive stats.
         """
+        points = np.array([entry.objectives for entry in self.archived_entries])
+        niches, dist_to_niches, _ = associate_to_niches(
+            points, self.ref_dirs, self.ideal_point, self.nadir_point
+        )
+        niche_count = calc_niche_count(len(self.ref_dirs), niches)
+        filled_niches = np.sum(niche_count > 0)
+
+        distance_to_ideal = np.linalg.norm(points - self.ideal_point, axis=1)
+        filled_niche_distances = {}
+        for niche in range(len(self.ref_dirs)):
+            distance_to_ideal_niche = distance_to_ideal[niches == niche]
+            avg_dist = (
+                np.mean(distance_to_ideal_niche)
+                if len(distance_to_ideal_niche) > 0
+                else np.nan
+            )
+            min_dist = (
+                np.min(distance_to_ideal_niche)
+                if len(distance_to_ideal_niche) > 0
+                else np.nan
+            )
+            sd_dist = (
+                np.std(distance_to_ideal_niche)
+                if len(distance_to_ideal_niche) > 0
+                else np.nan
+            )
+            filled_niche_distances[niche] = {
+                "avg": avg_dist,
+                "min": min_dist,
+                "std": sd_dist,
+            }
+        niche_perf_avg = np.mean(
+            [
+                filled_niche_distances[n]["avg"]
+                for n in filled_niche_distances
+                if not np.isnan(filled_niche_distances[n]["avg"])
+            ]
+        )
+        niche_min_sd = np.std(
+            [
+                filled_niche_distances[n]["min"]
+                for n in filled_niche_distances
+                if not np.isnan(filled_niche_distances[n]["min"])
+            ]
+        )
+
         return {
             "size": self.size,
             "score": self.score,
+            "avg_dist_to_niches": np.mean(dist_to_niches),
+            "avg_niche_count": np.mean(niche_count),
+            "std_niche_count": np.std(niche_count),
+            "filled_niches": filled_niches,
+            "avg_dist_to_ideal": np.mean(distance_to_ideal),
+            "coverage": (
+                filled_niches / len(self.ref_dirs) if len(self.ref_dirs) > 0 else 0.0
+            ),
+            "niche_perf_avg": niche_perf_avg,
+            "niche_min_sd": niche_min_sd,
         }
 
     def get_all(self) -> list[ArchiveEntry]:
