@@ -1,22 +1,21 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any, cast
 
+import gymnasium as gym
 import numpy as np
 from moocore import (
-    pareto_rank,
-    is_nondominated,
     hv_approx,
     hypervolume,
+    is_nondominated,
+    pareto_rank,
 )
 from ttex.config import Config, ConfigurableObject
 
-from jaix.env.utils.archive.archive import Archive, ArchiveEntry
-import gymnasium as gym
 from jaix.env.singular.ec_env import get_ideal_nadir
-from enum import Enum
-
-from jaix.env.utils.mo_sizing import get_ref_dirs
+from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 from jaix.env.utils.archive.entry_scorer import EntryScorer
+from jaix.env.utils.mo_sizing import get_ref_dirs
 
 
 class MOArchiveEntry(ArchiveEntry[np.ndarray], ABC):
@@ -182,7 +181,7 @@ class MOArchive(Archive, ConfigurableObject):
         Return the score of the archive as a float.
         The score is the hypervolume of the non-dominated solutions in the archive.
         """
-        if self._hv is not np.nan:
+        if not np.isnan(self._hv):
             return self._hv
         points = np.array([entry.objectives for entry in self.archived_entries])
         if self.hv_approx_samples is None:

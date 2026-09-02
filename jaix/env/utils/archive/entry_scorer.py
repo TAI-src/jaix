@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
-from jaix.env.utils.archive.archive import ArchiveEntry
+
 import numpy as np
 from moocore import hv_contributions
 from pymoo.algorithms.moo.nsga3 import associate_to_niches, calc_niche_count, niching
+
+from jaix.env.utils.archive.archive import ArchiveEntry
 
 
 class EntryScorer(ABC):

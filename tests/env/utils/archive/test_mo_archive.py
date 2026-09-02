@@ -1,22 +1,24 @@
-from .test_entry_scorer import (
-    MOEvalEntry,
-    get_problem,
-    generate_entries,
-    CriticalFrontModes,
-)
-from jaix.env.utils.archive.mo_archive import MOArchive, MOArchiveConfig, KeepDominated
+from itertools import product
+from unittest.mock import patch
+
+import numpy as np
 import pytest
-from moocore import pareto_rank, is_nondominated
+from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.archive.entry_scorer import HVContributionScorer
-from ttex.config import ConfigurableObjectFactory as COF
+from jaix.env.utils.archive.mo_archive import KeepDominated, MOArchive, MOArchiveConfig
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
-from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
-import numpy as np
-from unittest.mock import patch
-from itertools import product
+from moocore import is_nondominated, pareto_rank
+from ttex.config import ConfigurableObjectFactory as COF
+
+from .test_entry_scorer import (
+    CriticalFrontModes,
+    MOEvalEntry,
+    generate_entries,
+    get_problem,
+)
 
 
 @pytest.mark.parametrize("keep_dominated", list(KeepDominated))

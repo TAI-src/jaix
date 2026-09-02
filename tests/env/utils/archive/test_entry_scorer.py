@@ -1,18 +1,18 @@
+from enum import Enum
+
+import numpy as np
+import pytest
 from jaix.env.utils.archive.entry_scorer import (
-    EntryScorer,
     HVContributionScorer,
     ReferenceVectorDistanceScorer,
 )
+from jaix.env.utils.archive.mo_archive import MOArchiveEntry
+from jaix.env.utils.mo_sizing import get_ref_dirs
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
-import numpy as np
-from jaix.env.utils.archive.mo_archive import MOArchiveEntry
-from enum import Enum
 from moocore import pareto_rank
-import pytest
-from jaix.env.utils.mo_sizing import get_ref_dirs
 
 
 def get_problem(inst: int = 0):
