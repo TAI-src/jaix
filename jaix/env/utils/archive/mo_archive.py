@@ -24,6 +24,8 @@ from pymoo.algorithms.moo.nsga3 import associate_to_niches, calc_niche_count, ni
 class MOArchiveEntry(ArchiveEntry[np.ndarray], ABC):
     rank: int = -1
     secondary_score: float = np.nan
+    niche: int = -1
+    dist_to_ref: float = np.nan
 
     @abstractmethod
     def parse(self) -> np.ndarray: ...
@@ -214,6 +216,9 @@ class MOArchive(Archive, ConfigurableObject):
         )
         niche_count = calc_niche_count(len(self.ref_dirs), niches)
         filled_niches = np.sum(niche_count > 0)
+        for entry, niche, dist in zip(self.archived_entries, niches, dist_to_niches):
+            entry.niche = int(niche)
+            entry.dist_to_ref = float(dist)
 
         distance_to_ideal = np.linalg.norm(points - self.ideal_point, axis=1)
         filled_niche_distances = {}

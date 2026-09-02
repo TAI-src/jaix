@@ -1,45 +1,46 @@
-from os import stat
-from ttea.config import Config
-from jaix.env.utils.problem.re_problem.reproblem_adapter import (
-    REProblem,
-    REProblemConfig,
-)
-from jaix.env.utils.problem.cobi_problem import CobiProblem, CobiProblemConfig
-from jaix.env.utils.problem.static_problem import StaticProblem
-from cobi_config_generator import get_configs as get_cobi_configs
-from jaix.env.utils.archive.mo_archive import (
-    MOArchiveConfig,
-    MOArchive,
-    MOArchiveEntry,
-    KeepDominated,
-)
-from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
-import numpy as np
+import copy
+import json
 import numbers
+import os
+import uuid
+
+import numpy as np
+import pandas as pd
+from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.archive.entry_scorer import (
     EntryScorer,
     ReferenceVectorDistanceScorer,
 )
-import copy
-import pandas as pd
-import json
-import os
-import uuid
+from jaix.env.utils.archive.mo_archive import (
+    KeepDominated,
+    MOArchive,
+    MOArchiveConfig,
+    MOArchiveEntry,
+)
+from jaix.env.utils.mo_sizing import get_num_refpoints
+from jaix.env.utils.problem.cobi_problem import CobiProblem
+from jaix.env.utils.problem.re_problem.reproblem_adapter import (
+    REProblem,
+    REProblemConfig,
+)
+from jaix.env.utils.problem.static_problem import StaticProblem
+from ttex.config import Config
+
+from cobi_config_generator import get_configs as get_cobi_configs
 
 
 class NSGA3ExperimentConfig(Config):
     def __init__(
         self,
-        mo_archive_config: MOArchiveConfig,
         num_independent_runs: int,
-        num_prefill_samples: int,
-        num_offspring: int,
         num_generations: int,
+        num_prefill_samples: int = -1,
+        num_offspring: int = -1,
         mode: str = "",
         seed: int | None = None,
+        mo_archive_kwargs: dict | None = None,
     ):
         super().__init__()
-        self.mo_archive_config = mo_archive_config
         self.num_independent_runs = num_independent_runs
         self.num_prefill_samples = num_prefill_samples
         self.num_offspring = num_offspring
@@ -51,17 +52,41 @@ class NSGA3ExperimentConfig(Config):
         self.independent_run_seeds = self.rng.integers(
             0, 2**32 - 1, size=num_independent_runs
         )
+        self.mo_archive_kwargs = (
+            mo_archive_kwargs if mo_archive_kwargs is not None else {}
+        )
+
+    def update_defaults(self, problem: StaticProblem):
+        self.mo_archive_config = NSGA3ExperimentConfig.create_mo_archive_config(
+            problem, **self.mo_archive_kwargs
+        )
+        self.num_prefill_samples = (
+            self.mo_archive_config.num_refpoints
+            if self.num_prefill_samples < 0
+            else self.num_prefill_samples
+        )
+        self.num_offspring = (
+            self.mo_archive_config.num_refpoints
+            if self.num_offspring < 0
+            else self.num_offspring
+        )
 
     @staticmethod
     def create_mo_archive_config(
+        problem: StaticProblem,
         secondary_criterion_class: type[EntryScorer] = ReferenceVectorDistanceScorer,
         max_size: int | None = None,
-        keep_dominated: KeepDominated = KeepDominated.NONE,
+        keep_dominated: KeepDominated = KeepDominated.ALL,
         only_new_entries: bool = False,
         hv_approx_samples: int | None = 262_144,
         num_refpoints: int | str = "original",
     ) -> MOArchiveConfig:
-        # TODO: replace maxsize none with default population size
+        if isinstance(num_refpoints, str):
+            n_refpoints: int = get_num_refpoints(problem.num_objectives, num_refpoints)
+        else:
+            n_refpoints = num_refpoints
+        max_size = n_refpoints if max_size is None else max_size
+
         config = MOArchiveConfig(
             archive_entry_class=MOEvalEntry,
             secondary_criterion_class=secondary_criterion_class,
@@ -69,7 +94,7 @@ class NSGA3ExperimentConfig(Config):
             keep_dominated=keep_dominated,
             only_new_entries=only_new_entries,
             hv_approx_samples=hv_approx_samples,
-            num_refpoints=num_refpoints,
+            num_refpoints=n_refpoints,
         )
         return config
 
@@ -117,7 +142,7 @@ class NSGA3Experiment:
         entries = []
         for _ in range(config.num_prefill_samples):
             random_x = config.rng.uniform(problem.lower_bounds, problem.upper_bounds)
-            y_noise, y_raw = env(random_x)
+            _y_noise, y_raw = env(random_x)
             entry = MOEvalEntry(random_x, np.asarray(y_raw))
             entries.append(entry)
         archive.add(entries)
@@ -141,13 +166,13 @@ class NSGA3Experiment:
             found_entry = entry
         else:
             found_entry = archive.get_entry(entry)
-        # TODO: get niche information from the archive if needed
         return {
             "x": found_entry.x,
             "y": found_entry.y,
             "rank": found_entry.rank,
             "sec_score": found_entry.secondary_score,
-            "niche": None,
+            "niche": found_entry.niche,
+            "dist_to_ref": found_entry.dist_to_ref,
         }
 
     @staticmethod
@@ -189,7 +214,7 @@ class NSGA3Experiment:
         offspring_info = []
         entries = []
         for off in offspring:
-            y_noise, y_raw = problem(off)
+            _y_noise, y_raw = problem(off)
             entry = MOEvalEntry(off, np.asarray(y_raw))
             entries.append(entry)
         archive.add(entries)
@@ -204,6 +229,7 @@ class NSGA3Experiment:
     @staticmethod
     def run_single(config: NSGA3ExperimentConfig, out_dir: str = "."):
         for problem in config.generate_problem_list():
+            config.update_defaults(problem)
             results = []
             problem_dict = {"problem": str(problem)}
             archive, all_evaluated = NSGA3Experiment.prefill_archive(problem, config)
@@ -233,8 +259,19 @@ class NSGA3Experiment:
                     results.append(fam_info)
             # create data frame and save to csv
             df = pd.DataFrame(results)
-            file_name = f"{out_dir}/results_{str(problem)}.csv"
+            file_name = f"{out_dir}/results_{problem!s}.csv"
             df.to_csv(file_name, index=False)
+            # Also save the config to a json file
+            config_dict = config.to_dict()
+            with open(f"{out_dir}/config_{problem!s}.json", "w") as f:
+                json.dump(
+                    config_dict,
+                    f,
+                    indent=4,
+                    default=lambda x: (
+                        x.tolist() if isinstance(x, np.ndarray) else x.item()
+                    ),
+                )
         return out_dir
 
     @staticmethod
