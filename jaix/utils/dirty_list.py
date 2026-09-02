@@ -50,3 +50,27 @@ class DirtyList(list[T]):
     @marks_dirty
     def pop(self, index: int = -1) -> T:
         return super().pop(index)
+
+    @marks_dirty
+    def __setitem__(self, index: int | slice, value: Any) -> None:
+        super().__setitem__(index, value)
+
+    @marks_dirty
+    def __delitem__(self, index: int | slice) -> None:
+        super().__delitem__(index)
+
+    @marks_dirty
+    def __iadd__(self, other: Iterable[T]):
+        return super().__iadd__(other)
+
+    @marks_dirty
+    def __imul__(self, n: int):
+        return super().__imul__(n)
+
+    @marks_dirty
+    def sort(self, *args: Any, **kwargs: Any) -> None:
+        super().sort(*args, **kwargs)
+
+    @marks_dirty
+    def reverse(self) -> None:
+        super().reverse()
