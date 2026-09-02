@@ -64,7 +64,8 @@ class MOArchive(Archive, ConfigurableObject):
     def __init__(self, config: MOArchiveConfig, env: gym.Env, **kwargs) -> None:
         ConfigurableObject.__init__(self, config)
         Archive.__init__(self, max_size=config.max_size)
-        self.archived_entries: list[MOArchiveEntry] = []
+        self._archived_entries: list[MOArchiveEntry] = []
+        self._hv: float = np.nan
 
         self.ideal_point, self.nadir_point, self.func = get_ideal_nadir(env)
         self.ref_dirs = get_ref_dirs(self.func.num_objectives, config.num_refpoints)
@@ -76,10 +77,20 @@ class MOArchive(Archive, ConfigurableObject):
             nadir_point=self.nadir_point,
         )
 
+    @property
+    def archived_entries(self) -> list[MOArchiveEntry]:
+        return self._archived_entries
+
+    @archived_entries.setter
+    def archived_entries(self, entries: list[MOArchiveEntry]) -> None:
+        self._archived_entries = entries
+        self._hv = np.nan  # Reset the hypervolume score when the archive changes
+
     def _add(self, entries: list[ArchiveEntry]) -> list[dict[str, Any]]:
         """
         Add an entry to the archive. This method is meant to be implemented by subclasses.
         """
+        self._hv = np.nan  # Reset the hypervolume score when the archive changes
         assert all(
             isinstance(entry, MOArchiveEntry) for entry in entries
         ), "All entries must be of type MOArchiveEntry"
@@ -93,18 +104,25 @@ class MOArchive(Archive, ConfigurableObject):
 
         if self.keep_dominated != KeepDominated.ALL:
             # Only keep non-dominated entries in the archive
-            MOArchive.remove_dominated(self.archived_entries, self.keep_dominated)
+            self.archived_entries = MOArchive.remove_dominated(
+                self.archived_entries, self.keep_dominated
+            )
 
         if self.max_size is not None and len(self.archived_entries) > self.max_size:
             # We need to remove some entries from the archive to keep it within the max size
             max_rank = MOArchive.crit_rank(self.archived_entries, self.max_size)
-            self.archived_entries = [
-                entry for entry in self.archived_entries if entry.rank < max_rank
-            ]
+            # Remember the critical entries as candidates
             critical_entries = [
                 entry for entry in self.archived_entries if entry.rank == max_rank
             ]
-            secondary_scores = self.secondary_criterion.score(critical_entries)
+            # For now, only add the safe entries to the archive, and remove the critical entries. We will add the critical entries back later based on the secondary criterion.
+            self.archived_entries = [
+                entry for entry in self.archived_entries if entry.rank < max_rank
+            ]
+
+            secondary_scores = self.secondary_criterion.score(
+                crit_entries=critical_entries, accepted_entries=self.archived_entries
+            )
             for entry, score in zip(critical_entries, secondary_scores):
                 entry.secondary_score = score
             remaining_slots = self.max_size - len(self.archived_entries)
@@ -164,20 +182,21 @@ class MOArchive(Archive, ConfigurableObject):
         Return the score of the archive as a float.
         The score is the hypervolume of the non-dominated solutions in the archive.
         """
-        # TODO: recompute on addition of new entries, instead of computing it every time
+        if self._hv is not np.nan:
+            return self._hv
+        points = np.array([entry.objectives for entry in self.archived_entries])
         if self.hv_approx_samples is None:
-            hv = hypervolume(
-                self.archived_entries, ref=self.nadir_point, maximise=False
-            )
+            hv = hypervolume(points, ref=self.nadir_point, maximise=False)
         else:
             hv = hv_approx(
-                self.archived_entries,
+                points,
                 ref=self.nadir_point,
                 maximise=False,
                 nsamples=self.hv_approx_samples,
                 seed=None,
                 method="Rphi-FWE+",
             )
+        self._hv = hv
         return hv
 
     def get_archive_stats(self) -> dict[str, Any]:
