@@ -66,11 +66,3 @@ class DirtyList(list[T]):
     @marks_dirty
     def __imul__(self, n: int):
         return super().__imul__(n)
-
-    @marks_dirty
-    def sort(self, *args: Any, **kwargs: Any) -> None:
-        super().sort(*args, **kwargs)
-
-    @marks_dirty
-    def reverse(self) -> None:
-        super().reverse()
