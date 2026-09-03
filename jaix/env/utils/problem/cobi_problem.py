@@ -46,6 +46,7 @@ class CobiProblem(ConfigurableObject, StaticProblem):
             alpha=self.alpha,
             boundary_constraints=self.boundary_constraints,
         )
+        self.name = f"CobiProblem_{inst}_{self.n_var}var_{len(self.objectives)}obj"
 
         StaticProblem.__init__(
             self,
@@ -72,3 +73,6 @@ class CobiProblem(ConfigurableObject, StaticProblem):
             return list(fitness), list(
                 fitness
             )  # return both clean and noisy fitness (same values, cobi-problem is deterministic)
+
+    def __str__(self) -> str:
+        return self.name

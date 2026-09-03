@@ -12,7 +12,12 @@ class EntryScorer(ABC):
     @abstractmethod
     def score(
         self, crit_entries: list[ArchiveEntry], accepted_entries: list[ArchiveEntry]
-    ) -> list[float]: ...
+    ) -> list[float]:
+        """
+        Score the critical individuals according to the secondary criterion.
+        The higher the score, the better the individual is considered.
+        """
+        ...
 
 
 class HVContributionScorer(EntryScorer):
@@ -69,7 +74,6 @@ class ReferenceVectorDistanceScorer(EntryScorer):
             niche_count,
             c_niches,
             c_dist_to_niches,
-            random_state=None,
         )
         # The score of the entry is the inverse position in the sorted list of indices, so that the first entry has the highest score
         scores = [len(indices) - indices.index(i) for i in range(len(crit_entries))]
