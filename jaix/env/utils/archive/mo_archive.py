@@ -26,6 +26,7 @@ class MOArchiveEntry(ArchiveEntry[np.ndarray], ABC):
     secondary_score: float = np.nan
     niche: int = -1
     dist_to_ref: float = np.nan
+    dist_to_ideal: float = np.nan
 
     @abstractmethod
     def parse(self) -> np.ndarray: ...
@@ -105,6 +106,8 @@ class MOArchive(Archive, ConfigurableObject):
         else:
             # All entries are added to the archive, so we extend the archived entries with the new ones
             self.archived_entries.extend(mo_entries)
+
+        self.get_archive_stats()  # Update the archive stats before removing dominated entries
 
         if self.keep_dominated != KeepDominated.ALL:
             # Only keep non-dominated entries in the archive
@@ -216,11 +219,16 @@ class MOArchive(Archive, ConfigurableObject):
         )
         niche_count = calc_niche_count(len(self.ref_dirs), niches)
         filled_niches = np.sum(niche_count > 0)
-        for entry, niche, dist in zip(self.archived_entries, niches, dist_to_niches):
+        distance_to_ideal = np.linalg.norm(points - self.ideal_point, axis=1)
+        ranks = pareto_rank(points)
+        for entry, niche, dist, dist_ideal, rank in zip(
+            self.archived_entries, niches, dist_to_niches, distance_to_ideal, ranks
+        ):
             entry.niche = int(niche)
             entry.dist_to_ref = float(dist)
+            entry.dist_to_ideal = float(dist_ideal)
+            entry.rank = int(rank)
 
-        distance_to_ideal = np.linalg.norm(points - self.ideal_point, axis=1)
         filled_niche_distances = {}
         for niche in range(len(self.ref_dirs)):
             distance_to_ideal_niche = distance_to_ideal[niches == niche]
@@ -272,6 +280,9 @@ class MOArchive(Archive, ConfigurableObject):
             ),
             "niche_perf_avg": niche_perf_avg,
             "niche_min_sd": niche_min_sd,
+            "mean_rank": np.mean(ranks),
+            "std_rank": np.std(ranks),
+            "max_rank": np.max(ranks),
         }
 
     def get_all(self) -> list[ArchiveEntry]:

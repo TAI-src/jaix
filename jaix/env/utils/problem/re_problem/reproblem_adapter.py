@@ -150,3 +150,6 @@ class REProblem(ConfigurableObject, StaticProblem):
         else:
             f = self.re_problem.evaluate(x)
         return f, f  # Return the same values since all of these are not noisy
+
+    def __str__(self) -> str:
+        return f"REProblem_{self.problem_name}"

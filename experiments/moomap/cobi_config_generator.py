@@ -244,6 +244,17 @@ def create_few_local_fronts_problem(peak_exponent=0.25):
     }
 
 
+names = [
+    "cobi_linear",
+    "cobi_convex",
+    "cobi_concave",
+    "cobi_disconnected_linear",
+    "cobi_disc",
+    "cobi_mlocal",
+    "cobi_flocal",
+]
+
+
 def get_config(func_id: int):
     """Get the configuration for a specific example problem based on its function ID."""
     func_map = {
