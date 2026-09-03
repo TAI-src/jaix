@@ -10,6 +10,7 @@ from moocore import (
     is_nondominated,
     pareto_rank,
 )
+from pymoo.algorithms.moo.nsga3 import associate_to_niches, calc_niche_count
 from ttex.config import Config, ConfigurableObject
 
 from jaix.env.singular.ec_env import get_ideal_nadir
@@ -17,8 +18,6 @@ from jaix.env.utils.archive.archive import Archive, ArchiveEntry
 from jaix.env.utils.archive.entry_scorer import EntryScorer
 from jaix.env.utils.mo_sizing import get_ref_dirs
 from jaix.utils.dirty_list import DirtyList
-
-from pymoo.algorithms.moo.nsga3 import associate_to_niches, calc_niche_count, niching
 
 
 class MOArchiveEntry(ArchiveEntry[np.ndarray], ABC):
