@@ -219,14 +219,15 @@ class NSGA3Experiment:
         offspring: np.ndarray | np.float32
         if config.crossover == Crossover.UNIFORM:
             if all(isinstance(p, numbers.Number) for p in parents):
-                offspring = np.float32(np.mean(parents))
-            elif all(isinstance(p, np.ndarray) for p in parents):
-                offspring = np.asarray(np.mean(parents, axis=0), dtype=np.float32)
-        else:
-            raise NotImplementedError(
-                f"Crossover method {config.crossover} not implemented"
+                return np.float32(np.mean(parents))
+            if all(isinstance(p, np.ndarray) for p in parents):
+                return np.asarray(np.mean(parents, axis=0), dtype=np.float32)
+            raise TypeError(
+                "Uniform crossover expects all parents to be numbers or all to be numpy arrays"
             )
-        return offspring
+        raise NotImplementedError(
+            f"Crossover method {config.crossover} not implemented"
+        )
 
     @staticmethod
     def create_families(config: NSGA3ExperimentConfig, archive: MOArchive):

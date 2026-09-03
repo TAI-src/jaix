@@ -212,6 +212,22 @@ class MOArchive(Archive, ConfigurableObject):
         """
         Return a dictionary with the current archive stats.
         """
+        if len(self.archived_entries) == 0:
+            return {
+                "size": 0,
+                "score": self.score,
+                "avg_dist_to_niches": np.nan,
+                "avg_niche_count": 0.0,
+                "std_niche_count": 0.0,
+                "filled_niches": 0,
+                "avg_dist_to_ideal": np.nan,
+                "coverage": 0.0,
+                "niche_perf_avg": np.nan,
+                "niche_min_sd": np.nan,
+                "mean_rank": np.nan,
+                "std_rank": np.nan,
+                "max_rank": np.nan,
+            }
         points = np.array([entry.objectives for entry in self.archived_entries])
         niches, dist_to_niches, _ = associate_to_niches(
             points, self.ref_dirs, self.ideal_point, self.nadir_point
