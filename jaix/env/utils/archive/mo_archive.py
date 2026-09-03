@@ -106,8 +106,6 @@ class MOArchive(Archive, ConfigurableObject):
             # All entries are added to the archive, so we extend the archived entries with the new ones
             self.archived_entries.extend(mo_entries)
 
-        self.get_archive_stats()  # Update the archive stats before removing dominated entries
-
         if self.keep_dominated != KeepDominated.ALL:
             # Only keep non-dominated entries in the archive
             self.archived_entries = MOArchive.remove_dominated(
