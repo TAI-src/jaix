@@ -16,6 +16,7 @@ setup(
         "coco": ["coco-experiment", "regex"],
         "test": ["pytest", "mypy", "pylint", "black"],
     },
+    package_data={"jaix": ["env/utils/problem/re_problem/ideal_nadir_points/*.dat"]},
     license="GPL3",
     long_description="jaix",
     long_description_content_type="text/x-rst",

@@ -373,9 +373,14 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description="Run NSGA3 experiment")
     parser.add_argument(
-        "--num_independent_runs", type=int, help="Number of independent runs"
+        "--num_independent_runs",
+        type=int,
+        help="Number of independent runs",
+        required=True,
     )
-    parser.add_argument("--num_generations", type=int, help="Number of generations")
+    parser.add_argument(
+        "--num_generations", type=int, help="Number of generations", required=True
+    )
     parser.add_argument(
         "--num_prefill_samples",
         type=int,
@@ -403,6 +408,9 @@ def parse_args():
     parser.add_argument(
         "--out_dir", type=str, default=".", help="Output directory for results"
     )
+    parser.add_argument(
+        "--problem_idx", type=int, nargs="*", default=None, help="Problem indices"
+    )
     parser.add_argument("--num_parents", type=int, default=2, help="Number of parents")
     args = parser.parse_args()
     return args
@@ -420,7 +428,7 @@ def main(args):
         crossover=Crossover(args.crossover),
         num_parents=args.num_parents,
     )
-    NSGA3Experiment.run(config, out_dir=args.out_dir)
+    NSGA3Experiment.run(config, out_dir=args.out_dir, problem_idx=args.problem_idx)
 
 
 if __name__ == "__main__":
