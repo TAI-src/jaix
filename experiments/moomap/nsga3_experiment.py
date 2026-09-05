@@ -307,9 +307,10 @@ class NSGA3Experiment:
                     fam_info["offspring"] = off_info
                     fam_info.update(gen_dict)
                     results.append(fam_info)
-                print(
-                    f"Problem: {problem}, Generation: {gen}, Archive size: {archive.size}, results collected: {len(results)}"
-                )
+                if gen % 10 == 0 or gen == config.num_generations - 1:
+                    print(
+                        f"Problem: {problem}, Generation: {gen}, Archive size: {archive.size}, results collected: {len(results)}"
+                    )
             # create data frame and save to csv
             df = pd.json_normalize(results, sep="_")
             file_name = f"{out_dir}/results_{problem!s}.csv"
