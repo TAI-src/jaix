@@ -49,6 +49,7 @@ cd $PROJECT
 cd jaix/experiments/moomap
 git pull
 
+module load gcc uv
 uv lock --upgrade
 uv sync
 ```
