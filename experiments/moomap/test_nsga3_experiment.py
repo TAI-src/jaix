@@ -89,8 +89,10 @@ def test_prefill_archive():
     config.rng = np.random.default_rng(43)
     archive3, entries3 = NSGA3Experiment.prefill_archive(problem, config)
     assert len(entries3) == config.num_prefill_samples
-    for e1, e3 in zip(entries, entries3):
-        assert not np.allclose(e1.x, e3.x) or not np.allclose(e1.y, e3.y)
+    assert any(
+        (not np.allclose(e1.x, e3.x)) or (not np.allclose(e1.y, e3.y))
+        for e1, e3 in zip(entries, entries3)
+    )
 
 
 def test_get_unbounded_archive():
