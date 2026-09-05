@@ -60,6 +60,7 @@ class NSGA3ExperimentConfig(Config):
         self.seed = seed
         self.mode = mode
         self.num_parents = num_parents
+        assert num_parents > 0, "Number of parents must be greater than 0"
         self.rng = np.random.default_rng(seed)
         self.independent_run_seeds = self.rng.integers(
             0, 2**32 - 1, size=num_independent_runs
@@ -307,7 +308,7 @@ class NSGA3Experiment:
                     fam_info["offspring"] = off_info
                     fam_info.update(gen_dict)
                     results.append(fam_info)
-                if gen % 10 == 0 or gen == config.num_generations - 1:
+                if gen % 100 == 0 or gen == config.num_generations - 1:
                     print(
                         f"Problem: {problem}, Generation: {gen}, Archive size: {archive.size}, results collected: {len(results)}"
                     )
