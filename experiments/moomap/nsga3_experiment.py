@@ -60,6 +60,7 @@ class NSGA3ExperimentConfig(Config):
         self.seed = seed
         self.mode = mode
         self.num_parents = num_parents
+        assert num_parents > 0, "Number of parents must be greater than 0"
         self.rng = np.random.default_rng(seed)
         self.independent_run_seeds = self.rng.integers(
             0, 2**32 - 1, size=num_independent_runs
@@ -213,18 +214,17 @@ class NSGA3Experiment:
 
     @staticmethod
     def create_offspring(
-        parents: list[np.ndarray], config: NSGA3ExperimentConfig
+        parents: list[np.ndarray],
+        config: NSGA3ExperimentConfig,
     ) -> np.ndarray | np.float32:
         assert len(parents) == config.num_parents
-        offspring: np.ndarray | np.float32
         if config.crossover == Crossover.UNIFORM:
-            if all(isinstance(p, numbers.Number) for p in parents):
-                return np.float32(np.mean(parents))
-            if all(isinstance(p, np.ndarray) for p in parents):
-                return np.asarray(np.mean(parents, axis=0), dtype=np.float32)
-            raise TypeError(
-                "Uniform crossover expects all parents to be numbers or all to be numpy arrays"
+            weight_vec = config.rng.uniform(0, 1, size=len(parents))
+            normalized_weights = weight_vec / np.sum(weight_vec)
+            offspring = np.sum(
+                [w * p for w, p in zip(normalized_weights, parents)], axis=0
             )
+            return offspring
         raise NotImplementedError(
             f"Crossover method {config.crossover} not implemented"
         )
@@ -308,6 +308,10 @@ class NSGA3Experiment:
                     fam_info["offspring"] = off_info
                     fam_info.update(gen_dict)
                     results.append(fam_info)
+                if gen % 100 == 0 or gen == config.num_generations - 1:
+                    print(
+                        f"Problem: {problem}, Generation: {gen}, Archive size: {archive.size}, results collected: {len(results)}"
+                    )
             # create data frame and save to csv
             df = pd.json_normalize(results, sep="_")
             file_name = f"{out_dir}/results_{problem!s}.csv"

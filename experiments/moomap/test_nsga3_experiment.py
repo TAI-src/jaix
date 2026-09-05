@@ -73,10 +73,26 @@ def test_prefill_archive():
     )
     problem = REProblem(REProblemConfig(), inst=2)
     config.update_defaults(problem)
+    config.rng = np.random.default_rng(42)
     assert config.num_prefill_samples == config.mo_archive_config.num_refpoints
     archive, entries = NSGA3Experiment.prefill_archive(problem, config)
     assert len(entries) == config.num_prefill_samples
     assert archive.size == config.mo_archive_kwargs["max_size"]
+
+    # Test seeding
+    config.rng = np.random.default_rng(42)
+    archive2, entries2 = NSGA3Experiment.prefill_archive(problem, config)
+    assert len(entries2) == config.num_prefill_samples
+    for e1, e2 in zip(entries, entries2):
+        assert np.allclose(e1.x, e2.x)
+        assert np.allclose(e1.y, e2.y)
+    config.rng = np.random.default_rng(43)
+    archive3, entries3 = NSGA3Experiment.prefill_archive(problem, config)
+    assert len(entries3) == config.num_prefill_samples
+    assert any(
+        (not np.allclose(e1.x, e3.x)) or (not np.allclose(e1.y, e3.y))
+        for e1, e3 in zip(entries, entries3)
+    )
 
 
 def test_get_unbounded_archive():
@@ -132,6 +148,24 @@ def test_select_parents():
         assert "x" in p_info
         assert isinstance(p_info["x"], (list, tuple, np.ndarray))
 
+    # Test seeding
+    config.rng = np.random.default_rng(42)
+    parents = NSGA3Experiment.select_parents(config, archive)
+    config.rng = np.random.default_rng(42)
+    parents2 = NSGA3Experiment.select_parents(config, archive)
+    for p1, p2 in zip(parents, parents2):
+        assert p1["rank"] == p2["rank"]
+        assert p1["niche"] == p2["niche"]
+        assert np.allclose(p1["x"], p2["x"])
+    config.rng = np.random.default_rng(44)
+    parents3 = NSGA3Experiment.select_parents(config, archive)
+    for p1, p3 in zip(parents, parents3):
+        assert (
+            p1["rank"] != p3["rank"]
+            or p1["niche"] != p3["niche"]
+            or not np.allclose(p1["x"], p3["x"])
+        )
+
 
 def test_create_offspring():
     problem = REProblem(REProblemConfig(), inst=2)
@@ -145,8 +179,19 @@ def test_create_offspring():
         np.random.uniform(low=problem.lower_bounds, high=problem.upper_bounds)
         for _ in range(config.num_parents)
     ]
+    config.rng = np.random.default_rng(42)
     offspring = NSGA3Experiment.create_offspring(parents, config)
     assert len(offspring) == len(parents[0])
+
+    # check that the seeding worked
+    config.rng = np.random.default_rng(42)
+    offspring2 = NSGA3Experiment.create_offspring(parents, config)
+    assert np.allclose(offspring, offspring2)
+
+    # Check a different seed produces different offspring
+    config.rng = np.random.default_rng(43)
+    offspring3 = NSGA3Experiment.create_offspring(parents, config)
+    assert not np.allclose(offspring, offspring3)
 
 
 def test_create_families():
