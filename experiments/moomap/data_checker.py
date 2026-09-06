@@ -30,7 +30,7 @@ for i, problem in enumerate(expected_problem_list):
         # Check the number of results are as expected
         config_name = f"config_{problem}.json"
         res_files = res_dict[csv_name]
-        if len(res_files) < 30:
+        if len(res_files) != 30:
             print(
                 f"Unexpected number of results for problem: {problem}. Expected 30, got {len(res_files)}"
             )

@@ -2,22 +2,27 @@ import os
 from pathlib import Path
 from collections import defaultdict
 from nsga3_experiment import NSGA3ExperimentConfig
-import json
-import csv
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib as mpl
 
-logs_dir = f"{os.path.dirname(os.path.abspath(__file__))}/logs"
-results_dir = f"{os.path.dirname(os.path.abspath(__file__))}/results"
+import json
 
-# Get all csv files in the logs directory
-csv_files = list(Path(results_dir).rglob("*.csv"))
 
-res_dict = defaultdict(list)
-for file in csv_files:
-    res_dict[file.name].append(file)
-
-expected_problem_list = NSGA3ExperimentConfig.generate_problem_list()[0:1]
+def build_results_dict(results_dir: str | None = None) -> dict:
+    """
+    Build a dictionary of results from the logs directory.
+    """
+    if results_dir is None:
+        results_dir = f"{os.path.dirname(os.path.abspath(__file__))}/results"
+    res_dict = defaultdict(list)
+    # Get all csv files in the logs directory
+    csv_files = list(Path(results_dir).rglob("*.csv"))
+    for file in csv_files:
+        res_dict[file.name].append(file)
+    return res_dict
 
 
 def get_success_cols(df: pd.DataFrame) -> list:
@@ -42,6 +47,7 @@ def get_success_cols(df: pd.DataFrame) -> list:
         "offspring_rank",
         "n_offspring_rank",
         "ncrit_offspring_rank",
+        "offspring_dist_to_ideal",
     ]
     return success_cols
 
@@ -67,10 +73,56 @@ def compile_niche_success(data: pd.DataFrame, num_parents: int = 2) -> pd.DataFr
             n_offspring_rank_std=("n_offspring_rank", "std"),
             ncrit_offspring_rank_mean=("ncrit_offspring_rank", "mean"),
             ncrit_offspring_rank_std=("ncrit_offspring_rank", "std"),
+            offspring_dist_to_ideal_mean=("offspring_dist_to_ideal", "mean"),
         )
         .reset_index()
     )
     return niche_success
+
+
+def plot_niche_success(
+    niche_success: pd.DataFrame,
+    max_niche: int,
+    output_dir: str,
+    success_col: str = "offspring_added_rate",
+    file_prefix: str = "",
+) -> None:
+    """
+    Plot the success rate of each niche pair in the data.
+    """
+
+    # create a heatmap of the offspring_added_rate for each niche pair
+    # niches should be from 0 to max_niche, so we can create a pivot table with all combinations of niches
+    idx = pd.MultiIndex.from_product(
+        [range(max_niche), range(max_niche)], names=["parent_0_niche", "parent_1_niche"]
+    )
+    niche_success = (
+        niche_success.set_index(["parent_0_niche", "parent_1_niche"])
+        .reindex(idx)
+        .reset_index()
+    )
+    pivot_table = niche_success.pivot(
+        index="parent_0_niche", columns="parent_1_niche", values=success_col
+    )
+    cmap = sns.color_palette("viridis", as_cmap=True)
+    cmap.set_bad("lightgray")
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(
+        pivot_table,
+        annot=False,
+        fmt=".2f",
+        cmap=cmap,
+        cbar_kws={"label": success_col},
+    )
+    plt.gca().invert_yaxis()
+    plt.title(f"{file_prefix}: {success_col} by Parent Niche Pair")
+    plt.xlabel("Parent 1 Niche")
+    plt.ylabel("Parent 0 Niche")
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(output_dir, f"{file_prefix}niche_success_{success_col}.png")
+    )
+    plt.close()
 
 
 def compile_distance_success(data: pd.DataFrame, num_parents: int = 2) -> pd.DataFrame:
@@ -97,7 +149,6 @@ def compile_distance_success(data: pd.DataFrame, num_parents: int = 2) -> pd.Dat
         "parent_y_distance",
         "parent_0_dist_to_ideal",
         "parent_1_dist_to_ideal",
-        "offspring_dist_to_ideal",
     ]
 
     # return the relevant columns for distance success analysis
@@ -105,13 +156,149 @@ def compile_distance_success(data: pd.DataFrame, num_parents: int = 2) -> pd.Dat
     return distance_success
 
 
-for i, problem in enumerate(expected_problem_list):
-    print(
-        "Post-processing results for problem: {} with index {}/{}".format(
-            problem, i, len(expected_problem_list)
+def plot_distance_success_2d(
+    distance_success: pd.DataFrame,
+    output_dir: str,
+    success_col: str = "offspring_dist_to_ideal",
+    file_prefix: str = "",
+) -> None:
+    """
+    Plot the success rate of offspring based on the distance between parents.
+    """
+    norm = mpl.colors.Normalize(
+        vmin=min(distance_success[success_col]), vmax=max(distance_success[success_col])
+    )
+    cmap = plt.get_cmap("viridis")
+
+    plt.figure(figsize=(10, 8))
+    ax = sns.scatterplot(
+        data=distance_success,
+        x="parent_x_distance",
+        y="parent_y_distance",
+        hue=success_col,
+        palette=cmap,
+        hue_norm=norm,
+        alpha=0.7,
+        legend=False,
+    )
+    # Create continuous colorbar
+    sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+
+    plt.colorbar(sm, ax=ax, label=success_col)
+
+    plt.title(f"{file_prefix}: {success_col} by Parent Distance")
+    plt.xlabel("Parent X Distance")
+    plt.ylabel("Parent Y Distance")
+    # plt.colorbar(label=success_col)
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(output_dir, f"{file_prefix}distance_success_{success_col}.png")
+    )
+    plt.close()
+
+
+def plot_distance_success_1d(
+    distance_success: pd.DataFrame,
+    output_dir: str,
+    dist_col: str = "parent_x_distance",
+    success_col: str = "offspring_dist_to_ideal",
+    file_prefix: str = "",
+) -> None:
+    """
+    Plot the success rate of offspring based on the distance between parents in 1D.
+    Use the generation as the colour of the points to see if there is a trend over time.
+    """
+    norm = mpl.colors.Normalize(
+        vmin=min(distance_success["generation"]),
+        vmax=max(distance_success["generation"]),
+    )
+    cmap = plt.get_cmap("viridis")
+    plt.figure(figsize=(10, 8))
+    ax = sns.scatterplot(
+        data=distance_success,
+        x=dist_col,
+        y=success_col,
+        hue="generation",
+        palette=cmap,
+        hue_norm=norm,
+        alpha=0.7,
+        legend=False,
+    )
+
+    # Create continuous colorbar
+    sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+
+    plt.colorbar(sm, ax=ax, label="Generation")
+
+    plt.title(f"{file_prefix}: {success_col} by Parent Distance ({dist_col})")
+    plt.xlabel(f"Parent Distance ({dist_col})")
+    plt.ylabel(success_col)
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(
+            output_dir,
+            f"{file_prefix}_gen_distance_success_{dist_col}_{success_col}.png",
         )
     )
-    csv_name = f"results_{problem}.csv"
-    res_files = res_dict[csv_name]
-    compile_niche_success(pd.read_csv(res_files[0]), num_parents=2)
-    compile_distance_success(pd.read_csv(res_files[0]), num_parents=2)
+    plt.close()
+
+
+def postprocess_results(problem_dict: dict, results_dir: str = ".") -> None:
+
+    for problem, res_files in problem_dict.items():
+        problem = problem.replace("results_", "").replace(".csv", "")
+        print(f"Processing results for problem: {problem}")
+        # get example config to know number of niches (dirty)
+        # remove results_ prefix and .csv suffix from problem name to get config name
+        example_config = res_files[0].parent / f"config_{problem}.json"
+        # load the config to get the number of niches
+
+        with open(example_config, "r") as f:
+            config = json.load(f)
+            num_niches = config["NSGA3ExperimentConfig"]["num_offspring"]
+
+        # combine all the result files into a single dataframe
+        problem_df = pd.concat([pd.read_csv(f) for f in res_files], ignore_index=True)
+        niche_success = compile_niche_success(problem_df, num_parents=2)
+        success_cols = [
+            "offspring_added_rate",
+            "n_offspring_rank_mean",
+            "offspring_dist_to_ideal_mean",
+        ]
+        for success_col in success_cols:
+            plot_niche_success(
+                niche_success,
+                max_niche=num_niches,
+                output_dir=results_dir,
+                file_prefix=problem,
+                success_col=success_col,
+            )
+
+        distance_success = compile_distance_success(problem_df, num_parents=2)
+        success_cols = [
+            "offspring_dist_to_ideal",
+            "n_offspring_rank",
+            "ncrit_offspring_rank",
+        ]
+        for success_col in success_cols:
+            for dist_col in ["parent_x_distance", "parent_y_distance"]:
+                plot_distance_success_1d(
+                    distance_success,
+                    output_dir=results_dir,
+                    dist_col=dist_col,
+                    success_col=success_col,
+                    file_prefix=problem,
+                )
+            plot_distance_success_2d(
+                distance_success,
+                output_dir=results_dir,
+                success_col=success_col,
+                file_prefix=problem,
+            )
+
+
+if __name__ == "__main__":
+    results_dict = build_results_dict()
+    postprocess_results(results_dict)

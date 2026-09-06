@@ -14,15 +14,15 @@
 #SBATCH --mail-user=<email>
 
 module load gcc uv
-uv run nsga3_experiment.py --num_independent_runs 1 --num_generations 1000 --problem_idx "$SLURM_ARRAY_TASK_ID"
+PYTHONUNBUFFERED=1 uv run nsga3_experiment.py --num_independent_runs 1 --num_generations 1000 --problem_idx "$SLURM_ARRAY_TASK_ID"
 ```
 
 To start the jobs, run the following. Done in 2 batches to set different time limits for the second batch of jobs since they take longer.
 
 ```{bash}
 for i in {1..30}; do
-    sbatch --array=0-11,13-20%5 jobscript.sh
-    sbatch --array=12,21-22%5 --time=05:00:00 jobscript.sh
+sbatch --array=0-11,13-20%5 jobscript.sh
+sbatch --array=12,21-22%5 --time=05:00:00 jobscript.sh
 done
 ```
 
