@@ -166,12 +166,14 @@ def test_plot_distance_success(tmp_path):
     os.makedirs(out_dir, exist_ok=True)
     df, _ = get_test_data()
     distance_success = compile_distance_success(df)
+    num_rows = len(distance_success)
     plot_distance_success_2d(
         distance_success,
         out_dir,
         success_col="offspring_dist_to_ideal",
         file_prefix="test_",
     )
+    assert len(distance_success) == num_rows
     plot_distance_success_1d(
         distance_success,
         out_dir,

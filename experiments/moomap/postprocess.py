@@ -35,12 +35,15 @@ def get_success_cols(df: pd.DataFrame) -> list:
     df["n_offspring_rank"] = df.groupby("generation")["offspring_rank"].transform(
         lambda x: x / x.max()
     )
+    df.loc[df["offspring_rank"] == 0, "n_offspring_rank"] = 0
     # compute critical rank per generation which is the highest rank per generation where offspring_added is true
     df["critical_rank"] = df.groupby("generation")["offspring_rank"].transform(
         lambda x: x[df.loc[x.index, "offspring_added"]].max()
     )
     # normalise offspring rank by critical rank per generation
     df["ncrit_offspring_rank"] = df["offspring_rank"] / df["critical_rank"]
+    # if critical rank is 0, set ncrit_offspring_rank to 0
+    df.loc[df["critical_rank"] == 0, "ncrit_offspring_rank"] = 0
 
     success_cols = [
         "offspring_added",
@@ -73,10 +76,14 @@ def compile_niche_success(data: pd.DataFrame, num_parents: int = 2) -> pd.DataFr
             n_offspring_rank_std=("n_offspring_rank", "std"),
             ncrit_offspring_rank_mean=("ncrit_offspring_rank", "mean"),
             ncrit_offspring_rank_std=("ncrit_offspring_rank", "std"),
-            offspring_dist_to_ideal_mean=("offspring_dist_to_ideal", "mean"),
+            offspring_dist_to_ideal_mean=(
+                "offspring_dist_to_ideal",
+                "mean",
+            ),  # This auto-removes nans
         )
         .reset_index()
     )
+
     return niche_success
 
 
@@ -165,14 +172,20 @@ def plot_distance_success_2d(
     """
     Plot the success rate of offspring based on the distance between parents.
     """
+    # filter rows with nan values in success_col
+    # This happens because some scores are not computed for offspring if they are not added
+
+    dist_succ = distance_success.copy()
+    dist_succ = dist_succ.dropna(subset=[success_col])
+
     norm = mpl.colors.Normalize(
-        vmin=min(distance_success[success_col]), vmax=max(distance_success[success_col])
+        vmin=min(dist_succ[success_col]), vmax=max(dist_succ[success_col])
     )
     cmap = plt.get_cmap("viridis")
 
     plt.figure(figsize=(10, 8))
     ax = sns.scatterplot(
-        data=distance_success,
+        data=dist_succ,
         x="parent_x_distance",
         y="parent_y_distance",
         hue=success_col,
@@ -187,7 +200,13 @@ def plot_distance_success_2d(
 
     plt.colorbar(sm, ax=ax, label=success_col)
 
-    plt.title(f"{file_prefix}: {success_col} by Parent Distance")
+    only_added = len(distance_success) > len(dist_succ)
+    if only_added:
+        plt.title(
+            f"{file_prefix}: {success_col} by Parent Distance (only offspring added)"
+        )
+    else:
+        plt.title(f"{file_prefix}: {success_col} by Parent Distance")
     plt.xlabel("Parent X Distance")
     plt.ylabel("Parent Y Distance")
     # plt.colorbar(label=success_col)
@@ -266,6 +285,7 @@ def postprocess_results(problem_dict: dict, results_dir: str = ".") -> None:
             "offspring_added_rate",
             "n_offspring_rank_mean",
             "offspring_dist_to_ideal_mean",
+            "num_offspring",
         ]
         for success_col in success_cols:
             plot_niche_success(
