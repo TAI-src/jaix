@@ -1,9 +1,10 @@
-import os
-from pathlib import Path
-from collections import defaultdict
-from nsga3_experiment import NSGA3ExperimentConfig
-import json
 import csv
+import json
+import os
+from collections import defaultdict
+from pathlib import Path
+
+from nsga3_experiment import NSGA3ExperimentConfig
 
 logs_dir = f"{os.path.dirname(os.path.abspath(__file__))}/logs"
 results_dir = f"{os.path.dirname(os.path.abspath(__file__))}/results"

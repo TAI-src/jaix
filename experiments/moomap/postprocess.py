@@ -1,14 +1,13 @@
-import os
-from pathlib import Path
-from collections import defaultdict
-from nsga3_experiment import NSGA3ExperimentConfig
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import matplotlib as mpl
-
 import json
+import os
+from collections import defaultdict
+from pathlib import Path
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 
 def build_results_dict(results_dir: str | None = None) -> dict:
@@ -61,7 +60,7 @@ def compile_niche_success(data: pd.DataFrame, num_parents: int = 2) -> pd.DataFr
     """
     df = data.copy()
     # get different pairings of parent niches and their success rate
-    parent_niche_cols = ["parent_{i}_niche".format(i=i) for i in range(num_parents)]
+    parent_niche_cols = [f"parent_{i}_niche" for i in range(num_parents)]
     # sort the parent niche columns to ensure that the order of parents does not matter
     df[parent_niche_cols] = np.sort(df[parent_niche_cols].values, axis=1)
     success_cols = get_success_cols(df)
@@ -141,11 +140,11 @@ def compile_distance_success(data: pd.DataFrame, num_parents: int = 2) -> pd.Dat
     # compute parent distances in x and y
     for dim in ["x", "y"]:
         parent_cols = [
-            "parent_{i}_{dim}".format(i=i, dim=dim) for i in range(num_parents)
+            f"parent_{i}_{dim}" for i in range(num_parents)
         ]
         for col in parent_cols:
             df[col] = df[col].apply(lambda x: np.fromstring(x.strip("[]"), sep=" "))
-        df["parent_{dim}_distance".format(dim=dim)] = np.linalg.norm(
+        df[f"parent_{dim}_distance"] = np.linalg.norm(
             np.stack(df[parent_cols[0]].values) - np.stack(df[parent_cols[1]].values),
             axis=1,
         )

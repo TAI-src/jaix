@@ -1,17 +1,16 @@
 import os
-import pandas as pd
-import numpy as np
 
+import numpy as np
+import pandas as pd
 
 from postprocess import (
-    get_success_cols,
-    compile_niche_success,
     compile_distance_success,
-    plot_niche_success,
-    plot_distance_success_2d,
+    compile_niche_success,
+    get_success_cols,
     plot_distance_success_1d,
+    plot_distance_success_2d,
+    plot_niche_success,
 )
-
 
 test_data = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_results.csv")
 
@@ -90,7 +89,7 @@ def test_get_success_cols():
 
 
 def test_compile_niche_success():
-    df, gen_dict = get_test_data()
+    df, _gen_dict = get_test_data()
     df1 = df[(df["parent_0_niche"] == 6) & (df["parent_1_niche"] == 34)][
         "offspring_added"
     ]
@@ -130,7 +129,7 @@ def test_plot_niche_success(tmp_path):
 
 def test_compile_distance_success():
 
-    df, gen_dict = get_test_data()
+    df, _gen_dict = get_test_data()
     parent_0_x = df["parent_0_x"].iloc[0]
     parent_0_y = df["parent_0_y"].iloc[0]
     parent_1_x = df["parent_1_x"].iloc[0]
