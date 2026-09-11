@@ -1,7 +1,9 @@
-import argparse
 import json
 import os
+import uuid
+from pathlib import Path
 
+from experiments.moomap.utils_read import get_nsga3x_results
 import numpy as np
 import pandas as pd
 from read_utils import build_results_dict
@@ -10,6 +12,7 @@ from utils import angle_between
 from plots_grid import plot_grid
 from plots_sankey import plot_sankey_flows
 from plots_scatter import plot_scatter
+from config_postprocess import parse_args
 
 
 def get_success_cols(df: pd.DataFrame) -> list:
@@ -198,7 +201,7 @@ scatter_success_cols = [
 
 
 def postprocess_results(
-    p_dict: dict, results_dir: str = ".", skip_plots: bool = False
+    p_dict: dict, out_dir: str = ".", skip_plots: bool = False
 ) -> None:
 
     for problem, problem_dict in p_dict.items():
@@ -217,7 +220,7 @@ def postprocess_results(
             problem_df,
             num_parents=2,
             per_niche=True,
-            output_dir=results_dir,
+            output_dir=out_dir,
             file_prefix=problem,
         )
 
@@ -225,7 +228,7 @@ def postprocess_results(
             problem_df,
             num_parents=2,
             per_niche=False,
-            output_dir=results_dir,
+            output_dir=out_dir,
             file_prefix=problem,
         )
 
@@ -233,7 +236,7 @@ def postprocess_results(
             problem_df, num_parents=2, ideal_point=problem_dict["ideal_point"]
         )
         compile_pred_data(
-            distance_success, problem_df, results_dir=results_dir, problem=problem
+            distance_success, problem_df, results_dir=out_dir, problem=problem
         )
 
         if skip_plots:
@@ -242,7 +245,7 @@ def postprocess_results(
 
         plot_sankey(
             per_niche_success,
-            output_dir=results_dir,
+            output_dir=out_dir,
             file_prefix=problem,
         )
 
@@ -253,7 +256,7 @@ def postprocess_results(
                 grid_colx="parent_0_niche",
                 grid_coly="parent_1_niche",
                 success_col=success_col,
-                output_dir=results_dir,
+                output_dir=out_dir,
                 file_prefix=problem,
             )
 
@@ -261,7 +264,7 @@ def postprocess_results(
             for dist_col in ["parent_x_distance", "parent_y_distance", "parent_angle"]:
                 plot_scatter(
                     distance_success,
-                    output_dir=results_dir,
+                    output_dir=out_dir,
                     x_col=dist_col,
                     y_col=success_col,
                     hue_col="generation",
@@ -269,7 +272,7 @@ def postprocess_results(
                 )
             plot_scatter(
                 distance_success,
-                output_dir=results_dir,
+                output_dir=out_dir,
                 x_col="parent_x_distance",
                 y_col="parent_y_distance",
                 hue_col=success_col,
@@ -278,7 +281,7 @@ def postprocess_results(
 
             plot_scatter(
                 distance_success,
-                output_dir=results_dir,
+                output_dir=out_dir,
                 x_col="parent_x_distance",
                 y_col="parent_angle",
                 hue_col=success_col,
@@ -286,35 +289,19 @@ def postprocess_results(
             )
 
 
-def parse_args():
-
-    parser = argparse.ArgumentParser(
-        description="Postprocess results from NSGA3 experiments."
+def main(args):
+    results_dict = get_nsga3x_results(
+        results_dir=args.results_dir, problem_ids=args.problem_ids
     )
-    parser.add_argument(
-        "--results_dir",
-        type=str,
-        default="results",
-        help="Directory containing the results.",
-    )
-    parser.add_argument(
-        "--skip_plots",
-        action="store_true",
-        help="Skip plotting the results.",
-    )
-    parser.add_argument(
-        "--problem_ids",
-        type=int,
-        nargs="*",
-        default=None,
-        help="List of problem IDs to process. If not provided, all problems will be processed.",
-    )
-    return parser.parse_args()
+    exp_id = uuid.uuid4().hex
+    out_dir = Path(args.out_dir) / str(exp_id)
+    os.makedirs(out_dir, exist_ok=True)
+    # save results_dict to json file
+    with open(out_dir / "results_dict.json", "w") as f:
+        json.dump(results_dict, f, indent=4, default=str)
+    postprocess_results(results_dict, out_dir=args.out_dir, skip_plots=args.skip_plots)
 
 
 if __name__ == "__main__":
-    results_dict = build_results_dict()
-    # save results_dict to json file
-    with open("results_dict.json", "w") as f:
-        json.dump(results_dict, f, indent=4, default=str)
-    postprocess_results(results_dict)
+    args = parse_args()
+    main(args)
