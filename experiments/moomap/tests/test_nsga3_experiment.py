@@ -81,13 +81,13 @@ def test_prefill_archive():
 
     # Test seeding
     config.rng = np.random.default_rng(42)
-    archive2, entries2 = NSGA3Experiment.prefill_archive(problem, config)
+    _archive2, entries2 = NSGA3Experiment.prefill_archive(problem, config)
     assert len(entries2) == config.num_prefill_samples
     for e1, e2 in zip(entries, entries2):
         assert np.allclose(e1.x, e2.x)
         assert np.allclose(e1.y, e2.y)
     config.rng = np.random.default_rng(43)
-    archive3, entries3 = NSGA3Experiment.prefill_archive(problem, config)
+    _archive3, entries3 = NSGA3Experiment.prefill_archive(problem, config)
     assert len(entries3) == config.num_prefill_samples
     assert any(
         (not np.allclose(e1.x, e3.x)) or (not np.allclose(e1.y, e3.y))
@@ -366,14 +366,15 @@ def plot_hist(
     plt.savefig(filename)
 
 
- @pytest.mark.skip(
+@pytest.mark.skip(
     reason="This test is for visualizing the niches filled by the CobiProblems and is not a unit test."
- )
+)
 @pytest.mark.parametrize("problem_idx", list(range(7)))
 def test_fill_niches(problem_idx):
-    from cobi_config_generator import get_config, names
-    from pymoo.algorithms.moo.nsga3 import associate_to_niches
     from jaix.env.utils.mo_sizing import get_ref_dirs
+    from pymoo.algorithms.moo.nsga3 import associate_to_niches
+
+    from cobi_config_generator import get_config, names
 
     cobi_config = get_config(problem_idx)  # Get a CobiProblem configuration
     cobi_problem = CobiProblem(cobi_config, inst=1)
