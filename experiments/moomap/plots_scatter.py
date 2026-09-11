@@ -1,7 +1,8 @@
 import os
-import pandas as pd
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 
 
@@ -12,7 +13,7 @@ def plot_scatter(
     y_col: str,
     hue_col: str,
     file_prefix: str = "",
-    cmap: str = "viridis",
+    cmap_str: str = "viridis",
 ) -> None:
     """
     Plot the success rate of offspring based on the distance between parents.
@@ -23,7 +24,7 @@ def plot_scatter(
     df = df.dropna(subset=[hue_col])
 
     norm = mpl.colors.Normalize(vmin=min(df[hue_col]), vmax=max(df[hue_col]))
-    cmap = plt.get_cmap(cmap)
+    cmap = plt.get_cmap(cmap_str)
 
     plt.figure(figsize=(10, 8))
     ax = sns.scatterplot(

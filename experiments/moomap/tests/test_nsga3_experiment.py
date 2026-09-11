@@ -7,42 +7,8 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblemConfig,
 )
 
-from nsga3_experiment import NSGA3Experiment, NSGA3ExperimentConfig
-
-
-def test_create_mo_archive_config():
-    problem = REProblem(REProblemConfig(), inst=2)
-    config = NSGA3ExperimentConfig.create_mo_archive_config(problem)
-    assert config.max_size is not None
-    assert isinstance(config.num_refpoints, int)
-    assert isinstance(config, MOArchiveConfig)
-
-
-def test_re_problem_list():
-    problems = NSGA3ExperimentConfig.re_problem_list()
-    assert isinstance(problems, list)
-    assert len(problems) > 0
-    assert all(isinstance(p, REProblem) for p in problems)
-
-
-def test_cobi_problem_list():
-    problems = NSGA3ExperimentConfig.cobi_problem_list()
-    assert isinstance(problems, list)
-    assert len(problems) > 0
-    assert all(isinstance(p, CobiProblem) for p in problems)
-
-
-@pytest.mark.parametrize("mode", ["cobi", "reproblem", ""])
-def test_generate_problem_list(mode):
-    problems = NSGA3ExperimentConfig.generate_problem_list(mode)
-    assert isinstance(problems, list)
-    assert len(problems) > 0
-    if mode == "cobi":
-        assert all(isinstance(p, CobiProblem) for p in problems)
-    elif mode == "reproblem":
-        assert all(isinstance(p, REProblem) for p in problems)
-    else:
-        assert all(isinstance(p, (CobiProblem, REProblem)) for p in problems)
+from nsga3_experiment import NSGA3Experiment
+from config_nsga3x import NSGA3ExperimentConfig
 
 
 @pytest.mark.parametrize("kwargs", [{"max_size": 10}, None, {"num_refpoints": 50}])
@@ -235,37 +201,34 @@ def test_try_add_offspring():
     assert archive.size <= archive.max_size
 
 
-@pytest.mark.parametrize("mode", ["cobi", "reproblem"])
-def test_run_single(tmp_path, mode):
+def test_run_single(tmp_path):
+    problem_idx = [0, 12]
     config = NSGA3ExperimentConfig(
         num_independent_runs=1,
         num_generations=1,
-        mode=mode,
         seed=42,
     )
     xp_path = tmp_path / "x1"
-    files = NSGA3Experiment.run_single(config, xp_path, problem_idx=None)
-    assert len(files) == 2 * len(NSGA3ExperimentConfig.generate_problem_list(mode))
+    files = NSGA3Experiment.run_single(config, xp_path, problem_idx=problem_idx)
+    assert len(files) == 2 * len(
+        problem_idx
+    )  # 2 files per problem (results and config)
     assert "results" in files[0] and files[0].endswith(".csv")
 
-    # Looking at file 10 since it is the first reproblem (instance 5) with 3 objectives, which means the propulation size is not 100
-    with open(files[10], "r") as f:
+    # Looking at file for problem_idx[1] (instance11) to check that the seed is recorded correctly
+    with open(files[2], "r") as f:
         import csv
 
         reader = csv.DictReader(f)
         data = list(reader)
         last_data = data[-1]
         num_data = len(data)
-        if mode == "cobi":
-            assert num_data == 100  # Cobi problems have dimension 2
-        elif mode == "reproblem":
-            assert (
-                num_data == 91
-            )  # reproblem 5 has 3 objectives, so the population size is 91
+
+        assert num_data == 91  # First 3-dimensional problem
     assert last_data["seed"] == str(config.seed)
 
     assert "config" in files[1] and files[1].endswith(".json")
-    with open(files[11], "r") as f:
+    with open(files[3], "r") as f:
         import json
 
         config_data = json.load(f)
@@ -274,8 +237,8 @@ def test_run_single(tmp_path, mode):
 
     # check that seeding worked
     xp_path = tmp_path / "x2"
-    # Only run the same problem (instance 5) to check that the results are the same
-    files2 = NSGA3Experiment.run_single(config, xp_path, problem_idx=[5])
+    # Only run the second problem (instance11) to check that the results are the same
+    files2 = NSGA3Experiment.run_single(config, xp_path, problem_idx=[12])
     with open(files2[0], "r") as f:
         import csv
 
@@ -294,10 +257,9 @@ def test_run_experiment(tmp_path):
         num_independent_runs=2,
         num_generations=2,
         num_prefill_samples=20,
-        mode="reproblem",
         seed=42,
     )
-    problems_idx = [0, 2]
+    problems_idx = [0, 2, 7]
     xp_path = tmp_path / "experiment"
     config_dict = NSGA3Experiment.run(config, xp_path, problem_idx=problems_idx)
     file = xp_path / f"x_{config_dict['exp_id']}" / "config.json"

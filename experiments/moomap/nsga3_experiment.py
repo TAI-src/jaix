@@ -1,153 +1,26 @@
-import argparse
 import copy
 import json
 import os
 import uuid
-from enum import Enum
 
 import numpy as np
 import pandas as pd
 from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
-from jaix.env.utils.archive.entry_scorer import (
-    EntryScorer,
-    ReferenceVectorDistanceScorer,
-)
 from jaix.env.utils.archive.mo_archive import (
     KeepDominated,
     MOArchive,
-    MOArchiveConfig,
     MOArchiveEntry,
 )
-from jaix.env.utils.mo_sizing import get_num_refpoints
-from jaix.env.utils.problem.cobi_problem import CobiProblem
-from jaix.env.utils.problem.re_problem.reproblem_adapter import (
-    REProblem,
-    REProblemConfig,
-)
 from jaix.env.utils.problem.static_problem import StaticProblem
-from ttex.config import Config
 
-from cobi_config_generator import get_configs as get_cobi_configs
-from cobi_config_generator import names as cobi_names
-
-
-class Crossover(Enum):
-    UNIFORM = "uniform"
-    ONE_POINT = "one_point"
-    TWO_POINT = "two_point"
-    ARITHMETIC = "arithmetic"
-
-
-class NSGA3ExperimentConfig(Config):
-    def __init__(
-        self,
-        num_independent_runs: int,
-        num_generations: int,
-        num_prefill_samples: int = -1,
-        num_offspring: int = -1,
-        mode: str = "",
-        seed: int | None = None,
-        mo_archive_kwargs: dict | None = None,
-        crossover: Crossover = Crossover.UNIFORM,
-        num_parents: int = 2,
-    ):
-        super().__init__()
-        self.num_independent_runs = num_independent_runs
-        self.num_prefill_samples = num_prefill_samples
-        self.num_offspring = num_offspring
-        self.num_generations = num_generations
-        self.seed = seed
-        self.mode = mode
-        self.num_parents = num_parents
-        assert num_parents > 0, "Number of parents must be greater than 0"
-        self.rng = np.random.default_rng(seed)
-        self.independent_run_seeds = self.rng.integers(
-            0, 2**32 - 1, size=num_independent_runs
-        )
-        self.crossover = crossover
-        self.mo_archive_kwargs = (
-            mo_archive_kwargs if mo_archive_kwargs is not None else {}
-        )
-
-    def update_defaults(self, problem: StaticProblem):
-        self.mo_archive_config = NSGA3ExperimentConfig.create_mo_archive_config(
-            problem, **self.mo_archive_kwargs
-        )
-        assert isinstance(self.mo_archive_config, MOArchiveConfig)
-        assert isinstance(self.mo_archive_config.num_refpoints, int)
-        self.num_prefill_samples = (
-            self.mo_archive_config.num_refpoints
-            if self.num_prefill_samples < 0
-            else self.num_prefill_samples
-        )
-        self.num_offspring = (
-            self.mo_archive_config.num_refpoints
-            if self.num_offspring < 0
-            else self.num_offspring
-        )
-
-    @staticmethod
-    def create_mo_archive_config(
-        problem: StaticProblem,
-        secondary_criterion_class: type[EntryScorer] = ReferenceVectorDistanceScorer,
-        max_size: int | None = None,
-        keep_dominated: KeepDominated = KeepDominated.ALL,
-        only_new_entries: bool = False,
-        hv_approx_samples: int | None = 262_144,
-        num_refpoints: int | str = "original",
-    ) -> MOArchiveConfig:
-        if isinstance(num_refpoints, str):
-            n_refpoints: int = get_num_refpoints(problem.num_objectives, num_refpoints)
-        else:
-            n_refpoints = num_refpoints
-        max_size = n_refpoints if max_size is None else max_size
-
-        config = MOArchiveConfig(
-            archive_entry_class=MOEvalEntry,
-            secondary_criterion_class=secondary_criterion_class,
-            max_size=max_size,
-            keep_dominated=keep_dominated,
-            only_new_entries=only_new_entries,
-            hv_approx_samples=hv_approx_samples,
-            num_refpoints=n_refpoints,
-        )
-        return config
-
-    @staticmethod
-    def re_problem_list():
-        # All non-constrained RE problems are included in the list. The constrained ones are excluded for now.
-        problems = [REProblem(REProblemConfig(), i) for i in range(16)]
-        return problems
-
-    @staticmethod
-    def cobi_problem_list():
-        cobi_configs = get_cobi_configs()
-        problems = [CobiProblem(config, inst=0) for config in cobi_configs]
-        for i, problem in enumerate(problems):
-            problem.name = cobi_names[i]
-
-        return problems
-
-    @staticmethod
-    def generate_problem_list(mode: str = ""):
-        if mode == "cobi":
-            return NSGA3ExperimentConfig.cobi_problem_list()
-        elif mode == "reproblem":
-            return NSGA3ExperimentConfig.re_problem_list()
-        else:
-            return (
-                NSGA3ExperimentConfig.cobi_problem_list()
-                + NSGA3ExperimentConfig.re_problem_list()
-            )
-
-
-class MOEvalEntry(MOArchiveEntry):
-    def __init__(self, x: np.ndarray, y: np.ndarray):
-        self.x = x
-        self.y = y
-
-    def parse(self) -> np.ndarray:
-        return self.y
+from config_nsga3x import (
+    Crossover,
+    MOEvalEntry,
+    NSGA3ExperimentConfig,
+    generate_config,
+    parse_args,
+)
+from utils_problems import generate_problem_list
 
 
 class NSGA3Experiment:
@@ -190,7 +63,9 @@ class NSGA3Experiment:
         else:
             found_entry = archive.get(entry)
         assert found_entry is not None, "Entry not found in archive"
-        assert isinstance(found_entry, MOEvalEntry)
+        assert isinstance(found_entry, MOEvalEntry) and isinstance(
+            found_entry, MOArchiveEntry
+        )
         return {
             "x": found_entry.x,
             "y": found_entry.y,
@@ -274,9 +149,7 @@ class NSGA3Experiment:
         os.makedirs(out_dir, exist_ok=False)
         o_config.rng = np.random.default_rng(o_config.seed)
         files = []
-        problem_list = o_config.generate_problem_list(o_config.mode)
-        if problem_idx is not None:
-            problem_list = [problem_list[i] for i in problem_idx]
+        problem_list = generate_problem_list(problem_idx)
         for problem in problem_list:
             config = copy.deepcopy(o_config)
             config.update_defaults(problem)
@@ -362,75 +235,8 @@ class NSGA3Experiment:
         return config_dict
 
 
-def parse_args():
-    """
-    num_independent_runs: int,
-    num_generations: int,
-    num_prefill_samples: int = -1,
-    num_offspring: int = -1,
-    mode: str = "",
-    seed: int | None = None,
-    mo_archive_kwargs: dict | None = None,
-    crossover: Crossover = Crossover.UNIFORM,
-    num_parents: int = 2,
-    """
-    parser = argparse.ArgumentParser(description="Run NSGA3 experiment")
-    parser.add_argument(
-        "--num_independent_runs",
-        type=int,
-        help="Number of independent runs",
-        required=True,
-    )
-    parser.add_argument(
-        "--num_generations", type=int, help="Number of generations", required=True
-    )
-    parser.add_argument(
-        "--num_prefill_samples",
-        type=int,
-        default=-1,
-        help="Number of prefill samples",
-    )
-    parser.add_argument(
-        "--num_offspring", type=int, default=-1, help="Number of offspring"
-    )
-    parser.add_argument("--mode", type=str, default="", help="Mode: cobi or reproblem")
-    parser.add_argument("--seed", type=int, default=None, help="Random seed")
-    parser.add_argument(
-        "--mo_archive_kwargs",
-        type=json.loads,
-        default={},
-        help="MO archive kwargs as JSON string",
-    )
-    parser.add_argument(
-        "--crossover",
-        type=str,
-        default=Crossover.UNIFORM.value,
-        choices=[c.value for c in Crossover],
-        help="Crossover method",
-    )
-    parser.add_argument(
-        "--out_dir", type=str, default=".", help="Output directory for results"
-    )
-    parser.add_argument(
-        "--problem_idx", type=int, nargs="*", default=None, help="Problem indices"
-    )
-    parser.add_argument("--num_parents", type=int, default=2, help="Number of parents")
-    args = parser.parse_args()
-    return args
-
-
 def main(args):
-    config = NSGA3ExperimentConfig(
-        num_independent_runs=args.num_independent_runs,
-        num_generations=args.num_generations,
-        num_prefill_samples=args.num_prefill_samples,
-        num_offspring=args.num_offspring,
-        mode=args.mode,
-        seed=args.seed,
-        mo_archive_kwargs=args.mo_archive_kwargs,
-        crossover=Crossover(args.crossover),
-        num_parents=args.num_parents,
-    )
+    config = generate_config(args)
     NSGA3Experiment.run(config, out_dir=args.out_dir, problem_idx=args.problem_idx)
 
 

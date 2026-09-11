@@ -1,8 +1,9 @@
-from matplotlib.patches import PathPatch
-from matplotlib.path import Path
+import os
+
 import matplotlib.pyplot as plt
 import pandas as pd
-import os
+from matplotlib.patches import PathPatch
+from matplotlib.path import Path
 
 
 def plot_sankey_flows(

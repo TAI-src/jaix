@@ -1,8 +1,6 @@
-import argparse
 import json
 import os
 import uuid
-from itertools import product
 from pathlib import Path
 
 import numpy as np
@@ -19,6 +17,8 @@ from sklearn.model_selection import (
     RepeatedStratifiedKFold,
     cross_val_score,
 )
+
+from config_pred import get_config_dicts, parse_args
 
 
 def get_model(
@@ -223,203 +223,6 @@ def run_analysis(
     feature_df["loo_score_drop_rel_std"] = feature_df["loo_cv_score_std"] / cv_score_std
 
     return feature_df, cv_score_mean, cv_score_std
-
-
-def generate_scenario_list():
-
-    target_settings = [
-        ("offspring_added", "binary"),
-        ("offspring_rank", "ordinal"),
-        ("n_offspring_rank", "regression"),
-        ("n_offspring_rank", "regression"),
-    ]
-    archive_stats_cols = [
-        "archive_stats_before_coverage",
-        "archive_stats_before_unbounded_hv",
-        "archive_stats_before_max_rank",
-        "archive_stats_before_mean_rank",
-    ]
-    input_settings = [
-        ["parent_0_niche", "parent_1_niche"],
-        ["parent_x_distance", "parent_y_distance", "parent_angle"],
-        ["parent_x_distance", "parent_0_niche", "parent_1_niche"],
-        [
-            "parent_x_distance",
-            "parent_y_distance",
-            "parent_angle",
-            "parent_0_dist_to_ideal",
-            "parent_1_dist_to_ideal",
-        ],
-    ]
-    scenario_list = []
-    for input_cols in input_settings:
-        for target_col, target_type in target_settings:
-            without_state = {
-                "input_cols": input_cols,
-                "target_col": target_col,
-                "target_type": target_type,
-            }
-            with_state = {
-                "input_cols": input_cols + archive_stats_cols,
-                "target_col": target_col,
-                "target_type": target_type,
-            }
-            scenario_list.append(without_state)
-            scenario_list.append(with_state)
-    return scenario_list
-
-
-def find_data_files(
-    folder: str, glob_pattern: str = "*_pred_data.csv"
-) -> dict[str, Path]:
-    path = Path(folder)
-    files = list(path.glob(glob_pattern))
-    # get problem names from file names
-    problem_names = [f.stem.replace("_pred_data", "") for f in files]
-    res_dict = {
-        problem_name: file_path for problem_name, file_path in zip(problem_names, files)
-    }
-    return res_dict
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Run prediction analysis for MOO-MAP experiments."
-    )
-    parser.add_argument(
-        "--scenario_ids",
-        type=int,
-        nargs="*",
-        help="IDs of the scenario to run (0-31). If not provided, all scenarios will be run.",
-        default=None,
-        required=False,
-    )
-    parser.add_argument(
-        "--data_dir",
-        type=str,
-        help="Folder containing the prediction data files.",
-        default=str(Path(__file__).parent / "results"),
-    )
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        help="Folder to save the feature importance results.",
-        default=str(Path(__file__).parent / "pred_results"),
-    )
-    parser.add_argument(
-        "--file_ids",
-        type=int,
-        nargs="*",
-        help="IDs of the data file to run (usually 0-22). If not provided, all files will be run.",
-        default=None,
-        required=False,
-    )
-    parser.add_argument(
-        "--batch_id",
-        type=int,
-        nargs="*",
-        help="IDs of the batch to run (combination of files and scenarios). If not provided, all combinations will be run.",
-        default=None,
-        required=False,
-    )
-    parser.add_argument(
-        "--max_iter",
-        type=int,
-        default=200,
-        help="Maximum number of iterations for the model.",
-    )
-    parser.add_argument(
-        "--learning_rate", type=float, default=0.05, help="Learning rate for the model."
-    )
-    parser.add_argument(
-        "--max_leaf_nodes",
-        type=int,
-        default=15,
-        help="Maximum number of leaf nodes for the model.",
-    )
-    parser.add_argument(
-        "--l2_regularization",
-        type=float,
-        default=1.0,
-        help="L2 regularization strength for the model.",
-    )
-    parser.add_argument(
-        "--n_splits", type=int, default=5, help="Number of splits for cross-validation."
-    )
-    parser.add_argument(
-        "--n_repeats",
-        type=int,
-        default=3,
-        help="Number of repeats for cross-validation.",
-    )
-    parser.add_argument(
-        "--n_permutation_repeats",
-        type=int,
-        default=10,
-        help="Number of repeats for permutation importance.",
-    )
-    parser.add_argument(
-        "--seed", type=int, default=None, help="Random seed for reproducibility."
-    )
-    args = parser.parse_args()
-    return args
-
-
-def get_config_dicts(args):
-    scenario_list = generate_scenario_list()
-    file_list = find_data_files(args.data_dir)
-    scenario_ids = (
-        args.scenario_ids
-        if args.scenario_ids is not None
-        else list(range(len(scenario_list)))
-    )
-    assert all(
-        scenario_id < len(scenario_list) for scenario_id in scenario_ids
-    ), f"Scenario IDs must be between 0 and {len(scenario_list)-1}"
-    file_ids = (
-        args.file_ids if args.file_ids is not None else list(range(len(file_list)))
-    )
-    assert all(
-        file_id < len(file_list) for file_id in file_ids
-    ), f"File IDs must be between 0 and {len(file_list)-1}"
-    seed = (
-        args.seed
-        if args.seed is not None
-        else int(np.random.SeedSequence().generate_state(1)[0])
-    )
-
-    batch_list = product(scenario_ids, file_ids)
-    batch_ids = (
-        args.batch_id
-        if args.batch_id is not None
-        else list(range(len(list(batch_list))))
-    )
-
-    config_dicts = []
-    for batch_id in batch_ids:
-        scenario_id, file_id = list(product(scenario_ids, file_ids))[batch_id]
-        scenario = scenario_list[scenario_id]
-        problem_name, file_path = list(file_list.items())[file_id]
-        config_dict = {
-            "file_path": file_path,
-            "input_cols": scenario["input_cols"],
-            "target_col": scenario["target_col"],
-            "target_type": scenario["target_type"],
-            "max_iter": args.max_iter,
-            "learning_rate": args.learning_rate,
-            "max_leaf_nodes": args.max_leaf_nodes,
-            "l2_regularization": args.l2_regularization,
-            "n_splits": args.n_splits,
-            "n_repeats": args.n_repeats,
-            "n_permutation_repeats": args.n_permutation_repeats,
-            "random_state": seed,
-            "problem_name": problem_name,
-            "file_id": file_id,
-            "scenario_id": scenario_id,
-            "batch_id": batch_id,
-        }
-        config_dicts.append(config_dict)
-    return config_dicts
 
 
 def main(args):

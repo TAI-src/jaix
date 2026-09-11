@@ -1,13 +1,15 @@
+import argparse
 import json
 import os
 
 import numpy as np
 import pandas as pd
+from read_utils import build_results_dict
+from utils import angle_between
+
 from plots_grid import plot_grid
 from plots_sankey import plot_sankey_flows
 from plots_scatter import plot_scatter
-from utils import angle_between
-from read_utils import build_results_dict
 
 
 def get_success_cols(df: pd.DataFrame) -> list:
@@ -282,6 +284,32 @@ def postprocess_results(
                 hue_col=success_col,
                 file_prefix=problem,
             )
+
+
+def parse_args():
+
+    parser = argparse.ArgumentParser(
+        description="Postprocess results from NSGA3 experiments."
+    )
+    parser.add_argument(
+        "--results_dir",
+        type=str,
+        default="results",
+        help="Directory containing the results.",
+    )
+    parser.add_argument(
+        "--skip_plots",
+        action="store_true",
+        help="Skip plotting the results.",
+    )
+    parser.add_argument(
+        "--problem_ids",
+        type=int,
+        nargs="*",
+        default=None,
+        help="List of problem IDs to process. If not provided, all problems will be processed.",
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
