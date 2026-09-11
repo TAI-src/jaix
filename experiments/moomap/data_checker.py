@@ -34,6 +34,8 @@ for i, problem in enumerate(expected_problem_list):
             print(
                 f"Unexpected number of results for problem: {problem}. Expected 30, got {len(res_files)}"
             )
+
+        seeds = []
         for res_file in res_files:
             # get the expected number of results from the corresponding config file
             config_file_path = res_file.parent / config_name
@@ -47,6 +49,7 @@ for i, problem in enumerate(expected_problem_list):
                 n_gen = config["NSGA3ExperimentConfig"]["num_generations"]
                 n_prefil = config["NSGA3ExperimentConfig"]["num_prefill_samples"]
                 n_offspring = config["NSGA3ExperimentConfig"]["num_offspring"]
+                seeds.append(config["NSGA3ExperimentConfig"]["seed"])
                 expected_num_results = n_gen * n_offspring + 1  # plus 1 for the header
                 # Count the number of lines in the result file
                 with open(res_file, "r") as rf:
@@ -56,3 +59,6 @@ for i, problem in enumerate(expected_problem_list):
                         print(
                             f"Unexpected number of results in file: {res_file}. Expected {expected_num_results}, got {num_lines}"
                         )
+        # Check if all seeds are unique
+        if len(seeds) != len(set(seeds)):
+            print(f"Duplicate seeds found for problem: {problem}. Seeds: {seeds}")

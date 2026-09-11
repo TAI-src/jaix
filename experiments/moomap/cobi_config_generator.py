@@ -245,14 +245,23 @@ def create_few_local_fronts_problem(peak_exponent=0.25):
 
 
 names = [
-    "cobi_linear",
-    "cobi_convex",
-    "cobi_concave",
-    "cobi_disconnected_linear",
-    "cobi_disc",
-    "cobi_mlocal",
-    "cobi_flocal",
+    "cobi_lin",
+    "cobi_cvex",
+    "cobi_cave",
+    "cobi_dlin",
+    "cobi_dcvex",
+    "cobi_mlcl",
+    "cobi_flcl",
 ]
+old_names = {
+    "cobi_lin": "cobi_linear",
+    "cobi_cvex": "cobi_convex",
+    "cobi_cave": "cobi_concave",
+    "cobi_dlin": "cobi_disconnected_linear",
+    "cobi_dcvex": "cobi_disc",
+    "cobi_mlcl": "cobi_mlocal",
+    "cobi_flcl": "cobi_flocal",
+}
 
 
 def get_config(func_id: int):

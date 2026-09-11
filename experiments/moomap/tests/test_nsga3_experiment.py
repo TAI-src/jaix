@@ -314,3 +314,84 @@ def test_run_experiment(tmp_path):
     assert (
         seed is not None and seed != config.seed
     ), f"Seed in config {seed} should not be the same as experiment seed {config.seed}"
+
+
+def get_xlocs(
+    problem_id: int, problem: CobiProblem, pf: bool = True, num_points: int = 10000
+):
+    if pf:
+        if problem_id <= 3:
+            # For problems 0-3, we can sample the x-axis from -2 to parents2
+
+            x_locs = [[x, 0.0] for x in np.linspace(-2, 2, num_points)]
+        elif problem_id == 4:
+            x1 = [[x, -3] for x in np.linspace(-1, 1, int(num_points / 2))]
+            x2 = [[x, 3] for x in np.linspace(-1, 1, int(num_points / 2))]
+            x_locs = x1 + x2
+        elif problem_id >= 5:
+            problem.cobi_problem.calculate_pareto_set_and_front(
+                sampling_options={"sampling": "equi-w", "n_points": num_points},
+                tol_feasible=1e-8,
+            )
+            return list(problem.cobi_problem.pareto_set)
+    else:
+        # get random problems from the search space
+        x_locs = [
+            np.random.uniform(low=problem.lower_bounds, high=problem.upper_bounds)
+            for _ in range(num_points)
+        ]
+    return x_locs
+
+
+def plot_hist(
+    bins: list[float], niche_idxs: list[int], problem_name: str, pf: bool = True
+):
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(niche_idxs, bins=bins)
+    plt.xlabel("Niche index")
+    plt.ylabel("Number of points in niche")
+    title = f"Histogram of covered niches for {problem_name}"
+    if not pf:
+        title += " (Random points)"
+    else:
+        title += " (Pareto front points)"
+    plt.title(title)
+    filename = (
+        f"niche_hist_pf_{problem_name}.png"
+        if pf
+        else f"niche_hist_random_{problem_name}.png"
+    )
+    plt.savefig(filename)
+
+
+ @pytest.mark.skip(
+    reason="This test is for visualizing the niches filled by the CobiProblems and is not a unit test."
+ )
+@pytest.mark.parametrize("problem_idx", list(range(7)))
+def test_fill_niches(problem_idx):
+    from cobi_config_generator import get_config, names
+    from pymoo.algorithms.moo.nsga3 import associate_to_niches
+    from jaix.env.utils.mo_sizing import get_ref_dirs
+
+    cobi_config = get_config(problem_idx)  # Get a CobiProblem configuration
+    cobi_problem = CobiProblem(cobi_config, inst=1)
+    ref_dirs = get_ref_dirs(cobi_problem.num_objectives, "original")
+
+    # Get the Pareto front points
+    pf_x = get_xlocs(problem_idx, cobi_problem, pf=True)
+    pf_y = np.array([cobi_problem(x)[0] for x in pf_x])
+    niches_pf, _, _ = associate_to_niches(
+        pf_y, ref_dirs, cobi_problem.ideal_point, cobi_problem.nadir_point
+    )
+    bins = [i - 0.5 for i in range(len(ref_dirs) + 1)]
+    plot_hist(bins, niches_pf, names[problem_idx], pf=True)
+
+    # Get random points in the search space
+    random_x = get_xlocs(problem_idx, cobi_problem, pf=False)
+    random_y = np.array([cobi_problem(x)[0] for x in random_x])
+    niches_random, _, _ = associate_to_niches(
+        random_y, ref_dirs, cobi_problem.ideal_point, cobi_problem.nadir_point
+    )
+    plot_hist(bins, niches_random, names[problem_idx], pf=False)
