@@ -3,11 +3,10 @@ import os
 import uuid
 from pathlib import Path
 
-from experiments.moomap.utils_read import get_nsga3x_results
 import numpy as np
 import pandas as pd
-from read_utils import build_results_dict
-from utils import angle_between
+from utils_read import get_nsga3x_results
+from utils_space import angle_between
 
 from plots_grid import plot_grid
 from plots_sankey import plot_sankey_flows
@@ -48,9 +47,9 @@ def compile_niche_success(
     data: pd.DataFrame,
     num_parents: int = 2,
     per_niche: bool = False,
-    output_dir: str = ".",
-    file_prefix: str = "",
-) -> pd.DataFrame:
+    output_dir: str | None = None,
+    file_prefix: str | None = None,
+) -> tuple[pd.DataFrame, str | None]:
     """
     Compile the success rate of each niche pair in the data.
     """
@@ -82,25 +81,28 @@ def compile_niche_success(
         )
         .reset_index()
     )
+    if output_dir is not None and file_prefix is not None:
+        # save dataframe to csv
+        file_name = (
+            f"{file_prefix}_per_niche_success.csv"
+            if per_niche
+            else f"{file_prefix}_niche_success.csv"
+        )
+        file_path = os.path.join(output_dir, file_name)
+        niche_success.to_csv(file_path, index=False)
+    else:
+        file_path = None
 
-    # save dataframe to csv
-    file_name = (
-        f"{file_prefix}_per_niche_success.csv"
-        if per_niche
-        else f"{file_prefix}_niche_success.csv"
-    )
-    niche_success.to_csv(os.path.join(output_dir, file_name), index=False)
-
-    return niche_success
+    return niche_success, file_path
 
 
 def compile_distance_success(
     data: pd.DataFrame,
     num_parents: int = 2,
     ideal_point: np.ndarray | None = None,
-    output_dir: str = ".",
-    file_prefix: str = "",
-) -> pd.DataFrame:
+    output_dir: str | None = None,
+    file_prefix: str | None = None,
+) -> tuple[pd.DataFrame, str | None]:
     """
     Get data related to success rate of offspring based on the distance between parents.
     """
@@ -131,14 +133,18 @@ def compile_distance_success(
         df["parent_angle"] = angle_between(vec1, vec2)
         additional_cols.append("parent_angle")
 
-    # return the relevant columns for distance success analysis
+    # pick the relevant columns for distance success analysis
     distance_success = df[additional_cols + success_cols]
-    file_name = f"{file_prefix}_distance_success.csv"
-    distance_success.to_csv(os.path.join(output_dir, file_name), index=False)
-    return distance_success
+    if output_dir is not None and file_prefix is not None:
+        file_name = f"{file_prefix}_distance_success.csv"
+        file_path = os.path.join(output_dir, file_name)
+        distance_success.to_csv(file_path, index=False)
+    else:
+        file_path = None
+    return distance_success, file_path
 
 
-def plot_sankey(source_df: pd.DataFrame, output_dir: str, file_prefix: str) -> None:
+def plot_sankey(source_df: pd.DataFrame, output_dir: str, file_prefix: str) -> str:
     df = source_df.copy()
     # Prepare the data for the Sankey diagram
     sel_cols = ["parent_0_niche", "parent_1_niche", "offspring_niche", "num_offspring"]
@@ -149,7 +155,7 @@ def plot_sankey(source_df: pd.DataFrame, output_dir: str, file_prefix: str) -> N
     df["parent_pair"] = df.apply(
         lambda row: f"{row['parent_0_niche']}-{row['parent_1_niche']}", axis=1
     )
-    plot_sankey_flows(
+    return plot_sankey_flows(
         df,
         output_dir=output_dir,
         source_col="parent_pair",
@@ -162,9 +168,12 @@ def plot_sankey(source_df: pd.DataFrame, output_dir: str, file_prefix: str) -> N
 def compile_pred_data(
     distance_success: pd.DataFrame,
     problem_df: pd.DataFrame,
-    results_dir: str,
-    problem: str,
-) -> pd.DataFrame:
+    results_dir: str | None = None,
+    problem: str | None = None,
+) -> tuple[pd.DataFrame, str | None]:
+    """
+    Compile the data for prediction of offspring success based on parent distances and niches.
+    """
     pred_data = distance_success.copy()
     additional_cols = [
         "offspring_niche",
@@ -182,8 +191,16 @@ def compile_pred_data(
     pred_data = pred_data.merge(
         problem_df[additional_cols], how="left", left_index=True, right_index=True
     )
-    pred_data.to_csv(os.path.join(results_dir, f"{problem}_pred_data.csv"), index=False)
-    return pred_data
+    if results_dir is not None and problem is not None:
+        file_name = f"{problem}_pred_data.csv"
+        file_path = os.path.join(results_dir, file_name)
+
+        pred_data.to_csv(
+            os.path.join(results_dir, f"{problem}_pred_data.csv"), index=False
+        )
+    else:
+        file_path = None
+    return pred_data, file_path
 
 
 grid_success_cols = [
@@ -202,21 +219,22 @@ scatter_success_cols = [
 
 def postprocess_results(
     p_dict: dict, out_dir: str = ".", skip_plots: bool = False
-) -> None:
+) -> dict:
+
+    result_files = {}
 
     for problem, problem_dict in p_dict.items():
         print(f"Processing results for problem: {problem}")
+        result_files[problem] = {}
 
         runs = [key for key in problem_dict if key.startswith("r_")]
-        res_files = [problem_dict[run]["file"] for run in runs]
-        # FIXME: this is a workaround because we know that the number of niches is the same for all runs of a problem, but we should probably check that
-        num_niches = problem_dict[runs[0]]["config"]["num_offspring"]
+        res_files = [problem_dict[run]["result_file"] for run in runs]
 
         # combine all the result files into a single dataframe
         problem_df = pd.concat([pd.read_csv(f) for f in res_files], ignore_index=True)
 
-        # Create data
-        per_niche_success = compile_niche_success(
+        # Create dataframes for niche success and distance success
+        per_niche_success, pniche_csv = compile_niche_success(
             problem_df,
             num_parents=2,
             per_niche=True,
@@ -224,7 +242,7 @@ def postprocess_results(
             file_prefix=problem,
         )
 
-        niche_success = compile_niche_success(
+        niche_success, niche_csv = compile_niche_success(
             problem_df,
             num_parents=2,
             per_niche=False,
@@ -232,37 +250,55 @@ def postprocess_results(
             file_prefix=problem,
         )
 
-        distance_success = compile_distance_success(
-            problem_df, num_parents=2, ideal_point=problem_dict["ideal_point"]
+        distance_success, dist_csv = compile_distance_success(
+            problem_df,
+            num_parents=2,
+            ideal_point=problem_dict["ideal_point"],
+            output_dir=out_dir,
+            file_prefix=problem,
         )
-        compile_pred_data(
+        _, pred_csv = compile_pred_data(
             distance_success, problem_df, results_dir=out_dir, problem=problem
         )
+        result_files[problem]["data"] = {
+            "per_niche_success": pniche_csv,
+            "niche_success": niche_csv,
+            "distance_success": dist_csv,
+            "pred_data": pred_csv,
+        }
 
         if skip_plots:
             continue
-        # Plotting
 
-        plot_sankey(
+        # Plotting
+        plot_files = {}
+
+        plot_files["sankey"] = plot_sankey(
             per_niche_success,
             output_dir=out_dir,
             file_prefix=problem,
         )
 
+        # FIXME: this is a workaround because we know that the number of niches is the same for all runs of a problem, but we should probably check that
+        num_niches = problem_dict[runs[0]]["config"]["num_offspring"]
+        plot_files["grid"] = []
         for success_col in grid_success_cols:
-            plot_grid(
+            gplot_file = plot_grid(
                 niche_success,
                 max_grid=num_niches,
                 grid_colx="parent_0_niche",
                 grid_coly="parent_1_niche",
-                success_col=success_col,
+                hue_col=success_col,
                 output_dir=out_dir,
                 file_prefix=problem,
             )
+            plot_files["grid"].append(gplot_file)
 
+        plot_files["scatter_gen"] = []
+        plot_files["scatter_success"] = []
         for success_col in scatter_success_cols:
             for dist_col in ["parent_x_distance", "parent_y_distance", "parent_angle"]:
-                plot_scatter(
+                splot_file = plot_scatter(
                     distance_success,
                     output_dir=out_dir,
                     x_col=dist_col,
@@ -270,7 +306,9 @@ def postprocess_results(
                     hue_col="generation",
                     file_prefix=problem,
                 )
-            plot_scatter(
+                plot_files["scatter_gen"].append(splot_file)
+
+            splot_file = plot_scatter(
                 distance_success,
                 output_dir=out_dir,
                 x_col="parent_x_distance",
@@ -278,8 +316,9 @@ def postprocess_results(
                 hue_col=success_col,
                 file_prefix=problem,
             )
+            plot_files["scatter_success"].append(splot_file)
 
-            plot_scatter(
+            splot_file = plot_scatter(
                 distance_success,
                 output_dir=out_dir,
                 x_col="parent_x_distance",
@@ -287,6 +326,10 @@ def postprocess_results(
                 hue_col=success_col,
                 file_prefix=problem,
             )
+            plot_files["scatter_success"].append(splot_file)
+        result_files[problem]["plots"] = plot_files
+
+    return result_files
 
 
 def main(args):

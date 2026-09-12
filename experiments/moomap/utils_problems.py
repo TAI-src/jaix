@@ -47,7 +47,7 @@ def generate_problem_list(problem_ids: list[int] | None = None):
     return cobi_problems + re_problems
 
 
-def get_problem_info(problem: CobiProblem | REProblem | int):
+def get_problem_info(problem: CobiProblem | REProblem | int) -> dict:
     if isinstance(problem, int):
         problem_list = generate_problem_list(problem_ids=[problem])
         problem = problem_list[0]
@@ -62,7 +62,7 @@ def get_problem_info(problem: CobiProblem | REProblem | int):
     }
 
 
-def get_problem_names(problem_ids: list[int] | None = None):
+def get_problem_names(problem_ids: list[int] | None = None) -> dict[int, str]:
     cobi_names_dict = {i: name for i, name in enumerate(cobi_names)}
     re_names_dict = {i + 7: name for i, name in enumerate(REProblem.problem_map.keys())}
     full_names_dict = {**cobi_names_dict, **re_names_dict}

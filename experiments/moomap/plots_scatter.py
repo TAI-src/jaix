@@ -14,11 +14,11 @@ def plot_scatter(
     hue_col: str,
     file_prefix: str = "",
     cmap_str: str = "viridis",
-) -> None:
+) -> str:
     """
-    Plot the success rate of offspring based on the distance between parents.
+    Plots a scatter plot of x_col vs y_col, colored by hue_col.
     """
-    # filter rows with nan values in success_col
+    # filter rows with nan values in hue_col
 
     df = source_df.copy()
     df = df.dropna(subset=[hue_col])
@@ -49,11 +49,13 @@ def plot_scatter(
         title += " (dropped NaN)"
     plt.xlabel(x_col)
     plt.ylabel(y_col)
-    # plt.colorbar(label=success_col)
     plt.tight_layout()
+    file_name = f"{file_prefix}_scatter_{x_col}vs{y_col}_{hue_col}.pdf"
+    file_path = os.path.join(output_dir, file_name)
     plt.savefig(
-        os.path.join(
-            output_dir, f"{file_prefix}_scatter_{x_col}vs{y_col}_{hue_col}.pdf"
-        )
+        file_path,
+        format="pdf",
+        bbox_inches="tight",
     )
     plt.close()
+    return file_path

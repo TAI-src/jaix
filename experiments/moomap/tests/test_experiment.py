@@ -72,7 +72,7 @@ def test_run(tmp_path):
 
 def test_main(tmp_path):
     # get config file path based on the current file path
-    config_file = Path(__file__).parent / "test_config.json"
+    config_file = Path(__file__).parent / "test_config_moomap.json"
     out_dir = main(config_file=str(config_file), out_dir=tmp_path)
     # check that there is a folder with experiment id in the outpath
     assert Path(out_dir).exists() and Path(out_dir).is_dir()

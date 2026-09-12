@@ -7,12 +7,17 @@ from postprocess import (
     compile_distance_success,
     compile_niche_success,
     get_success_cols,
-    plot_distance_success_1d,
-    plot_distance_success_2d,
-    plot_niche_success,
+    plot_sankey,
+    compile_pred_data,
+    postprocess_results,
 )
+import pytest
+from utils_read import get_nsga3x_results
+from pathlib import Path
 
-test_data = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_results.csv")
+data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+
+test_data = os.path.join(data_path, "test_results.csv")
 
 
 def get_test_data():
@@ -22,7 +27,8 @@ def get_test_data():
         gen_df = df[df["generation"] == gen]
         max_rank = gen_df["offspring_rank"].max()
         added_rows = gen_df[gen_df["offspring_added"] == True]
-        crit_rank = added_rows["offspring_rank"].max()
+        removed_rows = gen_df[gen_df["offspring_added"] == False]
+        crit_rank = removed_rows["offspring_rank"].min()
         gen_dict[gen] = {
             "max_rank": max_rank,
             "crit_rank": crit_rank,
@@ -42,6 +48,7 @@ def test_get_success_cols():
         "offspring_rank",
         "n_offspring_rank",
         "ncrit_offspring_rank",
+        "offspring_dist_to_ideal",
     }
     assert "n_offspring_rank" in df.columns
     assert "ncrit_offspring_rank" in df.columns
@@ -88,7 +95,8 @@ def test_get_success_cols():
                 )
 
 
-def test_compile_niche_success():
+@pytest.mark.parametrize("per_niche", [True, False])
+def test_compile_niche_success(tmp_path, per_niche):
     df, _gen_dict = get_test_data()
     df1 = df[(df["parent_0_niche"] == 6) & (df["parent_1_niche"] == 34)][
         "offspring_added"
@@ -98,36 +106,47 @@ def test_compile_niche_success():
     ]
     expected_num_offspring = len(df1) + len(df2)
     expected_added_rate = (df1.sum() + df2.sum()) / expected_num_offspring
-    niche_success = compile_niche_success(df)
+    niche_success, niche_file = compile_niche_success(
+        df, per_niche=per_niche, output_dir=tmp_path, file_prefix="test_niche_success"
+    )
+    assert niche_file is not None
+    assert os.path.exists(niche_file)
     # check that the number of rows is smaller than the number of unique parent niche pairs
     # This is because the order of the parent niches does not matter, so (niche_a, niche_b) is the same as (niche_b, niche_a)
     # however, the original df should not be changed
-    assert len(niche_success) < len(df.groupby(["parent_0_niche", "parent_1_niche"]))
+    if per_niche:
+        assert len(niche_success) < len(
+            df.groupby(["parent_0_niche", "parent_1_niche", "offspring_niche"])
+        )
+    else:
+        assert len(niche_success) < len(
+            df.groupby(["parent_0_niche", "parent_1_niche"])
+        )
     # check that the offspring_added_rate is between 0 and 1
     assert niche_success["offspring_added_rate"].between(0, 1).all()
 
     niche_success_01 = niche_success[
         (niche_success["parent_0_niche"] == 6) & (niche_success["parent_1_niche"] == 34)
     ]
-    assert len(niche_success_01) == 1
-    assert niche_success_01["num_offspring"].iloc[0] == expected_num_offspring
-    assert niche_success_01["offspring_added_rate"].iloc[0] == expected_added_rate
+    if per_niche:
+        # Two offspring niches for this niche pair
+        assert len(niche_success_01) == 2
+        assert sum(niche_success_01["num_offspring"]) == expected_num_offspring
+        assert np.isclose(
+            sum(
+                niche_success_01["offspring_added_rate"]
+                * niche_success_01["num_offspring"]
+            )
+            / expected_num_offspring,
+            expected_added_rate,
+        )
+    else:
+        assert len(niche_success_01) == 1
+        assert niche_success_01["num_offspring"].iloc[0] == expected_num_offspring
+        assert niche_success_01["offspring_added_rate"].iloc[0] == expected_added_rate
 
 
-def test_plot_niche_success(tmp_path):
-    df, _ = get_test_data()
-    niche_success = compile_niche_success(df)
-    os.makedirs(tmp_path, exist_ok=True)
-    plot_niche_success(
-        niche_success,
-        100,
-        tmp_path,
-        success_col="offspring_added_rate",
-        file_prefix="test_",
-    )
-
-
-def test_compile_distance_success():
+def test_compile_distance_success(tmp_path):
 
     df, _gen_dict = get_test_data()
     parent_0_x = df["parent_0_x"].iloc[0]
@@ -141,7 +160,14 @@ def test_compile_distance_success():
     p1y = np.fromstring(parent_1_y.strip("[]"), sep=" ")
     expected_x_distance = np.linalg.norm(p0x - p1x)
     expected_y_distance = np.linalg.norm(p0y - p1y)
-    distance_success = compile_distance_success(df)
+    distance_success, dist_file = compile_distance_success(
+        df,
+        ideal_point=np.array([0, 0]),
+        output_dir=tmp_path,
+        file_prefix="test_distance_success",
+    )
+    assert dist_file is not None
+    assert os.path.exists(dist_file)
     # check that the number of rows is equal to the number of rows in the original df
     assert len(distance_success) == len(df)
     # check that the offspring_added_rate is between 0 and 1
@@ -158,24 +184,70 @@ def test_compile_distance_success():
     assert "offspring_dist_to_ideal" in distance_success.columns
     assert "n_offspring_rank" in distance_success.columns
     assert "ncrit_offspring_rank" in distance_success.columns
+    assert "parent_angle" in distance_success.columns
 
 
-def test_plot_distance_success(tmp_path):
-    out_dir = tmp_path
-    os.makedirs(out_dir, exist_ok=True)
-    df, _ = get_test_data()
-    distance_success = compile_distance_success(df)
-    num_rows = len(distance_success)
-    plot_distance_success_2d(
-        distance_success,
-        out_dir,
-        success_col="offspring_dist_to_ideal",
-        file_prefix="test_",
+def test_plot_sankey(tmp_path):
+    df, _gen_dict = get_test_data()
+    niche_success, _ = compile_niche_success(df, per_niche=True)
+    # check that the function runs without error
+    file_path = plot_sankey(
+        niche_success, output_dir=tmp_path, file_prefix="test_sankey"
     )
-    assert len(distance_success) == num_rows
-    plot_distance_success_1d(
-        distance_success,
-        out_dir,
-        success_col="offspring_dist_to_ideal",
-        file_prefix="test_",
+    assert os.path.exists(file_path)
+
+
+def test_compile_pred_data(tmp_path):
+    df, gen_dict = get_test_data()
+    distance_success, _ = compile_distance_success(df)
+    pred_data, pred_file = compile_pred_data(
+        distance_success, df, results_dir=tmp_path, problem="test_problem"
     )
+    assert pred_file is not None
+    assert os.path.exists(pred_file)
+    # check that the number of rows is equal to the number of rows in the original df
+    assert len(pred_data) == len(distance_success)
+    # check that the columns are correct
+    expected_cols = [
+        "offspring_niche",
+        "parent_0_niche",
+        "parent_1_niche",
+        "archive_stats_before_coverage",
+        "archive_stats_before_unbounded_hv",
+        "archive_stats_before_max_rank",
+        "archive_stats_before_mean_rank",
+        "archive_stats_after_coverage",
+        "archive_stats_after_unbounded_hv",
+        "archive_stats_after_max_rank",
+        "archive_stats_after_mean_rank",
+    ]
+    for col in expected_cols:
+        assert col in pred_data.columns
+
+
+@pytest.mark.parametrize("skip_plot", [True, False])
+def test_postprocess_results(tmp_path, skip_plot):
+    # Test that the postprocess_results function runs without error
+    test_folder = Path(__file__).parent / "data" / "nsga3x_results"
+    problem_ids = [0, 1]
+    results_dict = get_nsga3x_results(test_folder, problem_ids=problem_ids)
+    res = postprocess_results(results_dict, out_dir=tmp_path, skip_plots=skip_plot)
+    print(res)
+    assert isinstance(res, dict)
+    assert res.keys() == set(problem_ids)
+    for problem_id in problem_ids:
+        assert problem_id in res
+        assert len(res[problem_id]["data"]) == 4
+        for data_file in res[problem_id]["data"].values():
+            assert os.path.exists(data_file)
+        if skip_plot:
+            assert "plots" not in res[problem_id]
+        else:
+            assert "plots" in res[problem_id]
+            assert len(res[problem_id]["plots"]) == 4
+            sankey_file = res[problem_id]["plots"].pop("sankey")
+            assert os.path.exists(sankey_file)
+            for plot_type, plot_list in res[problem_id]["plots"].items():
+                assert len(plot_list) >= 3  # minimum success cols is 3
+                for plot_file in plot_list:
+                    assert os.path.exists(plot_file)

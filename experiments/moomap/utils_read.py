@@ -7,7 +7,7 @@ from utils_problems import generate_problem_list, get_problem_info, get_problem_
 
 
 def get_nsga3x_results(
-    results_dir: str | None = None, problem_ids: list[int] | None = None
+    results_dir: str | Path | None = None, problem_ids: list[int] | None = None
 ) -> dict:
     """
     Get the results of the NSGA3x experiments.
@@ -31,6 +31,9 @@ def get_nsga3x_results(
     for problem_id, problem_info in problem_infos.items():
         resf = result_files.get(problem_id, [])
         conf = config_files.get(problem_id, [])
+        assert len(resf) == len(
+            conf
+        ), f"Number of result files and config files do not match for problem {problem_id}"
         for res_file, config_file in zip(resf, conf):
             run_id = res_file.parent.name
             assert (
@@ -45,25 +48,27 @@ def get_nsga3x_results(
     return problem_infos
 
 
-def get_config_dict(config_file):
+def get_config_dict(config_file, config_type="NSGA3ExperimentConfig") -> dict:
     """
     Get the config dict from a config file.
     """
     with open(config_file, "r") as f:
         config = json.load(f)
-    return config["NSGA3ExperimentConfig"]
+    return config[config_type] if config_type in config else config
 
 
 def find_data_files(
-    folder: str, file_type_pattern: str = "", problem_ids: list[int] | None = None
+    folder: str | Path,
+    file_type_pattern: str = "",
+    problem_ids: list[int] | None = None,
 ) -> dict[int, list[Path]]:
     path = Path(folder)
-    files = list(path.glob(file_type_pattern))
+    files = list(path.rglob(file_type_pattern))
 
     res_dict = defaultdict(list)
     for f in files:
-        for problem_idx, name in enumerate(get_problem_names(problem_ids)):
+        for problem_idx, name in get_problem_names(problem_ids).items():
             if name in f.name:
                 res_dict[problem_idx].append(f)
                 break
-    return res_dict
+    return dict(res_dict)

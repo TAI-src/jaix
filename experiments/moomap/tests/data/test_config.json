@@ -1,0 +1,13 @@
+{
+    "NSGA3ExperimentConfig": {
+        "num_independent_runs": 1,
+        "num_generations": 10,
+        "num_prefill_samples": 215,
+        "num_offspring": 215,
+        "mode": "",
+        "seed": 1817079743,
+        "mo_archive_kwargs": {},
+        "crossover": "__main__.Crossover.UNIFORM",
+        "num_parents": 2
+    }
+}

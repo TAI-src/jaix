@@ -33,7 +33,7 @@ from jaix.suite.ec_suite import ECSuite, ECSuiteConfig
 from ttex.config import Config
 from ttex.config.config import ConfigFactory as CF
 
-from cobi_config_generator import get_configs as get_cobi_configs
+from utils_cobi_configs import get_configs as get_cobi_configs
 
 
 class MoomapXConfig(Config):
