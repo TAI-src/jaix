@@ -47,6 +47,7 @@ def plot_scatter(
     if len(source_df) > len(df):
         # We dropped some rows due to NaN values in the hue_col, so we should indicate that in the title
         title += " (dropped NaN)"
+    plt.title(title)
     plt.xlabel(x_col)
     plt.ylabel(y_col)
     plt.tight_layout()
