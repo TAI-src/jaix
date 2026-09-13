@@ -141,13 +141,11 @@ def get_config_dicts(args):
         if args.scenario_ids is not None
         else list(range(len(scenario_list)))
     )
-    assert all(
-        0 <= scenario_id < len(scenario_list) for scenario_id in scenario_ids
+    assert all(0 <= scenario_id < len(scenario_list) for scenario_id in scenario_ids)
     file_ids = (
         args.file_ids if args.file_ids is not None else list(range(len(file_list)))
     )
-    assert all(
-        0 <= file_id < len(file_list) for file_id in file_ids
+    assert all(0 <= file_id < len(file_list) for file_id in file_ids)
     seed = (
         args.seed
         if args.seed is not None

@@ -19,7 +19,7 @@ module load gcc uv
 PYTHONUNBUFFERED=1 uv run <fill_in_commands>
 ```
 
-To start 30 jobs, run the following. The SBATCH values can be overridden as shown.
+To start 30 batch jobs (with 23 tasks each), run the following. The SBATCH values can be overridden as shown.
 
 - The array id is available as `$SLURM_ARRAY_TASK_ID` in the script.
 - The `%5`in the array specification imposes a limit of 5 concurrent jobs.

@@ -42,13 +42,9 @@ def generate_problem_list(problem_ids: list[int] | None = None):
     else:
         cobi_ids = None
         re_ids = None
-    if problem_ids is None:
-        return cobi_problems + re_problems
-    problems_by_id = {
-        **dict(zip(cobi_ids, cobi_problems)),
-        **dict(zip(re_ids, re_problems)),
-    }
-    return [problems_by_id[i] for i in problem_ids]
+    cobi_problems = cobi_problem_list(cobi_ids)
+    re_problems = re_problem_list(re_ids)
+    return cobi_problems + re_problems
 
 
 def get_problem_info(problem: CobiProblem | REProblem | int) -> dict:

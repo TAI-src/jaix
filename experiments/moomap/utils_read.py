@@ -23,7 +23,6 @@ def get_nsga3x_results(
     if problem_ids is None:
         problem_ids = list(get_problem_names().keys())
     problem_infos = {i: get_problem_info(i) for i in problem_ids}
-    }
 
     for problem_id, problem_info in problem_infos.items():
         resf = result_files.get(problem_id, [])
