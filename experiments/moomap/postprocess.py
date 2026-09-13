@@ -332,17 +332,52 @@ def postprocess_results(
     return result_files
 
 
-def main(args):
-    results_dict = get_nsga3x_results(
-        results_dir=args.results_dir, problem_ids=args.problem_ids
-    )
+def run_postprocess(
+    results_dir: str,
+    out_dir: str,
+    problem_ids: list[int] | None = None,
+    skip_plots: bool = False,
+) -> dict:
+    results_dict = get_nsga3x_results(results_dir=results_dir, problem_ids=problem_ids)
     exp_id = uuid.uuid4().hex
-    out_dir = Path(args.out_dir) / str(exp_id)
-    os.makedirs(out_dir, exist_ok=True)
+    output_dir = os.path.join(out_dir, str(exp_id))
+    os.makedirs(output_dir, exist_ok=True)
+    start_time = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+    res_files = postprocess_results(
+        results_dict, out_dir=output_dir, skip_plots=skip_plots
+    )
+    end_time = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+    duration = (pd.Timestamp(end_time) - pd.Timestamp(start_time)).total_seconds()
+
+    for problem_id, problem_dict in results_dict.items():
+        problem_dict.update(res_files[problem_id])
+
     # save results_dict to json file
-    with open(out_dir / "results_dict.json", "w") as f:
+    file_name = f"results_dict_{exp_id}.json"
+    file_path = os.path.join(output_dir, file_name)
+
+    meta_dict = {
+        "exp_id": exp_id,
+        "start_time": start_time,
+        "end_time": end_time,
+        "duration_seconds": duration,
+        "res_file": file_path,
+    }
+    results_dict["meta"] = meta_dict
+    with open(file_path, "w") as f:
         json.dump(results_dict, f, indent=4, default=str)
-    postprocess_results(results_dict, out_dir=args.out_dir, skip_plots=args.skip_plots)
+
+    return results_dict
+
+
+def main(args):
+    res = run_postprocess(
+        results_dir=args.results_dir,
+        out_dir=args.out_dir,
+        problem_ids=args.problem_ids,
+        skip_plots=args.skip_plots,
+    )
+    return res
 
 
 if __name__ == "__main__":

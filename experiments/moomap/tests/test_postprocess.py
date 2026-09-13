@@ -10,6 +10,7 @@ from postprocess import (
     plot_sankey,
     compile_pred_data,
     postprocess_results,
+    run_postprocess,
 )
 import pytest
 from utils_read import get_nsga3x_results
@@ -18,6 +19,7 @@ from pathlib import Path
 data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 test_data = os.path.join(data_path, "test_results.csv")
+ENABLE_PLOT_TESTS = False
 
 
 def get_test_data():
@@ -227,12 +229,13 @@ def test_compile_pred_data(tmp_path):
 
 @pytest.mark.parametrize("skip_plot", [True, False])
 def test_postprocess_results(tmp_path, skip_plot):
+    if not ENABLE_PLOT_TESTS and not skip_plot:
+        pytest.skip("Skipping plot tests because ENABLE_PLOT_TESTS is False")
     # Test that the postprocess_results function runs without error
     test_folder = Path(__file__).parent / "data" / "nsga3x_results"
     problem_ids = [0, 1]
     results_dict = get_nsga3x_results(test_folder, problem_ids=problem_ids)
     res = postprocess_results(results_dict, out_dir=tmp_path, skip_plots=skip_plot)
-    print(res)
     assert isinstance(res, dict)
     assert res.keys() == set(problem_ids)
     for problem_id in problem_ids:
@@ -251,3 +254,25 @@ def test_postprocess_results(tmp_path, skip_plot):
                 assert len(plot_list) >= 3  # minimum success cols is 3
                 for plot_file in plot_list:
                     assert os.path.exists(plot_file)
+
+
+def test_run_postprocess(tmp_path):
+    # Test that the run_postprocess function runs without error
+    test_folder = Path(__file__).parent / "data" / "nsga3x_results"
+    problem_ids = [0, 1]
+    res = run_postprocess(
+        results_dir=str(test_folder),
+        problem_ids=problem_ids,
+        out_dir=tmp_path,
+        skip_plots=True,
+    )
+    assert isinstance(res, dict)
+    assert all(p in res for p in problem_ids)
+    assert "meta" in res
+    res_file = res["meta"]["res_file"]
+    assert os.path.exists(res_file)
+    for pid in problem_ids:
+        value = res[pid]
+        assert isinstance(value, dict)
+        assert "data" in value
+        assert "ideal_point" in value

@@ -164,7 +164,8 @@ def permutation_importance_analysis(
             n_repeats=n_permutation_repeats,
             random_state=random_state + fold_idx,
         )
-        importance_vals.append(perm.importances)
+        avg_importance = np.mean(perm.importances, axis=1)
+        importance_vals.append(avg_importance)
 
     mean_perm_importance = np.mean(importance_vals, axis=0)
     std_perm_importance = np.std(importance_vals, axis=0)
