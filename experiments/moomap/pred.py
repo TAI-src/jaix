@@ -239,7 +239,7 @@ def main(args):
         )
 
         print(f"Configuration: {json.dumps(config_dict, indent=4, default=str)}")
-        file_prefix = f"{config_dict["problem_name"]}_s{config_dict['scenario_id']}"
+        file_prefix = f"{config_dict['problem_name']}_s{config_dict['scenario_id']}"
         feature_df, cv_score_mean, cv_score_std = run_analysis(**config_dict)
         df_file = f"{file_prefix}_feat_imp.csv"
         feature_df.to_csv(out_dir / df_file)

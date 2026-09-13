@@ -3,8 +3,7 @@ import json
 import os
 from collections import defaultdict
 from pathlib import Path
-
-from nsga3_experiment import NSGA3ExperimentConfig
+from utils_problems import get_problem_names
 
 logs_dir = f"{os.path.dirname(os.path.abspath(__file__))}/logs"
 results_dir = f"{os.path.dirname(os.path.abspath(__file__))}/results"
@@ -16,14 +15,12 @@ res_dict = defaultdict(list)
 for file in csv_files:
     res_dict[file.name].append(file)
 
-expected_problem_list = NSGA3ExperimentConfig.generate_problem_list()
+problem_dict = get_problem_names()
 
 
 problems = list(res_dict.keys())
-for i, problem in enumerate(expected_problem_list):
-    print(
-        f"Checking results for problem: {problem} with index {i}/{len(expected_problem_list)}"
-    )
+for i, problem in problem_dict.items():
+    print(f"Checking results for problem: {problem} with index {i}/{len(problem_dict)}")
     csv_name = f"results_{problem}.csv"
     if csv_name not in problems:
         print(f"Missing results for problem: {problem}")

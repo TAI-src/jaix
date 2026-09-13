@@ -56,7 +56,7 @@ sacct -u $USER -X --starttime 1970-01-01 --format=JobID,JobName,State,Elapsed,Ex
 ### Offspring generation experiments
 
 ```{bash}
-PYTHONUNBUFFERED=1 uv run nsga3_experiment.py --num_independent_runs 1 --num_generations 1000 --problem_idx "$SLURM_ARRAY_TASK_ID"
+PYTHONUNBUFFERED=1 uv run nsga3_experiment.py --num_independent_runs 1 --num_generations 1000 --out_dir offspring_results --problem_idx "$SLURM_ARRAY_TASK_ID"
 ```
 
 There are 23 possible task ids (0-22) for the problem index. Problem 0-6 are the cobi problems, 7-22 are the REProblems (unconstrained). The following table shows the recommended execution times for each task id.
@@ -66,10 +66,20 @@ There are 23 possible task ids (0-22) for the problem index. Problem 0-6 are the
 - 12: 07:00:00 is enough
 - rest: 02:00:00 is enough
 
+### Postprocess data
+
+```{bash}
+PYTHONUNBUFFERED=1 uv run postprocess.py --results_dir offspring_results --out_dir ppdata --skip_plots --problem_idx "$SLURM_ARRAY_TASK_ID"
+```
+
+There are 23 possible task ids (0-22) for the problem index. Problem 0-6 are the cobi problems, 7-22 are the REProblems (unconstrained).
+
+10 minutes might be enough per problem.
+
 ### Prediction feature importance experiments
 
 ```{bash}
-PYTHONUNBUFFERED=1 uv run pred.py --batch_id $SLURM_ARRAY_TASK_ID --data_dir "input_dir" --output_dir "output_dir"
+PYTHONUNBUFFERED=1 uv run pred.py --batch_id $SLURM_ARRAY_TASK_ID --data_dir ppdata --output_dir pred_res
 ```
 
 By default, there are 32 scenarios (input and target column combinations) and one data file per problem. This can be restricted by specifying `--scenario_ids` and `--file_ids`. The number of available batches is the product of the number of scenarios and the number of files. So for the full spread of 32 scenarios and 23 files, there are 736 batches.

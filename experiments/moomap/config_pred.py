@@ -95,7 +95,7 @@ def generate_scenario_list():
         ("offspring_added", "binary"),
         ("offspring_rank", "ordinal"),
         ("n_offspring_rank", "regression"),
-        ("n_offspring_rank", "regression"),
+        ("ncrit_offspring_rank", "regression"),
     ]
     archive_stats_cols = [
         "archive_stats_before_coverage",
