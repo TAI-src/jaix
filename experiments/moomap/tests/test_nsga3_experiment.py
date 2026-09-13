@@ -7,42 +7,8 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblemConfig,
 )
 
-from nsga3_experiment import NSGA3Experiment, NSGA3ExperimentConfig
-
-
-def test_create_mo_archive_config():
-    problem = REProblem(REProblemConfig(), inst=2)
-    config = NSGA3ExperimentConfig.create_mo_archive_config(problem)
-    assert config.max_size is not None
-    assert isinstance(config.num_refpoints, int)
-    assert isinstance(config, MOArchiveConfig)
-
-
-def test_re_problem_list():
-    problems = NSGA3ExperimentConfig.re_problem_list()
-    assert isinstance(problems, list)
-    assert len(problems) > 0
-    assert all(isinstance(p, REProblem) for p in problems)
-
-
-def test_cobi_problem_list():
-    problems = NSGA3ExperimentConfig.cobi_problem_list()
-    assert isinstance(problems, list)
-    assert len(problems) > 0
-    assert all(isinstance(p, CobiProblem) for p in problems)
-
-
-@pytest.mark.parametrize("mode", ["cobi", "reproblem", ""])
-def test_generate_problem_list(mode):
-    problems = NSGA3ExperimentConfig.generate_problem_list(mode)
-    assert isinstance(problems, list)
-    assert len(problems) > 0
-    if mode == "cobi":
-        assert all(isinstance(p, CobiProblem) for p in problems)
-    elif mode == "reproblem":
-        assert all(isinstance(p, REProblem) for p in problems)
-    else:
-        assert all(isinstance(p, (CobiProblem, REProblem)) for p in problems)
+from config_nsga3x import NSGA3ExperimentConfig
+from nsga3_experiment import NSGA3Experiment
 
 
 @pytest.mark.parametrize("kwargs", [{"max_size": 10}, None, {"num_refpoints": 50}])
@@ -81,13 +47,13 @@ def test_prefill_archive():
 
     # Test seeding
     config.rng = np.random.default_rng(42)
-    archive2, entries2 = NSGA3Experiment.prefill_archive(problem, config)
+    _archive2, entries2 = NSGA3Experiment.prefill_archive(problem, config)
     assert len(entries2) == config.num_prefill_samples
     for e1, e2 in zip(entries, entries2):
         assert np.allclose(e1.x, e2.x)
         assert np.allclose(e1.y, e2.y)
     config.rng = np.random.default_rng(43)
-    archive3, entries3 = NSGA3Experiment.prefill_archive(problem, config)
+    _archive3, entries3 = NSGA3Experiment.prefill_archive(problem, config)
     assert len(entries3) == config.num_prefill_samples
     assert any(
         (not np.allclose(e1.x, e3.x)) or (not np.allclose(e1.y, e3.y))
@@ -235,37 +201,34 @@ def test_try_add_offspring():
     assert archive.size <= archive.max_size
 
 
-@pytest.mark.parametrize("mode", ["cobi", "reproblem"])
-def test_run_single(tmp_path, mode):
+def test_run_single(tmp_path):
+    problem_idx = [0, 12]
     config = NSGA3ExperimentConfig(
         num_independent_runs=1,
         num_generations=1,
-        mode=mode,
         seed=42,
     )
     xp_path = tmp_path / "x1"
-    files = NSGA3Experiment.run_single(config, xp_path, problem_idx=None)
-    assert len(files) == 2 * len(NSGA3ExperimentConfig.generate_problem_list(mode))
+    files = NSGA3Experiment.run_single(config, xp_path, problem_idx=problem_idx)
+    assert len(files) == 2 * len(
+        problem_idx
+    )  # 2 files per problem (results and config)
     assert "results" in files[0] and files[0].endswith(".csv")
 
-    # Looking at file 10 since it is the first reproblem (instance 5) with 3 objectives, which means the propulation size is not 100
-    with open(files[10], "r") as f:
+    # Looking at file for problem_idx[1] (instance11) to check that the seed is recorded correctly
+    with open(files[2], "r") as f:
         import csv
 
         reader = csv.DictReader(f)
         data = list(reader)
         last_data = data[-1]
         num_data = len(data)
-        if mode == "cobi":
-            assert num_data == 100  # Cobi problems have dimension 2
-        elif mode == "reproblem":
-            assert (
-                num_data == 91
-            )  # reproblem 5 has 3 objectives, so the population size is 91
+
+        assert num_data == 91  # First 3-dimensional problem
     assert last_data["seed"] == str(config.seed)
 
     assert "config" in files[1] and files[1].endswith(".json")
-    with open(files[11], "r") as f:
+    with open(files[3], "r") as f:
         import json
 
         config_data = json.load(f)
@@ -274,8 +237,8 @@ def test_run_single(tmp_path, mode):
 
     # check that seeding worked
     xp_path = tmp_path / "x2"
-    # Only run the same problem (instance 5) to check that the results are the same
-    files2 = NSGA3Experiment.run_single(config, xp_path, problem_idx=[5])
+    # Only run the second problem (instance11) to check that the results are the same
+    files2 = NSGA3Experiment.run_single(config, xp_path, problem_idx=[12])
     with open(files2[0], "r") as f:
         import csv
 
@@ -294,10 +257,9 @@ def test_run_experiment(tmp_path):
         num_independent_runs=2,
         num_generations=2,
         num_prefill_samples=20,
-        mode="reproblem",
         seed=42,
     )
-    problems_idx = [0, 2]
+    problems_idx = [0, 2, 7]
     xp_path = tmp_path / "experiment"
     config_dict = NSGA3Experiment.run(config, xp_path, problem_idx=problems_idx)
     file = xp_path / f"x_{config_dict['exp_id']}" / "config.json"
@@ -314,3 +276,84 @@ def test_run_experiment(tmp_path):
     assert (
         seed is not None and seed != config.seed
     ), f"Seed in config {seed} should not be the same as experiment seed {config.seed}"
+
+
+def get_xlocs(
+    problem_id: int, problem: CobiProblem, pf: bool = True, num_points: int = 10000
+):
+    if pf:
+        if problem_id <= 3:
+            # For problems 0-3, we can sample the x-axis from -2 to parents2
+
+            x_locs = [[x, 0.0] for x in np.linspace(-2, 2, num_points)]
+        elif problem_id == 4:
+            x1 = [[x, -3] for x in np.linspace(-1, 1, int(num_points / 2))]
+            x2 = [[x, 3] for x in np.linspace(-1, 1, int(num_points / 2))]
+            x_locs = x1 + x2
+        elif problem_id >= 5:
+            problem.cobi_problem.calculate_pareto_set_and_front(
+                sampling_options={"sampling": "equi-w", "n_points": num_points},
+                tol_feasible=1e-8,
+            )
+            return list(problem.cobi_problem.pareto_set)
+    else:
+        # get random problems from the search space
+        x_locs = [
+            np.random.uniform(low=problem.lower_bounds, high=problem.upper_bounds)
+            for _ in range(num_points)
+        ]
+    return x_locs
+
+
+def plot_hist(
+    bins: list[float], niche_idxs: list[int], problem_name: str, pf: bool = True
+):
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(niche_idxs, bins=bins)
+    plt.xlabel("Niche index")
+    plt.ylabel("Number of points in niche")
+    title = f"Histogram of covered niches for {problem_name}"
+    if not pf:
+        title += " (Random points)"
+    else:
+        title += " (Pareto front points)"
+    plt.title(title)
+    filename = (
+        f"niche_hist_pf_{problem_name}.png"
+        if pf
+        else f"niche_hist_random_{problem_name}.png"
+    )
+    plt.savefig(filename)
+
+
+@pytest.mark.skip(
+    reason="This test is for visualizing the niches filled by the CobiProblems and is not a unit test."
+)
+@pytest.mark.parametrize("problem_idx", list(range(7)))
+def test_fill_niches(problem_idx):
+    from cobi_config_generator import get_config, names
+    from jaix.env.utils.mo_sizing import get_ref_dirs
+    from pymoo.algorithms.moo.nsga3 import associate_to_niches
+
+    cobi_config = get_config(problem_idx)  # Get a CobiProblem configuration
+    cobi_problem = CobiProblem(cobi_config, inst=1)
+    ref_dirs = get_ref_dirs(cobi_problem.num_objectives, "original")
+
+    # Get the Pareto front points
+    pf_x = get_xlocs(problem_idx, cobi_problem, pf=True)
+    pf_y = np.array([cobi_problem(x)[0] for x in pf_x])
+    niches_pf, _, _ = associate_to_niches(
+        pf_y, ref_dirs, cobi_problem.ideal_point, cobi_problem.nadir_point
+    )
+    bins = [i - 0.5 for i in range(len(ref_dirs) + 1)]
+    plot_hist(bins, niches_pf, names[problem_idx], pf=True)
+
+    # Get random points in the search space
+    random_x = get_xlocs(problem_idx, cobi_problem, pf=False)
+    random_y = np.array([cobi_problem(x)[0] for x in random_x])
+    niches_random, _, _ = associate_to_niches(
+        random_y, ref_dirs, cobi_problem.ideal_point, cobi_problem.nadir_point
+    )
+    plot_hist(bins, niches_random, names[problem_idx], pf=False)

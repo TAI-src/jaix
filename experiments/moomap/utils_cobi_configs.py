@@ -245,6 +245,15 @@ def create_few_local_fronts_problem(peak_exponent=0.25):
 
 
 names = [
+    "cobi_lin",
+    "cobi_cvex",
+    "cobi_cave",
+    "cobi_dlin",
+    "cobi_dcvex",
+    "cobi_mlcl",
+    "cobi_flcl",
+]
+old_names = [
     "cobi_linear",
     "cobi_convex",
     "cobi_concave",

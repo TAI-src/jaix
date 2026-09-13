@@ -1,6 +1,8 @@
 # Moomap experiments
 
-## Slurm script
+## Slurm experiments
+
+Basic slurm script
 
 ```{sh}
 #!/bin/bash
@@ -8,25 +10,28 @@
 #SBATCH --job-name=nsga3
 #SBATCH --array=0-22%5
 #SBATCH --cpus-per-task=4
-#SBATCH -t 03:00:00
+#SBATCH -t 02:00:00
 #SBATCH --output=logs/nsga3_%A_%a.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=<email>
 
 module load gcc uv
-uv run nsga3_experiment.py --num_independent_runs 1 --num_generations 1000 --problem_idx "$SLURM_ARRAY_TASK_ID"
+PYTHONUNBUFFERED=1 uv run <fill_in_commands>
 ```
 
-To start the jobs, run the following. Done in 2 batches to set different time limits for the second batch of jobs since they take longer.
+To start 30 batch jobs (with 23 tasks each), run the following. The SBATCH values can be overridden as shown.
+
+- The array id is available as `$SLURM_ARRAY_TASK_ID` in the script.
+- The `%5`in the array specification imposes a limit of 5 concurrent jobs.
 
 ```{bash}
 for i in {1..30}; do
-    sbatch --array=0-11,13-20%5 jobscript.sh
-    sbatch --array=12,21-22%5 --time=05:00:00 jobscript.sh
+  sbatch --array=0-11,13-20%5 jobscript.sh
+  sbatch --array=12,21-22%5 --time=05:00:00 jobscript.sh
 done
 ```
 
-For retries
+In case specific task ids need to be rerun:
 
 ```{bash}
 declare -A retries=(
@@ -42,6 +47,45 @@ for task_id in "${!retries[@]}"; do
 done
 ```
 
+Show 20 most recent completed jobs with their state:
+
+```{bash}
+sacct -u $USER -X --starttime 1970-01-01 --format=JobID,JobName,State,Elapsed,ExitCode | tail -20
+```
+
+### Offspring generation experiments
+
+```{bash}
+PYTHONUNBUFFERED=1 uv run nsga3_experiment.py --num_independent_runs 1 --num_generations 1000 --out_dir offspring_results --problem_idx "$SLURM_ARRAY_TASK_ID"
+```
+
+There are 23 possible task ids (0-22) for the problem index. Problem 0-6 are the cobi problems, 7-22 are the REProblems (unconstrained). The following table shows the recommended execution times for each task id.
+
+- 22: more than 17:00:00
+- 21: 10:00:00 mostly fine
+- 12: 07:00:00 is enough
+- rest: 02:00:00 is enough
+
+### Postprocess data
+
+```{bash}
+PYTHONUNBUFFERED=1 uv run postprocess.py --results_dir offspring_results --out_dir ppdata --skip_plots --problem_idx "$SLURM_ARRAY_TASK_ID"
+```
+
+There are 23 possible task ids (0-22) for the problem index. Problem 0-6 are the cobi problems, 7-22 are the REProblems (unconstrained).
+
+10 minutes might be enough per problem.
+
+### Prediction feature importance experiments
+
+```{bash}
+PYTHONUNBUFFERED=1 uv run pred.py --batch_id $SLURM_ARRAY_TASK_ID --data_dir ppdata --output_dir pred_res
+```
+
+By default, there are 32 scenarios (input and target column combinations) and one data file per problem. This can be restricted by specifying `--scenario_ids` and `--file_ids`. The number of available batches is the product of the number of scenarios and the number of files. So for the full spread of 32 scenarios and 23 files, there are 736 batches.
+
+Recommended batch time: 30:00 should be fine
+
 ## Update package and repo on cluster
 
 ```{bash}
@@ -49,6 +93,7 @@ cd $PROJECT
 cd jaix/experiments/moomap
 git pull
 
+module load gcc uv
 uv lock --upgrade
 uv sync
 ```
