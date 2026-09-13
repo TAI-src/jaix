@@ -142,8 +142,7 @@ def get_config_dicts(args):
         else list(range(len(scenario_list)))
     )
     assert all(
-        scenario_id < len(scenario_list) for scenario_id in scenario_ids
-    ), f"Scenario IDs must be between 0 and {len(scenario_list)-1}"
+        0 <= scenario_id < len(scenario_list) for scenario_id in scenario_ids
     file_ids = (
         args.file_ids if args.file_ids is not None else list(range(len(file_list)))
     )

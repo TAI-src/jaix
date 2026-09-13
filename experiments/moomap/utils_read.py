@@ -20,12 +20,9 @@ def get_nsga3x_results(
     config_files = find_data_files(
         results_dir, file_type_pattern="config_*.json", problem_ids=problem_ids
     )
-    problem_list = generate_problem_list(problem_ids)
-    problem_ids = (
-        [i for i in range(len(problem_list))] if problem_ids is None else problem_ids
-    )
-    problem_infos = {
-        i: get_problem_info(problem) for i, problem in zip(problem_ids, problem_list)
+    if problem_ids is None:
+        problem_ids = list(get_problem_names().keys())
+    problem_infos = {i: get_problem_info(i) for i in problem_ids}
     }
 
     for problem_id, problem_info in problem_infos.items():

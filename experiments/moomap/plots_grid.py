@@ -38,8 +38,8 @@ def plot_grid(
     )
     plt.gca().invert_yaxis()
     plt.title(f"{file_prefix}: {hue_col} by {grid_colx} vs {grid_coly}")
-    plt.xlabel(grid_colx)
-    plt.ylabel(grid_coly)
+    plt.xlabel(grid_coly)
+    plt.ylabel(grid_colx)
     plt.tight_layout()
     file_name = f"{file_prefix}_grid_{grid_colx}vs{grid_coly}_{hue_col}.pdf"
     file_path = os.path.join(output_dir, file_name)
