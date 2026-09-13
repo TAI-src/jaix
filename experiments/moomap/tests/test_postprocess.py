@@ -203,7 +203,7 @@ def test_compile_pred_data(tmp_path):
     df, _gen_dict = get_test_data()
     distance_success, _ = compile_distance_success(df)
     pred_data, pred_file = compile_pred_data(
-        distance_success, df, results_dir=tmp_path, problem="test_problem"
+        distance_success, df, results_dir=tmp_path, problem_name="test_problem"
     )
     assert pred_file is not None
     assert os.path.exists(pred_file)

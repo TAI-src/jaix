@@ -136,7 +136,9 @@ def generate_scenario_list():
 
 def get_config_dicts(args):
     scenario_list = generate_scenario_list()
-    file_list = find_data_files(args.data_dir)
+    file_list = find_data_files(
+        folder=args.data_dir, file_type_pattern="*pred_data.csv"
+    )
     scenario_ids = (
         args.scenario_ids
         if args.scenario_ids is not None
@@ -166,7 +168,7 @@ def get_config_dicts(args):
         scenario = scenario_list[scenario_id]
         problem_name, file_path = list(file_list.items())[file_id]
         config_dict = {
-            "file_path": file_path,
+            "file_path": file_path[0],
             "input_cols": scenario["input_cols"],
             "target_col": scenario["target_col"],
             "target_type": scenario["target_type"],
