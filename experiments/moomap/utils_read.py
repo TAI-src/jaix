@@ -50,7 +50,7 @@ def get_config_dict(config_file, config_type="NSGA3ExperimentConfig") -> dict:
     """
     with open(config_file, "r") as f:
         config = json.load(f)
-    return config[config_type] if config_type in config else config
+    return config.get(config_type, config)
 
 
 def find_data_files(

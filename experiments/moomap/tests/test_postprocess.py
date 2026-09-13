@@ -200,7 +200,7 @@ def test_plot_sankey(tmp_path):
 
 
 def test_compile_pred_data(tmp_path):
-    df, gen_dict = get_test_data()
+    df, _gen_dict = get_test_data()
     distance_success, _ = compile_distance_success(df)
     pred_data, pred_file = compile_pred_data(
         distance_success, df, results_dir=tmp_path, problem="test_problem"
@@ -250,7 +250,7 @@ def test_postprocess_results(tmp_path, skip_plot):
             assert len(res[problem_id]["plots"]) == 4
             sankey_file = res[problem_id]["plots"].pop("sankey")
             assert os.path.exists(sankey_file)
-            for plot_type, plot_list in res[problem_id]["plots"].items():
+            for plot_list in res[problem_id]["plots"].values():
                 assert len(plot_list) >= 3  # minimum success cols is 3
                 for plot_file in plot_list:
                     assert os.path.exists(plot_file)

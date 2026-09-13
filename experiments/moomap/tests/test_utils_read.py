@@ -17,11 +17,11 @@ def test_find_data_files():
     config_files = find_data_files(test_folder, file_type_pattern="config_*.json")
     assert isinstance(result_files, dict)
     assert isinstance(config_files, dict)
-    for problem_id, files in result_files.items():
+    for files in result_files.values():
         assert all(f.suffix == ".csv" for f in files)
-    for problem_id, files in config_files.items():
+    for files in config_files.values():
         assert all(f.suffix == ".json" for f in files)
-    assert set(result_files.keys()) == set([0, 1])
+    assert set(result_files.keys()) == {0, 1}
     assert len(result_files[0]) == 2
     assert len(result_files[1]) == 1
     for config, problem in zip(config_files[0], result_files[0]):
@@ -32,7 +32,7 @@ def test_find_data_files():
     result_files2 = find_data_files(
         test_folder, file_type_pattern="results_*.csv", problem_ids=[0]
     )
-    assert set(result_files2.keys()) == set([0])
+    assert set(result_files2.keys()) == {0}
 
 
 def test_get_nsga3x_results():
@@ -45,7 +45,7 @@ def test_get_nsga3x_results():
     for problem_id, problem_info in results.items():
         assert isinstance(problem_info, dict)
         assert "nadir_point" in problem_info
-        run_ids = [rid for rid in problem_info.keys() if rid.startswith("r_")]
+        run_ids = [rid for rid in problem_info if rid.startswith("r_")]
         if problem_id == 0:
             assert len(run_ids) == 2
         elif problem_id == 1:

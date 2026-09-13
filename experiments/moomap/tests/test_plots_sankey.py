@@ -423,7 +423,7 @@ def test_compute_bezier_path_returns_expected_number_of_vertices():
 
 
 def test_compute_bezier_path_starts_and_ends_at_source():
-    vertices, codes = compute_bezier_path(
+    vertices, _codes = compute_bezier_path(
         source_x=0.0,
         source_y=0.5,
         sink_x=1.0,
@@ -438,7 +438,7 @@ def test_compute_bezier_path_starts_and_ends_at_source():
 
 
 def test_compute_bezier_path_has_expected_path_codes():
-    vertices, codes = compute_bezier_path(
+    _vertices, codes = compute_bezier_path(
         source_x=0.0,
         source_y=0.5,
         sink_x=1.0,
