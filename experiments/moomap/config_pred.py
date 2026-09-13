@@ -147,8 +147,7 @@ def get_config_dicts(args):
         args.file_ids if args.file_ids is not None else list(range(len(file_list)))
     )
     assert all(
-        file_id < len(file_list) for file_id in file_ids
-    ), f"File IDs must be between 0 and {len(file_list)-1}"
+        0 <= file_id < len(file_list) for file_id in file_ids
     seed = (
         args.seed
         if args.seed is not None
