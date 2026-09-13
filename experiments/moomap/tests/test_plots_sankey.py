@@ -1,20 +1,22 @@
+import os
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import pytest
+from matplotlib.patches import Path
+
 from plots_sankey import (
-    plot_sankey_flows,
-    select_top_flows,
-    get_node_order,
+    add_legend,
+    add_node,
     append_node_positions,
     append_width_scaling,
-    plot_specifications,
-    get_control_points,
     compute_bezier_path,
-    add_node,
-    add_legend,
+    get_control_points,
+    get_node_order,
+    plot_sankey_flows,
+    plot_specifications,
+    select_top_flows,
 )
-import pandas as pd
-import os
-import pytest
-import matplotlib.pyplot as plt
-from matplotlib.patches import Path
 
 
 def test_plot_sankey_flows(tmp_path):

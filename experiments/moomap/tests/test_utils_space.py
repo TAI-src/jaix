@@ -1,5 +1,6 @@
-from utils_space import angle_between
 import numpy as np
+
+from utils_space import angle_between
 
 
 def test_angle_between():

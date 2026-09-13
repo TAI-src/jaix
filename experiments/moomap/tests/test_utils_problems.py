@@ -1,18 +1,20 @@
-from utils_problems import (
-    re_problem_list,
-    cobi_problem_list,
-    generate_problem_list,
-    get_problem_info,
-    get_problem_names,
-)
+import numpy as np
+import pytest
+from jaix.env.utils.problem.cobi_problem import CobiProblem
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
-from jaix.env.utils.problem.cobi_problem import CobiProblem
-import pytest
-from utils_cobi_configs import names as cobi_names, get_config
-import numpy as np
+
+from utils_cobi_configs import get_config
+from utils_cobi_configs import names as cobi_names
+from utils_problems import (
+    cobi_problem_list,
+    generate_problem_list,
+    get_problem_info,
+    get_problem_names,
+    re_problem_list,
+)
 
 
 def test_re_problem_list():

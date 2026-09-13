@@ -1,5 +1,6 @@
-from utils_read import get_config_dict, find_data_files, get_nsga3x_results
 from pathlib import Path
+
+from utils_read import find_data_files, get_config_dict, get_nsga3x_results
 
 
 def test_get_config_file():

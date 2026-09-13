@@ -7,8 +7,8 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblemConfig,
 )
 
-from nsga3_experiment import NSGA3Experiment
 from config_nsga3x import NSGA3ExperimentConfig
+from nsga3_experiment import NSGA3Experiment
 
 
 @pytest.mark.parametrize("kwargs", [{"max_size": 10}, None, {"num_refpoints": 50}])
@@ -333,10 +333,9 @@ def plot_hist(
 )
 @pytest.mark.parametrize("problem_idx", list(range(7)))
 def test_fill_niches(problem_idx):
+    from cobi_config_generator import get_config, names
     from jaix.env.utils.mo_sizing import get_ref_dirs
     from pymoo.algorithms.moo.nsga3 import associate_to_niches
-
-    from cobi_config_generator import get_config, names
 
     cobi_config = get_config(problem_idx)  # Get a CobiProblem configuration
     cobi_problem = CobiProblem(cobi_config, inst=1)

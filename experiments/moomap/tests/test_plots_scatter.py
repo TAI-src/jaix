@@ -1,7 +1,9 @@
-from plots_scatter import plot_scatter
-import pandas as pd
-import numpy as np
 import os
+
+import numpy as np
+import pandas as pd
+
+from plots_scatter import plot_scatter
 
 
 def test_plot_scatter(tmp_path):

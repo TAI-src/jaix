@@ -1,20 +1,20 @@
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from postprocess import (
     compile_distance_success,
     compile_niche_success,
+    compile_pred_data,
     get_success_cols,
     plot_sankey,
-    compile_pred_data,
     postprocess_results,
     run_postprocess,
 )
-import pytest
 from utils_read import get_nsga3x_results
-from pathlib import Path
 
 data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 

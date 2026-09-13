@@ -1,7 +1,9 @@
-import pandas as pd
-import numpy as np
-from plots_grid import plot_grid
 import os
+
+import numpy as np
+import pandas as pd
+
+from plots_grid import plot_grid
 
 
 def test_plot_grid(tmp_path):

@@ -1,9 +1,10 @@
-from config_nsga3x import NSGA3ExperimentConfig
 from jaix.env.utils.archive.mo_archive import MOArchiveConfig
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
+
+from config_nsga3x import NSGA3ExperimentConfig
 
 
 def test_create_mo_archive_config():

@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 from pathlib import Path
 
-from utils_problems import generate_problem_list, get_problem_info, get_problem_names
+from utils_problems import get_problem_info, get_problem_names
 
 
 def get_nsga3x_results(
