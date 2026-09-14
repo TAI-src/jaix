@@ -19,6 +19,8 @@ module load gcc uv
 PYTHONUNBUFFERED=1 uv run <fill_in_commands>
 ```
 
+Instead of `uv run`, it is also possible to directly use the venv that is created in advance (e.g. in the login node). `.venv/bin/python <fill_in_commands>`. This might be more stable on a compute node without internet access but requires that the venv is created in advance and that the correct python version is used.
+
 To start 30 batch jobs (with 23 tasks each), run the following. The SBATCH values can be overridden as shown.
 
 - The array id is available as `$SLURM_ARRAY_TASK_ID` in the script.
@@ -74,7 +76,7 @@ PYTHONUNBUFFERED=1 uv run postprocess.py --results_dir offspring_results --out_d
 
 There are 23 possible task ids (0-22) for the problem index. Problem 0-6 are the cobi problems, 7-22 are the REProblems (unconstrained).
 
-10 minutes might be enough per problem.
+10 minutes are enough.
 
 ### Prediction feature importance experiments
 
@@ -94,6 +96,6 @@ cd jaix/experiments/moomap
 git pull
 
 module load gcc uv
-uv lock --upgrade
-uv sync
+uv lock --upgrade --python 3.12
+uv sync --python 3.12
 ```

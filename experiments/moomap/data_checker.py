@@ -24,7 +24,9 @@ for i, problem in problem_dict.items():
     print(f"Checking results for problem: {problem} with index {i}/{len(problem_dict)}")
     csv_name = f"results_{problem}.csv"
     if csv_name not in problems:
-        print(f"Missing results for problem: {problem}")
+        print(
+            f"Missing results for problem: {problem}. Looking for {csv_name} in {results_dir}"
+        )
     else:
         # Check the number of results are as expected
         config_name = f"config_{problem}.json"
