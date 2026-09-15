@@ -4,8 +4,8 @@ from pathlib import Path
 
 import numpy as np
 
-from utils_read import find_data_files
 from utils_problems import get_problem_names
+from utils_read import find_data_files
 
 
 def parse_args():
