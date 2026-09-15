@@ -39,6 +39,7 @@ def test_run_function(tmp_path):
         "out_dir": tmp_path,
         "n_runs": 2,
         "batch_ids": [0, 1],
+        "verbose": False,
     }
     namespace = type("Args", (), args)  # Create a simple namespace object
     files = run(namespace)
