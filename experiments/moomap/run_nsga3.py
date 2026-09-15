@@ -19,6 +19,7 @@ def run_algorithm(
     out_dir: str,
     problem: REProblem | CobiProblem,
     static_ref: bool = True,
+    verbose: bool = False,
 ) -> str:
     ref_dirs = get_ref_dirs(problem.num_objectives, "original")
 
@@ -45,7 +46,7 @@ def run_algorithm(
         seed=seed,
         termination=("n_gen", n_gen),
         callback=callback,
-        verbose=False,
+        verbose=verbose,
     )
     file_name = f"nsga3_{problem!s}_s{seed}{"_fixed" if static_ref else ""}.csv"
     file_path = f"{out_dir}/{file_name}"
@@ -72,6 +73,7 @@ def run(args):
             out_dir=args.out_dir,
             static_ref=batch["static_ref"],
             problem=batch["problem"],
+            verbose=args.verbose,
         )
         files.append(out_file)
     return files

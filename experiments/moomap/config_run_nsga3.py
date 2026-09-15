@@ -51,6 +51,11 @@ def parse_args():
         default=None,
         help="The batch ID for this run to subselect the settings",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print detailed logs during execution.",
+    )
     args = parser.parse_args()
     if args.static_ref and args.not_static_ref:
         args.static_ref = None  # If both flags are set, treat as None
