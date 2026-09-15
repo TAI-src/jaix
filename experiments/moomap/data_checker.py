@@ -1,8 +1,5 @@
 import csv
-import json
 import os
-from collections import defaultdict
-from pathlib import Path
 
 from utils_read import get_nsga3x_results
 
@@ -20,7 +17,7 @@ for problem_id, problem_dict in results.items():
     print(
         f"Checking results for problem: {problem_dict["problem"]} with index {problem_id}/{len(results)}"
     )
-    runs = [run_key for run_key in problem_dict.keys() if run_key.startswith("r_")]
+    runs = [run_key for run_key in problem_dict if run_key.startswith("r_")]
     if len(runs) != EXPECTED_NUM_RUNS:
         print(
             f"Unexpected number of runs for problem: {problem_dict['problem']}. Expected {EXPECTED_NUM_RUNS}, got {len(runs)}"

@@ -88,6 +88,14 @@ By default, there are 32 scenarios (input and target column combinations) and on
 
 Recommended batch time: 30:00 should be fine
 
+### NSGA-III verification experiments
+
+```{bash}
+PYTHONUNBUFFERED=1 uv run run_nsga3.py --n_runs 30 --n_gen 1000 --out_dir verification_results --batch_ids "$SLURM_ARRAY_TASK_ID" --static_ref
+```
+
+By default, there are 23 problems, so there are n_runs *n_problems = 30* 23 = 690 batches. If `static_ref` is not specified, then it runs both versions of NSGA-III (with and without static reference point) and the number of batches is doubled to 1380.
+
 ## Update package and repo on cluster
 
 ```{bash}
