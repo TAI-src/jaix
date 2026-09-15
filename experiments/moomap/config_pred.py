@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from utils_read import find_data_files
+from utils_problems import get_problem_names
 
 
 def parse_args():
@@ -145,10 +146,13 @@ def get_config_dicts(args):
         else list(range(len(scenario_list)))
     )
     assert all(0 <= scenario_id < len(scenario_list) for scenario_id in scenario_ids)
-    file_ids = (
-        args.file_ids if args.file_ids is not None else list(range(len(file_list)))
-    )
-    assert all(0 <= file_id < len(file_list) for file_id in file_ids)
+    files = [
+        (problem_id, file_path)
+        for problem_id, file_paths in file_list.items()
+        for file_path in file_paths
+    ]
+    file_ids = args.file_ids if args.file_ids is not None else list(range(len(files)))
+    assert all(0 <= file_id < len(files) for file_id in file_ids)
     seed = (
         args.seed
         if args.seed is not None
@@ -166,9 +170,9 @@ def get_config_dicts(args):
     for batch_id in batch_ids:
         scenario_id, file_id = list(product(scenario_ids, file_ids))[batch_id]
         scenario = scenario_list[scenario_id]
-        problem_name, file_path = list(file_list.items())[file_id]
+        problem_id, file_path = files[file_id]
         config_dict = {
-            "file_path": file_path[0],
+            "file_path": file_path,
             "input_cols": scenario["input_cols"],
             "target_col": scenario["target_col"],
             "target_type": scenario["target_type"],
@@ -180,7 +184,8 @@ def get_config_dicts(args):
             "n_repeats": args.n_repeats,
             "n_permutation_repeats": args.n_permutation_repeats,
             "random_state": seed,
-            "problem_name": problem_name,
+            "problem_id": problem_id,
+            "problem_name": get_problem_names(problem_ids=[problem_id])[problem_id],
             "file_id": file_id,
             "scenario_id": scenario_id,
             "batch_id": batch_id,
