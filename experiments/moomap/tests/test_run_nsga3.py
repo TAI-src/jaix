@@ -1,11 +1,12 @@
-from run_nsga3 import run_algorithm, run
+import pandas as pd
+import pytest
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
-import pandas as pd
-import pytest
+
 from config_run_nsga3 import get_batches
+from run_nsga3 import run, run_algorithm
 
 
 @pytest.mark.parametrize("static_ref", [True, False])

@@ -1,12 +1,13 @@
-from jaix.env.utils.problem.static_problem import StaticProblem
-from pymoo.core.problem import ElementwiseProblem
 import numpy as np
-from jaix.env.utils.archive.mo_archive import MOArchiveConfig, MOArchive, KeepDominated
-from config_nsga3x import MOEvalEntry
+from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.archive.entry_scorer import (
     ReferenceVectorDistanceScorer,
 )
-from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
+from jaix.env.utils.archive.mo_archive import KeepDominated, MOArchive, MOArchiveConfig
+from jaix.env.utils.problem.static_problem import StaticProblem
+from pymoo.core.problem import ElementwiseProblem
+
+from config_nsga3x import MOEvalEntry
 
 
 class PymooProblemWrapper(ElementwiseProblem):

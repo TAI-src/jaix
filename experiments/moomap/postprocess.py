@@ -220,7 +220,7 @@ def postprocess_results(
     p_dict: dict, out_dir: str = ".", skip_plots: bool = False
 ) -> dict:
 
-    result_files = {}
+    result_files: dict[int, dict] = {}
 
     for problem, problem_dict in p_dict.items():
         problem_name = problem_dict.get("problem", problem)
@@ -271,7 +271,7 @@ def postprocess_results(
             continue
 
         # Plotting
-        plot_files = {}
+        plot_files: dict[str, str | list[str]] = {}
 
         plot_files["sankey"] = plot_sankey(
             per_niche_success,
@@ -281,7 +281,7 @@ def postprocess_results(
 
         # FIXME: this is a workaround because we know that the number of niches is the same for all runs of a problem, but we should probably check that
         num_niches = problem_dict[runs[0]]["config"]["num_offspring"]
-        plot_files["grid"] = []
+        grid_list = []
         for success_col in grid_success_cols:
             gplot_file = plot_grid(
                 niche_success,
@@ -292,10 +292,11 @@ def postprocess_results(
                 output_dir=out_dir,
                 file_prefix=problem_name,
             )
-            plot_files["grid"].append(gplot_file)
+            grid_list.append(gplot_file)
+        plot_files["grid"] = grid_list
 
-        plot_files["scatter_gen"] = []
-        plot_files["scatter_success"] = []
+        scatter_gen_list = []
+        scatter_success_list = []
         for success_col in scatter_success_cols:
             for dist_col in ["parent_x_distance", "parent_y_distance", "parent_angle"]:
                 splot_file = plot_scatter(
@@ -306,7 +307,7 @@ def postprocess_results(
                     hue_col="generation",
                     file_prefix=problem_name,
                 )
-                plot_files["scatter_gen"].append(splot_file)
+                scatter_gen_list.append(splot_file)
 
             splot_file = plot_scatter(
                 distance_success,
@@ -316,7 +317,7 @@ def postprocess_results(
                 hue_col=success_col,
                 file_prefix=problem_name,
             )
-            plot_files["scatter_success"].append(splot_file)
+            scatter_success_list.append(splot_file)
 
             splot_file = plot_scatter(
                 distance_success,
@@ -326,7 +327,9 @@ def postprocess_results(
                 hue_col=success_col,
                 file_prefix=problem_name,
             )
-            plot_files["scatter_success"].append(splot_file)
+            scatter_success_list.append(splot_file)
+        plot_files["scatter_gen"] = scatter_gen_list
+        plot_files["scatter_success"] = scatter_success_list
         result_files[problem]["plots"] = plot_files
 
     return result_files

@@ -1,7 +1,9 @@
 import argparse
-from utils_problems import generate_problem_list
 from itertools import product
+
 import numpy as np
+
+from utils_problems import generate_problem_list
 
 
 def parse_args():
@@ -17,6 +19,11 @@ def parse_args():
         "--static_ref",
         action="store_true",
         help="Use static reference directions if set.",
+    )
+    parser.add_argument(
+        "--not_static_ref",
+        action="store_true",
+        help="Use the default dynamic reference directions if set.",
     )
     parser.add_argument(
         "--problem_ids",
@@ -44,7 +51,14 @@ def parse_args():
         default=None,
         help="The batch ID for this run to subselect the settings",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.static_ref and args.not_static_ref:
+        args.static_ref = None  # If both flags are set, treat as None
+    elif args.not_static_ref:
+        args.static_ref = False
+    elif not args.static_ref and not args.not_static_ref:
+        args.static_ref = None  # If neither flag is set, treat as None
+    return args
 
 
 def get_batches(
@@ -59,13 +73,13 @@ def get_batches(
     rng = np.random.default_rng(seed)
     seeds = rng.integers(0, 1_000_000, size=n_runs)
     static_ref_opts = [True, False] if static_ref is None else [static_ref]
-    settings = []
-    for problem, seed in product(problem_list, seeds):
+    settings: list[dict] = []
+    for problem, run_seed in product(problem_list, seeds):
         for static in static_ref_opts:
             settings.append(
                 {
                     "id": len(settings),
-                    "seed": seed,
+                    "seed": run_seed,
                     "problem": problem,
                     "static_ref": static,
                 }

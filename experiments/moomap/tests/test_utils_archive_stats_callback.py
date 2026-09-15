@@ -1,15 +1,14 @@
-from pymoo.algorithms.moo.nsga3 import NSGA3
-
-
-from pymoo.optimize import minimize
-from pymoo.problems import get_problem
-from pymoo.util.ref_dirs import get_reference_directions
-from utils_pymoo_problem_wrapper import PymooProblemWrapper
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
+from pymoo.algorithms.moo.nsga3 import NSGA3
+from pymoo.optimize import minimize
+from pymoo.problems import get_problem
+from pymoo.util.ref_dirs import get_reference_directions
+
 from utils_archive_stats_callback import ArchiveStatsCallback
+from utils_pymoo_problem_wrapper import PymooProblemWrapper
 
 
 def test_archive_stats_callback():
@@ -25,7 +24,7 @@ def test_archive_stats_callback():
     callback = ArchiveStatsCallback(archive=archive)
 
     # execute the optimization
-    res = minimize(
+    minimize(
         get_problem("dtlz1"),
         algorithm,
         seed=1,

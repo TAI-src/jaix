@@ -143,7 +143,7 @@ def permutation_importance_analysis(
     **kwargs,
 ):
 
-    importance_vals: list[list[float]] = []
+    importance_vals: list[np.ndarray] = []
 
     for fold_idx, (train_idx, test_idx) in enumerate(cv.split(X, y)):
 

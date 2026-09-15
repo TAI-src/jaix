@@ -1,19 +1,16 @@
+import os
+
+import pandas as pd
+from jaix.env.utils.mo_sizing import get_ref_dirs
+from jaix.env.utils.problem.cobi_problem import CobiProblem
 from jaix.env.utils.problem.re_problem.reproblem_adapter import REProblem
 from pymoo.algorithms.moo.nsga3 import NSGA3, ReferenceDirectionSurvival
-from jaix.env.utils.mo_sizing import get_ref_dirs
-from utils_pymoo_problem_wrapper import PymooProblemWrapper
-
 from pymoo.optimize import minimize
-from pymoo.util.ref_dirs import get_reference_directions
-from pymoo.visualization.scatter import Scatter
 
-from utils_nsga3_norm import StaticReferenceDirectionSurvival
+from config_run_nsga3 import get_batches, parse_args
 from utils_archive_stats_callback import ArchiveStatsCallback
-import numpy as np
-import pandas as pd
-import os
-from jaix.env.utils.problem.cobi_problem import CobiProblem
-from config_run_nsga3 import parse_args, get_batches
+from utils_nsga3_norm import StaticReferenceDirectionSurvival
+from utils_pymoo_problem_wrapper import PymooProblemWrapper
 
 
 def run_algorithm(
@@ -50,7 +47,7 @@ def run_algorithm(
         callback=callback,
         verbose=False,
     )
-    file_name = f"nsga3_{str(problem)}_s{seed}{"_fixed" if static_ref else ""}.csv"
+    file_name = f"nsga3_{problem!s}_s{seed}{"_fixed" if static_ref else ""}.csv"
     file_path = f"{out_dir}/{file_name}"
     df = pd.DataFrame(callback.data["archive_stats"])
     df.to_csv(file_path, index=False)

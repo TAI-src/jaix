@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
-from matplotlib.patches import Path
+from matplotlib.path import Path
 
 from plots_sankey import (
     add_legend,

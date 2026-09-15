@@ -1,9 +1,9 @@
+import numpy as np
 from pymoo.algorithms.moo.nsga3 import (
-    ReferenceDirectionSurvival,
     HyperplaneNormalization,
+    ReferenceDirectionSurvival,
 )
 from pymoo.core.survival import Survival
-import numpy as np
 
 
 class StaticHyperplaneNormalization(HyperplaneNormalization):

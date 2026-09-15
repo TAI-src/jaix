@@ -1,10 +1,11 @@
-from pymoo.algorithms.moo.nsga3 import NSGA3, ReferenceDirectionSurvival
-from utils_nsga3_norm import (
-    StaticReferenceDirectionSurvival,
-    StaticHyperplaneNormalization,
-)
 import numpy as np
+from pymoo.algorithms.moo.nsga3 import NSGA3, ReferenceDirectionSurvival
 from pymoo.core.population import Population
+
+from utils_nsga3_norm import (
+    StaticHyperplaneNormalization,
+    StaticReferenceDirectionSurvival,
+)
 
 
 def test_static_hyperplane_normalization():

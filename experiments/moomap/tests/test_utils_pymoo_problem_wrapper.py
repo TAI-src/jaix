@@ -1,14 +1,14 @@
-from utils_pymoo_problem_wrapper import PymooProblemWrapper
+from jaix.env.utils.archive.mo_archive import KeepDominated
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
-from pymoo.core.problem import ElementwiseProblem
-
 from pymoo.algorithms.moo.nsga3 import NSGA3
+from pymoo.core.problem import ElementwiseProblem
 from pymoo.optimize import minimize
 from pymoo.util.ref_dirs import get_reference_directions
-from jaix.env.utils.archive.mo_archive import KeepDominated
+
+from utils_pymoo_problem_wrapper import PymooProblemWrapper
 
 
 def test_create_eval_archive():

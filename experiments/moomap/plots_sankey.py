@@ -1,8 +1,9 @@
 import os
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from matplotlib.patches import PathPatch
+from matplotlib.patches import PathPatch, Rectangle
 from matplotlib.path import Path
 
 
@@ -146,7 +147,7 @@ def compute_bezier_path(
     width: float,
     control_x1: float,
     control_x2: float,
-) -> tuple[list[tuple[float, float]], list[int]]:
+) -> tuple[list[tuple[float, float]], list[np.uint8]]:
     """
     Compute the vertices and codes for a cubic Bezier path between source and sink.
     """
@@ -246,7 +247,7 @@ def add_node(
     Add a node to the Sankey plot.
     """
     ax.add_patch(
-        plt.Rectangle(
+        Rectangle(
             (x - node_width / 2, y - node_height / 2),
             node_width,
             node_height,

@@ -1,5 +1,5 @@
-from pymoo.core.callback import Callback
 from jaix.env.utils.archive.mo_archive import MOArchive
+from pymoo.core.callback import Callback
 
 
 class ArchiveStatsCallback(Callback):
