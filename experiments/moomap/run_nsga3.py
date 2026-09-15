@@ -1,5 +1,5 @@
+from jaix.env.utils.problem.re_problem.reproblem_adapter import REProblem
 from pymoo.algorithms.moo.nsga3 import NSGA3, ReferenceDirectionSurvival
-from utils_problems import generate_problem_list
 from jaix.env.utils.mo_sizing import get_ref_dirs
 from utils_pymoo_problem_wrapper import PymooProblemWrapper
 
@@ -9,37 +9,77 @@ from pymoo.visualization.scatter import Scatter
 
 from utils_nsga3_norm import StaticReferenceDirectionSurvival
 from utils_archive_stats_callback import ArchiveStatsCallback
+import numpy as np
+import pandas as pd
+import os
+from jaix.env.utils.problem.cobi_problem import CobiProblem
+from config_run_nsga3 import parse_args, get_batches
 
 
 def run_algorithm(
-    n_gen: int, seed: int, static_ref: bool = True, problem_ids: list[int] | None = None
-):
+    n_gen: int,
+    seed: int,
+    out_dir: str,
+    problem: REProblem | CobiProblem,
+    static_ref: bool = True,
+) -> str:
+    ref_dirs = get_ref_dirs(problem.num_objectives, "original")
 
-    for problem in generate_problem_list(problem_ids=problem_ids):
-        ref_dirs = get_ref_dirs(problem.num_objectives, "original")
-
-        # create the algorithm object
-        if static_ref:
-            survival = StaticReferenceDirectionSurvival(
-                ref_dirs, problem.ideal_point, problem.nadir_point
-            )
-        else:
-            survival = ReferenceDirectionSurvival(ref_dirs)
-        algorithm = NSGA3(pop_size=len(ref_dirs), ref_dirs=ref_dirs, survival=survival)
-
-        pymoo_problem = PymooProblemWrapper(problem)
-        callback = ArchiveStatsCallback(archive=pymoo_problem.archive)
-
-        # execute the optimization
-        res = minimize(
-            pymoo_problem,
-            algorithm,
-            seed=seed,
-            termination=("n_gen", n_gen),
-            callback=callback,
+    # create the algorithm object
+    if static_ref:
+        survival = StaticReferenceDirectionSurvival(
+            ref_dirs, problem.ideal_point, problem.nadir_point
         )
-        print(callback.data["archive_stats"])
+    else:
+        survival = ReferenceDirectionSurvival(ref_dirs)
+    algorithm = NSGA3(
+        pop_size=len(ref_dirs),
+        ref_dirs=ref_dirs,
+        survival=survival,
+    )
+
+    pymoo_problem = PymooProblemWrapper(problem)
+    callback = ArchiveStatsCallback(archive=pymoo_problem.archive)
+
+    # execute the optimization
+    minimize(
+        pymoo_problem,
+        algorithm,
+        seed=seed,
+        termination=("n_gen", n_gen),
+        callback=callback,
+        verbose=False,
+    )
+    file_name = f"nsga3_{str(problem)}_s{seed}{"_fixed" if static_ref else ""}.csv"
+    file_path = f"{out_dir}/{file_name}"
+    df = pd.DataFrame(callback.data["archive_stats"])
+    df.to_csv(file_path, index=False)
+    return file_path
+
+
+def run(args):
+    os.makedirs(args.out_dir, exist_ok=True)
+    batch_list, num_batches = get_batches(
+        batch_id=args.batch_ids,
+        n_runs=args.n_runs,
+        problem_ids=args.problem_ids,
+        static_ref=args.static_ref,
+        seed=args.seed,
+    )
+    files = []
+    for batch in batch_list:
+        print("Running batch:", batch["id"], "out of", num_batches)
+        out_file = run_algorithm(
+            n_gen=args.n_gen,
+            seed=batch["seed"],
+            out_dir=args.out_dir,
+            static_ref=batch["static_ref"],
+            problem=batch["problem"],
+        )
+        files.append(out_file)
+    return files
 
 
 if __name__ == "__main__":
-    run_algorithm(n_gen=2, seed=42, static_ref=True, problem_ids=[0])
+    args = parse_args()
+    run(args)
