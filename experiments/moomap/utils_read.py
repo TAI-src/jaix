@@ -3,7 +3,13 @@ import os
 from collections import defaultdict
 from pathlib import Path
 
-from utils_problems import get_problem_info, get_problem_names
+from utils_problems import (
+    get_problem_info,
+    get_problem_names,
+    get_cocoviz_problem_description,
+)
+from cocoviz import ProblemDescription, Result, ResultSet, Indicator, rtpplot
+import pandas as pd
 
 
 def get_nsga3x_results(
@@ -51,6 +57,54 @@ def get_config_dict(config_file, config_type="NSGA3ExperimentConfig") -> dict:
     with open(config_file, "r") as f:
         config = json.load(f)
     return config.get(config_type, config)
+
+
+def read_perf_results(
+    results_dir: str | Path,
+    algorithm_names: list[str],
+    problem_ids: list[int] | None = None,
+):
+
+    all_results = defaultdict(dict)
+    for algorithm in algorithm_names:
+        res_dict = find_data_files(
+            results_dir, file_type_pattern=f"{algorithm}_*.csv", problem_ids=problem_ids
+        )
+        for problem_id, files in res_dict.items():
+            all_results[problem_id][algorithm] = files
+
+    indicator_specs = [
+        ("coverage", True),
+        ("size", True),
+        ("score", True),
+        ("avg_dist_to_niches", False),
+        ("avg_niche_count", True),
+        ("filled_niches", True),
+        ("avg_dist_to_ideal", False),
+        ("niche_perf_avg", False),
+    ]
+
+    results = ResultSet()
+    for problem_id, prob_files in all_results.items():
+        problem_desc = get_cocoviz_problem_description(problem_id)
+        for algo, files in prob_files.items():
+            for file in files:
+                df = pd.read_csv(file)
+                result = Result(
+                    algorithm=algo,
+                    problem=problem_desc,
+                    data=df,
+                    fevals_column="fevals",
+                )
+                results.append(result)
+
+    for problem, by_prob in results.by_problem_name():
+        for ind_col, lib in indicator_specs:
+            ind = Indicator(ind_col, larger_is_better=lib)
+            ax = rtpplot(results, ind)
+            # save the plot to a file
+            file_name = f"{results_dir}/perf_{problem_id}_{ind_col}.pdf"
+            ax.figure.savefig(file_name, dpi=300)
 
 
 def find_data_files(

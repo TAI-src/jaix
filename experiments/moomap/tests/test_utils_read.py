@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from utils_read import find_data_files, get_config_dict, get_nsga3x_results
+from utils_read import (
+    find_data_files,
+    get_config_dict,
+    get_nsga3x_results,
+    read_perf_results,
+)
 
 
 def test_get_config_file():
@@ -58,3 +63,11 @@ def test_get_nsga3x_results():
             assert "config_file" in run_info
             assert "config" in run_info
             assert isinstance(run_info["config"], dict)
+
+
+def test_read_perf_results():
+    # Test that the read_perf_results function returns the correct results
+    data_folder = Path(__file__).parent.parent / "tmp_res"
+    read_results = read_perf_results(
+        data_folder, algorithm_names=["nsga3"], problem_ids=None
+    )

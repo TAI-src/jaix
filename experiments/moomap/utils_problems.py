@@ -6,6 +6,7 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 
 from utils_cobi_configs import get_config
 from utils_cobi_configs import names as cobi_names
+from cocoviz import ProblemDescription
 
 
 def re_problem_list(problem_ids: list[int] | None = None):
@@ -61,6 +62,21 @@ def get_problem_info(problem: CobiProblem | REProblem | int) -> dict:
         "lower_bounds": problem.lower_bounds,
         "upper_bounds": problem.upper_bounds,
     }
+
+
+def get_cocoviz_problem_description(
+    problem: CobiProblem | REProblem | int,
+) -> ProblemDescription:
+    if isinstance(problem, int):
+        problem_list = generate_problem_list(problem_ids=[problem])
+        problem = problem_list[0]
+    desc = ProblemDescription(
+        name=str(problem),
+        instance=0,
+        number_of_variables=problem.dimension,
+        number_of_objectives=problem.num_objectives,
+    )
+    return desc
 
 
 def get_problem_names(problem_ids: list[int] | None = None) -> dict[int, str]:
