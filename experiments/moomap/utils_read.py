@@ -64,7 +64,6 @@ def get_pred_overview_results(
             )
 
     df = pd.DataFrame(data)
-    # grid = df.pivot(index="problem_id", columns="scenario_id", values="cv_score_mean")
     return df
 
 
@@ -92,3 +91,32 @@ def find_data_files(
                 res_dict[problem_idx].append(f)
                 break
     return dict(res_dict)
+
+
+def get_feature_importance_per_scenario(
+    results_dir: str | Path,
+    problem_ids: list[int] | None = None,
+):
+    data_files = find_data_files(
+        results_dir, file_type_pattern="*_feat_imp.csv", problem_ids=problem_ids
+    )
+    data_file_by_scenario = defaultdict(list)
+    for problem_id, files in data_files.items():
+        for f in files:
+            scenario_id = f.stem.split("_")[-3]
+            assert scenario_id.startswith(
+                "s"
+            ), f"Scenario ID {scenario_id} does not start with 's'"
+            data_file_by_scenario[scenario_id].append((problem_id, f))
+
+    for scenario_id, file_tuple in data_file_by_scenario.items():
+        scenario_df = pd.DataFrame()
+        for problem_id, f in file_tuple:
+            df = pd.read_csv(f)
+            df["problem_id"] = problem_id
+            scenario_df = pd.concat([scenario_df, df], ignore_index=True)
+        scenario_df = scenario_df.rename(columns={"Unnamed: 0": "feature"})
+        print(scenario_df)
+        # average the feature importance over all problems for this scenario
+        scenario_df = scenario_df.groupby("feature").mean().reset_index()
+        print(scenario_df)

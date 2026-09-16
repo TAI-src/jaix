@@ -5,6 +5,7 @@ from utils_read import (
     get_config_dict,
     get_nsga3x_results,
     get_pred_overview_results,
+    get_feature_importance_per_scenario,
 )
 import pandas as pd
 
@@ -83,3 +84,8 @@ def test_pred_overview_results():
         hue_col="cv_score_mean",
         output_dir=".",
     )
+
+
+def test_pred_feat_imp_per_scenario():
+    test_folder = Path(__file__).parent.parent / "pred_results"
+    get_feature_importance_per_scenario(results_dir=test_folder)
