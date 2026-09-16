@@ -2,6 +2,7 @@ import json
 import os
 from collections import defaultdict
 from pathlib import Path
+import pandas as pd
 
 from utils_problems import get_problem_info, get_problem_names
 
@@ -42,6 +43,29 @@ def get_nsga3x_results(
                 "config": config,
             }
     return problem_infos
+
+
+def get_pred_overview_results(
+    results_dir: str | Path, problem_ids: list[int] | None = None
+) -> pd.DataFrame:
+    config_files = find_data_files(
+        results_dir, file_type_pattern="*_config.json", problem_ids=problem_ids
+    )
+    data = []
+    for _, files in config_files.items():
+        for config_file in files:
+            cfg = get_config_dict(config_file)
+            data.append(
+                {
+                    "problem_id": cfg.get("problem_id", cfg.get("problem_name")),
+                    "scenario_id": cfg.get("scenario_id"),
+                    "cv_score_mean": cfg.get("cv_score_mean"),
+                }
+            )
+
+    df = pd.DataFrame(data)
+    # grid = df.pivot(index="problem_id", columns="scenario_id", values="cv_score_mean")
+    return df
 
 
 def get_config_dict(config_file, config_type="NSGA3ExperimentConfig") -> dict:
