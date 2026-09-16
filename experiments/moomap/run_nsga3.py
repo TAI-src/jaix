@@ -37,7 +37,9 @@ def run_algorithm(
     )
 
     pymoo_problem = PymooProblemWrapper(problem)
-    callback = ArchiveStatsCallback(archive=pymoo_problem.archive)
+    callback = ArchiveStatsCallback(
+        archive=pymoo_problem.archive, pop_size=len(ref_dirs)
+    )
 
     # execute the optimization
     minimize(

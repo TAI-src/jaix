@@ -14,6 +14,7 @@ from utils_problems import (
     get_problem_info,
     get_problem_names,
     re_problem_list,
+    get_cocoviz_problem_description,
 )
 
 
@@ -122,3 +123,27 @@ def test_get_problem_names():
         elif 7 <= i < 23:
             expected_name = list(REProblem.problem_map.keys())[i - 7]
             assert names_dict[i] == expected_name
+
+
+def test_get_cocoviz_problem_description():
+    problem_names = get_problem_names()
+
+    problem = 0  # CobiProblem
+    desc = get_cocoviz_problem_description(problem)
+    assert desc.name == problem_names[problem]
+    assert desc.instance == 0
+    assert desc.number_of_variables == 2
+    assert desc.number_of_objectives == 2
+    problem = 7  # REProblem
+    desc = get_cocoviz_problem_description(problem)
+    assert desc.name == f"REProblem_{problem_names[problem]}"
+    assert desc.instance == 0
+    assert desc.number_of_variables == 4
+    assert desc.number_of_objectives == 2
+
+    problem = REProblem(REProblemConfig(), 0)
+    desc = get_cocoviz_problem_description(problem)
+    assert desc.name == f"REProblem_{problem_names[7]}"
+    assert desc.instance == 0
+    assert desc.number_of_variables == 4
+    assert desc.number_of_objectives == 2
