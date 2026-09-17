@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+import numpy as np
 
 from jaix.utils import globals
 
@@ -37,12 +38,15 @@ class Archive(ABC):
         # Record stats over time
         self._max_size = max_size
         self.last_entry: ArchiveEntry | None = None
+        self.queued_entries: list[ArchiveEntry] = []
 
         self.reset()
 
     def reset(self) -> None:
         self.stats_rows: list[dict] = []
         self._stats: pd.DataFrame = pd.DataFrame()
+        self.last_entry = None
+        self.queued_entries = []
 
     @property
     @abstractmethod
@@ -106,10 +110,16 @@ class Archive(ABC):
         Returns a dictionary with the result of the addition
         """
 
-    def add(self, entries: list[ArchiveEntry]) -> float:
+    def add(self, entries: list[ArchiveEntry], queue: bool = False) -> float:
         """
         Add an entry to the archive and return the reward obtained from adding it.
         """
+        if len(entries) == 0:
+            logger.warning("No entries to add to the archive.")
+            return np.nan
+        if queue:
+            self.queued_entries.extend(entries)
+            return np.nan
         prev_score = self.score
         result_dicts = self._add(entries)
         self.stats_rows.extend(result_dicts)
@@ -117,6 +127,11 @@ class Archive(ABC):
         reward = new_score - prev_score
         self.last_entry = entries[-1] if entries else None
 
+        return reward
+
+    def add_queued(self) -> float:
+        reward = self.add(self.queued_entries, queue=False)
+        self.queued_entries = []
         return reward
 
     @abstractmethod

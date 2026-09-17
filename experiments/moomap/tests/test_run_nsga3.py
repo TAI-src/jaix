@@ -28,6 +28,10 @@ def test_run_algorithm(tmp_path, static_ref):
     assert "generation" in df.columns
     assert len(df) == 2  # Should have 2 generations
     assert "size" in df.columns
+    # Check that size is greater than 0 for each generation, i.e. the queued entries got added
+    assert all(df["size"] > 0)
+    # Check that score is not nan
+    assert all(df["score"].notna())
 
 
 def test_run_function(tmp_path):
