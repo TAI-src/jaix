@@ -3,10 +3,10 @@ from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-import numpy as np
 
 from jaix.utils import globals
 
