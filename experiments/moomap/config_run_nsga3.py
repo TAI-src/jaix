@@ -56,6 +56,13 @@ def parse_args():
         action="store_true",
         help="Print detailed logs during execution.",
     )
+    parser.add_argument(
+        "--algorithm",
+        type=str,
+        choices=["nsga2", "nsga3"],
+        default="nsga3",
+        help="Algorithm to use: 'nsga2' or 'nsga3'. Default is 'nsga3'.",
+    )
     args = parser.parse_args()
     if args.static_ref and args.not_static_ref:
         args.static_ref = None  # If both flags are set, treat as None

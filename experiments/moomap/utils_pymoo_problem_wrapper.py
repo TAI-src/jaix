@@ -38,5 +38,5 @@ class PymooProblemWrapper(ElementwiseProblem):
     def _evaluate(self, X, out, *args, **kwargs):
         F, _ = self.static_problem(X)
         entry = MOEvalEntry(x=np.array(X), y=np.array(F))
-        self.archive.add([entry])
+        self.archive.add([entry], queue=True)
         out["F"] = np.array(F)

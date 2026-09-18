@@ -9,6 +9,8 @@ class ArchiveStatsCallback(Callback):
         self.data["archive_stats"] = []
 
     def notify(self, algorithm):
+        gen = len(self.data["archive_stats"]) + 1
+        self.archive.add_queued()
         archive_stats = self.archive.get_archive_stats()
-        archive_stats["generation"] = len(self.data["archive_stats"]) + 1
+        archive_stats["generation"] = gen
         self.data["archive_stats"].append(archive_stats)

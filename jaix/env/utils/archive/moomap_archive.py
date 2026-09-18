@@ -104,11 +104,11 @@ class MoomapArchive(BinArchive):
         Archive.__init__(self, max_size=self.n_bins)
         super().reset()  # Reset the BinArchive, which will also init the bins and the stats
 
-    def add(self, entries: list[ArchiveEntry]) -> float:
+    def add(self, entries: list[ArchiveEntry], queue: bool = False) -> float:
         for entry in entries:
             assert isinstance(
                 entry, MoomapArchiveEntry
             ), "Entry must be a MoomapArchiveEntry"
             # Set the fitness of the entry based on the distance to the ideal point
             entry.set_fitness(self.ideal_point)
-        return super().add(entries)
+        return super().add(entries, queue=queue)
