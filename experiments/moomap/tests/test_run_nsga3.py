@@ -9,11 +9,18 @@ from config_run_nsga3 import get_batches
 from run_nsga3 import run, run_algorithm
 
 
-@pytest.mark.parametrize("static_ref", [True, False])
-def test_run_algorithm(tmp_path, static_ref):
+@pytest.mark.parametrize(
+    "static_ref,algorithm_name", [(True, "nsga3"), (False, "nsga3"), (False, "nsga2")]
+)
+def test_run_algorithm(tmp_path, static_ref, algorithm_name):
     problem = REProblem(REProblemConfig(), inst=0)
     file_path = run_algorithm(
-        n_gen=2, seed=42, out_dir=tmp_path, problem=problem, static_ref=static_ref
+        n_gen=2,
+        seed=42,
+        out_dir=tmp_path,
+        problem=problem,
+        static_ref=static_ref,
+        algorithm_name=algorithm_name,
     )
     assert file_path.endswith(".csv")
     assert tmp_path.joinpath(file_path).exists()
@@ -44,6 +51,7 @@ def test_run_function(tmp_path):
         "n_runs": 2,
         "batch_ids": [0, 1],
         "verbose": False,
+        "algorithm": "nsga3",
     }
     namespace = type("Args", (), args)  # Create a simple namespace object
     files = run(namespace)
