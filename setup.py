@@ -15,6 +15,7 @@ setup(
         "tabrepo": ["tabrepo", "regex"],
         "coco": ["coco-experiment", "regex"],
         "test": ["pytest", "mypy", "pylint", "black"],
+        "exp_design": ["botorch"],
     },
     package_data={"jaix": ["env/utils/problem/re_problem/ideal_nadir_points/*.dat"]},
     license="GPL3",
