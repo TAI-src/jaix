@@ -5,6 +5,7 @@ from jaix.env.utils.mo_sizing import get_ref_dirs
 from jaix.env.utils.problem.cobi_problem import CobiProblem
 from jaix.env.utils.problem.re_problem.reproblem_adapter import REProblem
 from pymoo.algorithms.moo.nsga3 import NSGA3, ReferenceDirectionSurvival
+from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.optimize import minimize
 
 from config_run_nsga3 import get_batches, parse_args
@@ -20,6 +21,7 @@ def run_algorithm(
     problem: REProblem | CobiProblem,
     static_ref: bool = True,
     verbose: bool = False,
+    algorithm_name: str = "nsga3",
 ) -> str:
     ref_dirs = get_ref_dirs(problem.num_objectives, "original")
 
@@ -30,11 +32,19 @@ def run_algorithm(
         )
     else:
         survival = ReferenceDirectionSurvival(ref_dirs)
-    algorithm = NSGA3(
-        pop_size=len(ref_dirs),
-        ref_dirs=ref_dirs,
-        survival=survival,
-    )
+    if algorithm_name == "nsga2":
+        algorithm = NSGA2(pop_size=len(ref_dirs))
+        static_ref = False  # NSGA2 does not use reference directions
+    elif algorithm_name == "nsga3":
+        algorithm = NSGA3(
+            pop_size=len(ref_dirs),
+            ref_dirs=ref_dirs,
+            survival=survival,
+        )
+    else:
+        raise ValueError(
+            f"Invalid algorithm name: {algorithm_name}. Choose 'nsga2' or 'nsga3'."
+        )
 
     pymoo_problem = PymooProblemWrapper(problem)
     callback = ArchiveStatsCallback(archive=pymoo_problem.archive)
@@ -48,7 +58,9 @@ def run_algorithm(
         callback=callback,
         verbose=verbose,
     )
-    file_name = f"nsga3_{problem!s}_s{seed}{"_fixed" if static_ref else ""}.csv"
+    file_name = (
+        f"{algorithm_name}_{problem!s}_s{seed}{"_fixed" if static_ref else ""}.csv"
+    )
     file_path = f"{out_dir}/{file_name}"
     df = pd.DataFrame(callback.data["archive_stats"])
     df.to_csv(file_path, index=False)
@@ -74,6 +86,7 @@ def run(args):
             static_ref=batch["static_ref"],
             problem=batch["problem"],
             verbose=args.verbose,
+            algorithm_name=args.algorithm,
         )
         files.append(out_file)
     return files

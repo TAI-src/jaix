@@ -49,4 +49,5 @@ def test_with_pymoo():
     # execute the optimization
     res = minimize(pymoo_problem, algorithm, seed=1, termination=("n_gen", 2))
     assert len(res.opt) > 0
-    assert pymoo_problem.archive.size > 0
+    assert pymoo_problem.archive.size == 0
+    assert len(pymoo_problem.archive.queued_entries) == 92 * 2

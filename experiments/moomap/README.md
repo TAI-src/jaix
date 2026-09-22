@@ -55,6 +55,18 @@ Show 20 most recent completed jobs with their state:
 sacct -u $USER -X --starttime 1970-01-01 --format=JobID,JobName,State,Elapsed,ExitCode | tail -20
 ```
 
+Identify the array ids of jobs that timed out and need to be rerun:
+
+```{bash}
+sacct -X --format=JobID,JobName,State,Elapsed,ExitCode \
+  --name=pred -S 1970-01-01 |
+  grep TIMEOUT |
+  awk '{split($1,a,"_"); print a[2]}' |
+  paste -sd, -
+```
+
+Potentially add another grep to specify if needed
+
 ### Offspring generation experiments
 
 ```{bash}
