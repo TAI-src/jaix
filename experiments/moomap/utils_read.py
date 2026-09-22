@@ -86,10 +86,15 @@ def find_data_files(
 
     res_dict = defaultdict(list)
     for f in files:
+        name_not_found = True
         for problem_idx, name in get_problem_names(problem_ids).items():
             if name in f.name:
                 res_dict[problem_idx].append(f)
+                name_not_found = False
                 break
+        if name_not_found:
+            problem_idx = int(f.stem.split("_")[0])
+            res_dict[problem_idx].append(f)
     return dict(res_dict)
 
 
