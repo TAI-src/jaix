@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from utils_problems import get_problem_info, get_problem_names
+from plots_parallel_coordinate_plot import plot_parallel_coordinate_plot
 
 
 def get_nsga3x_results(
@@ -121,7 +122,25 @@ def get_feature_importance_per_scenario(
             df["problem_id"] = problem_id
             scenario_df = pd.concat([scenario_df, df], ignore_index=True)
         scenario_df = scenario_df.rename(columns={"Unnamed: 0": "feature"})
-        print(scenario_df)
         # average the feature importance over all problems for this scenario
-        scenario_df = scenario_df.groupby("feature").mean().reset_index()
-        print(scenario_df)
+        avg_vals = scenario_df.groupby("feature").mean().reset_index()
+        avg_vals["problem_id"] = (
+            100  # indicate that this is the average over all problems
+        )
+        scenario_df = pd.concat([scenario_df, avg_vals], ignore_index=True)
+        for problem_id in list(scenario_df["problem_id"].unique()):
+            problem_df = scenario_df[scenario_df["problem_id"] == problem_id]
+            # plot feature importance as a parralel coordinates plot
+
+            print(problem_df.columns)
+            plot_parallel_coordinate_plot(
+                problem_df,
+                class_column="feature",
+                features=[
+                    "mutual_info",
+                    "perm_importance",
+                    "loo_cv_score",
+                    "loo_score_drop",
+                ],
+                save_path=f"{results_dir}/feature_importance_{scenario_id}_problem_{problem_id}.pdf",
+            )
