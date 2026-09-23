@@ -1,33 +1,80 @@
-import pandas as pd
 import matplotlib.pyplot as plt
-from pandas.plotting import parallel_coordinates
-from pathlib import Path
+import pandas as pd
+from matplotlib.lines import Line2D
 
 
-def plot_parallel_coordinate_plot(
+def plot_pcp(
     df: pd.DataFrame,
-    class_column: str,
-    features: list[str],
-    title: str = "Parallel Coordinate Plot",
-    save_path: str | Path | None = None,
+    line_col_name: str,
+    class_col_name: str | None = None,
+    linestyles: dict[str, str] | None = None,
+    features: list[str] | None = None,
+    cmap_name: str = "tab10",
+    save_path: str | None = None,
 ):
-    """
-    Plots a parallel coordinate plot for the given dataframe.
 
-    Args:
-        df (pd.DataFrame): The dataframe containing the data to plot.
-        features (list[str]): The list of feature names to include in the plot.
-        target (str): The name of the target variable to color the lines by.
-        title (str, optional): The title of the plot. Defaults to "Parallel Coordinate Plot".
-        save_path (str | Path | None, optional): The path to save the plot. If None, the plot is shown. Defaults to None.
-    """
-    plt.figure(figsize=(12, 6))
-    parallel_coordinates(df, class_column=class_column, cols=features)
-    plt.title(title)
-    plt.xlabel("Features")
-    plt.ylabel("Values")
-    plt.xticks(rotation=45)
-    plt.grid()
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # One colour per unique value in line_col
+    names = df[line_col_name].unique()
+    cmap = plt.colormaps[cmap_name]
+
+    colors = [cmap(i / max(len(names) - 1, 1)) for i in range(len(names))]
+
+    name_colors = dict(zip(names, colors))
+
+    if features is None:
+        features = list(
+            df.columns.drop(
+                [line_col_name, class_col_name] if class_col_name else [line_col_name]
+            )
+        )
+    x = range(len(features))
+
+    for _, row in df.iterrows():
+        if linestyles is None:
+            ax.plot(
+                x,
+                row[features].values,
+                color=name_colors[row[line_col_name]],
+                alpha=0.8,
+            )
+        else:
+            assert (
+                class_col_name is not None
+            ), "class_col_name must be provided if linestyles is provided"
+
+            ax.plot(
+                x,
+                row[features].values,
+                color=name_colors[row[line_col_name]],
+                linestyle=linestyles.get(row[class_col_name], "-"),
+                alpha=0.8,
+            )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(features, rotation=45, ha="right")
+    ax.grid(
+        axis="both",
+        linestyle=":",
+        linewidth=0.8,
+        alpha=0.5,
+    )
+
+    # name legend only
+    handles = [
+        Line2D(
+            [0],
+            [0],
+            color=name_colors[name],
+            lw=2,
+            label=name,
+        )
+        for name in names
+    ]
+
+    ax.legend(handles=handles, title=line_col_name)
+
+    plt.tight_layout()
     if save_path:
-        plt.savefig(save_path, bbox_inches="tight")
-        print(f"Plot saved to {save_path}")
+        plt.savefig(save_path)

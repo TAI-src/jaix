@@ -219,6 +219,7 @@ def run_analysis(
         loo_cv_scores_std.append(loo_cv_score_std)
     feature_df["loo_cv_score"] = loo_cv_scores
     feature_df["loo_cv_score_std"] = loo_cv_scores_std
+    # FIXME: the cv score is to be maximized, so the drop is negative if the feature is important. We should probably rename this to "loo_score_change" or something similar.
     feature_df["loo_score_drop"] = feature_df["loo_cv_score"] - cv_score_mean
     feature_df["loo_score_drop_rel"] = feature_df["loo_score_drop"] / cv_score_mean
     feature_df["loo_score_drop_rel_std"] = feature_df["loo_cv_score_std"] / cv_score_std
