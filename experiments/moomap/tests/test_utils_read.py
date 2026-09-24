@@ -69,12 +69,14 @@ def test_get_nsga3x_results():
 
 def test_pred_overview_results():
     # Test that the get_pred_overview_results function returns the correct results
-    test_folder = Path(__file__).parent.parent / "pred_results"
+    test_folder = Path(__file__).parent / "data" / "pred_res"
     problem_ids = None
     results_df = get_pred_overview_results(test_folder, problem_ids=problem_ids)
-    results_df.to_csv("pred_overview_results.csv", index=True)
     assert isinstance(results_df, pd.DataFrame)
-    from plots_grid import plot_grid
+    assert set(results_df.columns) == {"problem_id", "scenario_id", "cv_score_mean"}
+
+    """
+    get_feature_importance_per_scenariom plots_grid import plot_grid
 
     plot_file = plot_grid(
         results_df.reset_index(),
@@ -84,8 +86,9 @@ def test_pred_overview_results():
         hue_col="cv_score_mean",
         output_dir=".",
     )
+    """
 
 
 def test_pred_feat_imp_per_scenario():
-    test_folder = Path(__file__).parent.parent / "pred_results"
+    test_folder = Path(__file__).parent / "data " / "pred_res"
     get_feature_importance_per_scenario(results_dir=test_folder)

@@ -94,8 +94,13 @@ def find_data_files(
                 name_not_found = False
                 break
         if name_not_found:
-            problem_idx = int(f.stem.split("_")[0])
-            res_dict[problem_idx].append(f)
+            try:
+                problem_idx = int(f.stem.split("_")[0])
+                res_dict[problem_idx].append(f)
+            except ValueError:
+                print(
+                    f"Could not find problem name for file {f.name}. Please check the file name and ensure it contains a valid problem name or index."
+                )
     return dict(res_dict)
 
 
