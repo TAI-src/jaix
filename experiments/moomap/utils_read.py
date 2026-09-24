@@ -61,6 +61,7 @@ def get_pred_overview_results(
                     "problem_id": cfg.get("problem_id", cfg.get("problem_name")),
                     "scenario_id": cfg.get("scenario_id"),
                     "cv_score_mean": cfg.get("cv_score_mean"),
+                    "batch_id": cfg.get("batch_id"),
                 }
             )
 

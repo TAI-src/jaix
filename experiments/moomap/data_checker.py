@@ -89,6 +89,11 @@ def check_pred_results(
             print(
                 f"Missing scenario ids for {problem_id}: {problem_name}. Missing scenario ids: {missing_scenarios}"
             )
+    batch_ids = results["batch_id"].unique()
+    expected_batch_ids = list(range(expected_num_problems * expected_num_runs))
+    missing_batches = set(expected_batch_ids) - set(batch_ids)
+    if missing_batches:
+        print(f"Missing batch ids: {missing_batches}")
 
 
 def parse_args():
