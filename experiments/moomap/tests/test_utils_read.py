@@ -1,6 +1,13 @@
 from pathlib import Path
 
-from utils_read import find_data_files, get_config_dict, get_nsga3x_results
+from utils_read import (
+    find_data_files,
+    get_config_dict,
+    get_nsga3x_results,
+    get_pred_overview_results,
+    get_feature_importance_per_scenario,
+)
+import pandas as pd
 
 
 def test_get_config_file():
@@ -58,3 +65,30 @@ def test_get_nsga3x_results():
             assert "config_file" in run_info
             assert "config" in run_info
             assert isinstance(run_info["config"], dict)
+
+
+def test_pred_overview_results():
+    # Test that the get_pred_overview_results function returns the correct results
+    test_folder = Path(__file__).parent / "data" / "pred_res"
+    problem_ids = None
+    results_df = get_pred_overview_results(test_folder, problem_ids=problem_ids)
+    assert isinstance(results_df, pd.DataFrame)
+    assert set(results_df.columns) == {"problem_id", "scenario_id", "cv_score_mean"}
+
+    """
+    get_feature_importance_per_scenariom plots_grid import plot_grid
+
+    plot_file = plot_grid(
+        results_df.reset_index(),
+        max_grid=None,
+        grid_colx="problem_id",
+        grid_coly="scenario_id",
+        hue_col="cv_score_mean",
+        output_dir=".",
+    )
+    """
+
+
+def test_pred_feat_imp_per_scenario():
+    test_folder = Path(__file__).parent / "data " / "pred_res"
+    get_feature_importance_per_scenario(results_dir=test_folder)

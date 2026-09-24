@@ -1,0 +1,31 @@
+{
+    "file_path": "ppdata/f812d339f3f9489cb28e96c46c6b1593/REProblem_RE34_pred_data.csv",
+    "input_cols": [
+        "parent_x_distance",
+        "parent_y_distance",
+        "parent_angle",
+        "parent_0_dist_to_ideal",
+        "parent_1_dist_to_ideal",
+        "archive_stats_before_coverage",
+        "archive_stats_before_unbounded_hv",
+        "archive_stats_before_max_rank",
+        "archive_stats_before_mean_rank"
+    ],
+    "target_col": "n_offspring_rank",
+    "target_type": "regression",
+    "max_iter": 200,
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 15,
+    "l2_regularization": 1.0,
+    "n_splits": 5,
+    "n_repeats": 3,
+    "n_permutation_repeats": 10,
+    "random_state": 2910005283,
+    "problem_id": 15,
+    "problem_name": "RE34",
+    "file_id": 20,
+    "scenario_id": 29,
+    "batch_id": 687,
+    "cv_score_mean": 0.4885684143979056,
+    "cv_score_std": 0.001133121448658174
+}
