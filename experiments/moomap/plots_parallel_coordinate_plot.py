@@ -78,3 +78,4 @@ def plot_pcp(
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path)
+    plt.close(fig)

@@ -192,3 +192,16 @@ def get_config_dicts(args):
         }
         config_dicts.append(config_dict)
     return config_dicts
+
+
+def get_aggregation_scenarios():
+    scenarios = [
+        ["scenario_id"],
+        ["problem_id"],
+        ["target_col"],
+        ["cobi", "target_col"],
+        ["cobi", "scenario_id"],
+        ["problem_id", "target_col"],
+        ["problem_id", "scenario_id"],
+    ]
+    return scenarios

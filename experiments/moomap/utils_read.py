@@ -56,12 +56,15 @@ def get_pred_overview_results(
     for _, files in config_files.items():
         for config_file in files:
             cfg = get_config_dict(config_file)
+            problem_id = cfg.get("problem_id", cfg.get("problem_name"))
             data.append(
                 {
-                    "problem_id": cfg.get("problem_id", cfg.get("problem_name")),
+                    "problem_id": problem_id,
                     "scenario_id": cfg.get("scenario_id"),
                     "cv_score_mean": cfg.get("cv_score_mean"),
                     "batch_id": cfg.get("batch_id"),
+                    "target_col": cfg.get("target_col"),
+                    "cobi": problem_id in range(7),
                 }
             )
 
@@ -105,83 +108,32 @@ def find_data_files(
     return dict(res_dict)
 
 
-def get_feature_importance_per_scenario(
+def read_feat_imp(
     results_dir: str | Path,
     problem_ids: list[int] | None = None,
 ):
     data_files = find_data_files(
         results_dir, file_type_pattern="*_feat_imp.csv", problem_ids=problem_ids
     )
-    features = [
-        "mutual_info",
-        "perm_importance",
-        "loo_score_drop",
-    ]
-
-    data_file_by_scenario = defaultdict(list)
-    for problem_id, files in data_files.items():
-        for f in files:
-            scenario_id = f.stem.split("_")[-3]
-            assert scenario_id.startswith(
-                "s"
-            ), f"Scenario ID {scenario_id} does not start with 's'"
-            data_file_by_scenario[scenario_id].append((problem_id, f))
-
-    average_dfs = []
-    for scenario_id, file_tuple in data_file_by_scenario.items():
-        scenario_df = pd.DataFrame()
-        for problem_id, f in file_tuple:
-            df = pd.read_csv(f)
-            df["problem_id"] = problem_id
-            # only keep features of interest
-            df = df[["Unnamed: 0"] + features + ["problem_id"]]
-            scenario_df = pd.concat([scenario_df, df], ignore_index=True)
-        scenario_df = scenario_df.rename(columns={"Unnamed: 0": "feature"})
-        # check if all the loo_score_drop values are negative. If so, this is old data that swapped the values around, so we need to swap them back
-        if (scenario_df["loo_score_drop"] < 0).all():
-            scenario_df["loo_score_drop"] = -scenario_df["loo_score_drop"]
-        # average the feature importance over all problems for this scenario
-        avg_vals = scenario_df.groupby("feature").mean().reset_index()
-        avg_vals["problem_id"] = "avg"
-        scenario_df = pd.concat([scenario_df, avg_vals], ignore_index=True)
-        avg_vals["scenario_id"] = scenario_id
-        average_dfs.append(avg_vals)
-
-        for problem_id in list(scenario_df["problem_id"].unique()):
-
-            problem_df = scenario_df[
-                (scenario_df["problem_id"] == problem_id)
-                | (scenario_df["problem_id"] == "avg")
-            ]
-
-            plot_df = (
-                problem_df.set_index(["problem_id", "feature"])
-                .T.stack(level=0)
-                .reset_index()
-                .rename(columns={"level_0": "metric", "level_1": "problem_id"})
-            )
-
-            # plot feature importance as a parralel coordinates plot
-            plot_pcp(
-                plot_df,
-                line_col_name="metric",
-                class_col_name="problem_id",
-                linestyles={"avg": "--"},
-                save_path=f"{results_dir}/feat_{scenario_id}_p{problem_id}.pdf",
-            )
-    average_df = pd.concat(average_dfs, ignore_index=True)
-    # drop scenario_id and problem_id columns
-    average_df = average_df.drop(columns=["scenario_id", "problem_id"])
-    avg_all = (
-        average_df.groupby("feature")
-        .mean()
-        .reset_index()
-        .set_index("feature")
-        .T.reset_index()
-        .rename(columns={"index": "metric"})
+    config_files = find_data_files(
+        results_dir, file_type_pattern="*_config.json", problem_ids=problem_ids
     )
-    plot_pcp(
-        avg_all,
-        line_col_name="metric",
-        save_path=f"{results_dir}/feat_avg_all.pdf",
-    )
+
+    df = pd.DataFrame()
+    for problem_id, dat_files in data_files.items():
+        cfg_files = config_files.get(problem_id, [])
+        for dat_file, cfg_file in zip(dat_files, cfg_files):
+            cfg = get_config_dict(cfg_file)
+            scenario_id = cfg.get("scenario_id")
+            target_col = cfg.get("target_col")
+            cobi = problem_id in range(7)
+            dat_df = pd.read_csv(dat_file)
+            dat_df["problem_id"] = problem_id
+            dat_df["scenario_id"] = scenario_id
+            dat_df["target_col"] = target_col
+            dat_df["cobi"] = cobi
+            df = pd.concat([df, dat_df], ignore_index=True)
+    df = df.rename(columns={"Unnamed: 0": "feature"})
+    # FIXME: dirty change of loo_score_drop values. This is a temporary fix until the data is fixed.
+    df["loo_score_drop"] = -df["loo_score_drop"]
+    return df
