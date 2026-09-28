@@ -68,14 +68,20 @@ def test_get_nsga3x_results():
 
 def test_pred_overview_results():
     # Test that the get_pred_overview_results function returns the correct results
-    test_folder = Path(__file__).parent / "data" / "pred_res"
+    test_folder = Path(__file__).parent.parent / "data/feat_imp"
     problem_ids = None
     results_df = get_pred_overview_results(test_folder, problem_ids=problem_ids)
     assert isinstance(results_df, pd.DataFrame)
-    assert set(results_df.columns) == {"problem_id", "scenario_id", "cv_score_mean"}
+    assert set(results_df.columns) == {
+        "problem_id",
+        "scenario_id",
+        "cv_score_mean",
+        "cobi",
+        "target_col",
+        "batch_id",
+    }
 
-    """
-    get_feature_importance_per_scenariom plots_grid import plot_grid
+    from plots_grid import plot_grid
 
     plot_file = plot_grid(
         results_df.reset_index(),
@@ -85,4 +91,26 @@ def test_pred_overview_results():
         hue_col="cv_score_mean",
         output_dir=".",
     )
-    """
+
+    from config_pred import get_grouped_scenario
+
+    scenario_groups, feature_names = get_grouped_scenario()
+    # add a name column based on the scenario_id and feature_names
+    results_df["feat_name"] = [feature_names[i] for i in results_df["scenario_id"]]
+
+    for group, scenario_ids in scenario_groups.items():
+        subset_df = results_df[results_df["scenario_id"].isin(scenario_ids)]
+        print(
+            f"Group: {group}, Scenario IDs: {scenario_ids}, Subset shape: {subset_df.shape}"
+        )
+
+        plot_file = plot_grid(
+            subset_df.reset_index(),
+            max_grid=None,
+            grid_colx="problem_id",
+            grid_coly="feat_name",
+            hue_col="cv_score_mean",
+            output_dir=".",
+            file_prefix=f"group_{group}",
+            annot=True,
+        )

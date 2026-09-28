@@ -3,7 +3,7 @@ from itertools import product
 from pathlib import Path
 
 import numpy as np
-
+from collections import defaultdict
 from utils_problems import get_problem_names
 from utils_read import find_data_files
 
@@ -133,6 +133,27 @@ def generate_scenario_list():
             scenario_list.append(without_state)
             scenario_list.append(with_state)
     return scenario_list
+
+
+def get_grouped_scenario():
+    scenario_list = generate_scenario_list()
+
+    scenario_groups = defaultdict(list)
+    feature_names = []
+    for i, scenario in enumerate(scenario_list):
+        scenario_groups[scenario["target_col"]].append(i)
+        with_state = "archive_stats_before_coverage" in scenario["input_cols"]
+        if "parent_0_dist_to_ideal" in scenario["input_cols"]:
+            feature_setting = "dist_fit"
+        elif "parent_y_distance" in scenario["input_cols"]:
+            feature_setting = "dist"
+        elif "parent_x_distance" in scenario["input_cols"]:
+            feature_setting = "cond_dist"
+        else:
+            feature_setting = "niche"
+        feature_name = f"{feature_setting}_{'state' if with_state else 'static'}"
+        feature_names.append(feature_name)
+    return scenario_groups, feature_names
 
 
 def get_config_dicts(args):

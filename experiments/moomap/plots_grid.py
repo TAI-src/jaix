@@ -14,6 +14,7 @@ def plot_grid(
     output_dir: str,
     file_prefix: str = "",
     cmap_pal: str = "viridis",
+    annot: bool = False,
 ) -> str:
     """
     Plots a grid heatmap using hue_col as the color intensity for each grid cell defined by grid_colx and grid_coly.
@@ -29,12 +30,15 @@ def plot_grid(
             grid_data.set_index([grid_colx, grid_coly]).reindex(idx).reset_index()
         )
     pivot_table = grid_data.pivot(index=grid_colx, columns=grid_coly, values=hue_col)
+    # add average value for each row and column
+    pivot_table["row_mean"] = pivot_table.mean(axis=1)
+    pivot_table.loc["col_mean"] = pivot_table.mean(axis=0)
     cmap = sns.color_palette(cmap_pal, as_cmap=True)
     cmap.set_bad("lightgray")
     plt.figure(figsize=(10, 8))
     sns.heatmap(
         pivot_table,
-        annot=False,
+        annot=annot,
         fmt=".2f",
         cmap=cmap,
         cbar_kws={"label": hue_col},

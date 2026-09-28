@@ -18,7 +18,7 @@ from sklearn.model_selection import (
     cross_val_score,
 )
 
-from config_pred import get_config_dicts, parse_args
+from config_pred import get_config_dicts, parse_args, get_grouped_scenario
 
 
 def get_model(
@@ -281,6 +281,7 @@ def plot_results(
         class_col_name=None,
         save_path=f"{output_dir}/{plot_file}",
     )
+
     plot_df.to_csv(f"{output_dir}/fimp_avg.csv", index=False)
     avg["group"] = "avg"
     for scenario in scenarios:
