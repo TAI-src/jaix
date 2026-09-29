@@ -1,0 +1,19 @@
+FROM python:3.12
+
+COPY --from=cobi /opt/cobi/ /usr/local
+COPY --from=jaix_base /jaix /jaix
+COPY --from=jaix_base /opt/jaix/ /usr/local
+
+WORKDIR /jaix
+
+ARG EXTRAS
+RUN pip install --no-cache-dir -e .${EXTRAS}
+
+WORKDIR /experiments/mating_kernel
+COPY setup.py setup.py
+COPY mating_kernel mating_kernel
+
+RUN pip install --no-cache-dir -e .
+
+WORKDIR /experiments/mating_kernel/tests
+
