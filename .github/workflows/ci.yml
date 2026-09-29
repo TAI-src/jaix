@@ -134,6 +134,6 @@ jobs:
       lint-src: experiments/mating_kernel
       pretty: true
       from-scratch: false
-      test-src: "/experiments/mating_kernel"
+      test-src: "/experiments/mating_kernel/mating_kernel"
     secrets: inherit
   

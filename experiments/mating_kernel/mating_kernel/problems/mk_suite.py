@@ -6,7 +6,8 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 from jaix.env.utils.problem.static_problem import StaticProblem
 from ttex.config import Config, ConfigurableObject
 
-from mating_kernel.problems.cobi_configs import get_config, names as cobi_names
+from mating_kernel.problems.cobi_configs import get_config
+from mating_kernel.problems.cobi_configs import names as cobi_names
 from mating_kernel.problems.problem_info import ProblemInfo
 
 
@@ -64,7 +65,7 @@ class MKSuite(ConfigurableObject):
         constrained: bool = False,
         num_objectives: list[int] | None = None,
     ) -> list[StaticProblem]:
-        problems = []
+        problems: list[StaticProblem] = []
         if cobi:
             cobi_problems = MKSuite.cobi_problem_list()
             problems.extend(cobi_problems)
