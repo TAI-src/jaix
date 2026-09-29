@@ -131,9 +131,9 @@ jobs:
       pull-requests: write
     with:
       docker-service: jaix_mkexp
-      lint-src: experiments/mating_kernel
+      lint-src: experiments/mating_kernel/mating_kernel
       pretty: true
       from-scratch: false
-      test-src: "/experiments/mating_kernel/mating_kernel"
+      test-src: "/experiments/mating_kernel"
     secrets: inherit
   
