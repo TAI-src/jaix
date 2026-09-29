@@ -7,6 +7,7 @@ from jaix.env.utils.problem.static_problem import StaticProblem
 from ttex.config import Config, ConfigurableObject
 
 from mating_kernel.problems.cobi_configs import get_config, names as cobi_names
+from mating_kernel.problems.problem_info import ProblemInfo
 
 
 class MKSuiteConfig(Config):
@@ -32,9 +33,9 @@ class MKSuite(ConfigurableObject):
         self.problems = MKSuite.generate_problem_list(
             self.cobi, self.re, self.constrained, self.num_objectives
         )
-        self.problem_info_list = [self.get_problem_info(p) for p in self.problems]
+        self.problem_info_list = [ProblemInfo(p) for p in self.problems]
         self.problem_id_map = {
-            pinfo.problem_id: {"problem": p, "info": pinfo}
+            pinfo.uuid: {"problem": p, "info": pinfo}
             for p, pinfo in zip(self.problems, self.problem_info_list)
         }
 
