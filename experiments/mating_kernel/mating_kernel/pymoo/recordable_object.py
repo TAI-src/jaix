@@ -1,6 +1,6 @@
-from mating_kernel.pymoo.do_recorder import DoRecorderMixin
-
 import inspect
+
+from mating_kernel.pymoo.do_recorder import DoRecorderMixin
 
 
 def make_recorded(operator):

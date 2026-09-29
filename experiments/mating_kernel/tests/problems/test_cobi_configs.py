@@ -1,6 +1,6 @@
-from mating_kernel.problems.cobi_configs import get_configs
-
 from jaix.env.utils.problem.cobi_problem import CobiProblemConfig
+
+from mating_kernel.problems.cobi_configs import get_configs
 
 
 def test_get_configs():

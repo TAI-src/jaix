@@ -1,7 +1,8 @@
-from mating_kernel.pymoo.recordable_object import make_recordable, make_recorded
 from pymoo.algorithms.moo.nsga2 import NSGA2
-from mating_kernel.pymoo.do_recorder import DoRecorderMixin
 from pymoo.operators.selection.tournament import TournamentSelection
+
+from mating_kernel.pymoo.do_recorder import DoRecorderMixin
+from mating_kernel.pymoo.recordable_object import make_recordable, make_recorded
 
 
 def test_make_recorded():
