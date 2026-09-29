@@ -88,7 +88,7 @@ services:
     image: taisrc/jaix_mkexp${VER:+:}${VER}
     build:
       context: ../experiments/mating_kernel
-      dockerfile: docker/Dockerfile_mkexp
+      dockerfile: ../../docker/Dockerfile_mkexp
       args:
         BUILDKIT_INLINE_CACHE: "1"
       additional_contexts:
