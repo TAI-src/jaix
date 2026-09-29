@@ -81,7 +81,27 @@ services:
             - type=registry,ref=taisrc/jaix_coco:latest
             - taisrc/jaix_base
             - type=registry,ref=taisrc/jaix_base:latest
- 
+
+  jaix_mkexp: # mating_kernel experiments
+    <<: *jaix_base
+    container_name: jaix_mkexp
+    image: taisrc/jaix_mkexp${VER:+:}${VER}
+    build:
+      context: ../experiments/mating_kernel
+      dockerfile: ../../docker/Dockerfile_mkexp
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+      additional_contexts:
+        cobi: docker-image://taisrc/cobi:latest
+        jaix_base: service:jaix_base
+      cache_from:
+        - taisrc/jaix_mkexp
+        - type=registry,ref=taisrc/jaix_mkexp:latest
+        - taisrc/jaix
+        - type=registry,ref=taisrc/jaix:latest
+        - taisrc/cobi
+        - type=registry,ref=taisrc/cobi:latest 
+
   jaix_cobi:
     <<: *jaix_base
     container_name: jaix_cobi      
