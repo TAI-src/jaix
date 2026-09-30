@@ -1,6 +1,7 @@
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 
 import numpy as np
+
 from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.archive.entry_scorer import (
     ReferenceVectorDistanceScorer,
@@ -12,7 +13,6 @@ from jaix.env.utils.archive.mo_archive import (
     MOArchiveEntry,
 )
 from jaix.env.utils.problem.static_problem import StaticProblem
-from typing import TypeVar
 
 
 class MOEvalEntry(MOArchiveEntry):

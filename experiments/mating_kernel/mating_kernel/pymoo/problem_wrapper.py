@@ -1,6 +1,7 @@
 import numpy as np
-from jaix.env.utils.problem.static_problem import StaticProblem
 from pymoo.core.problem import ElementwiseProblem
+
+from jaix.env.utils.problem.static_problem import StaticProblem
 
 
 class PymooProblemWrapper(ElementwiseProblem):
