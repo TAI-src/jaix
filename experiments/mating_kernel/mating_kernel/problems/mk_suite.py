@@ -8,6 +8,7 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.problems.cobi_configs import get_config
 from mating_kernel.problems.cobi_configs import names as cobi_names
+from mating_kernel.problems.mo_tracking import make_tracked
 from mating_kernel.problems.problem_info import ProblemInfo
 
 
@@ -24,6 +25,10 @@ class MKSuiteConfig(Config):
         self.re = re
         self.num_objectives = num_objectives
         self.constrained = constrained
+
+
+tracked_REProblem = make_tracked(REProblem)
+tracked_CobiProblem = make_tracked(CobiProblem)
 
 
 class MKSuite(ConfigurableObject):
@@ -44,7 +49,9 @@ class MKSuite(ConfigurableObject):
     def re_problem_list(constrained: bool = False) -> list[REProblem]:
         problem_max_id = 24 if constrained else 16
         # All non-constrained RE problems are included in the list.
-        problems = [REProblem(REProblemConfig(), i) for i in range(problem_max_id)]
+        problems = [
+            tracked_REProblem(REProblemConfig(), i) for i in range(problem_max_id)
+        ]
         return problems
 
     @staticmethod
@@ -52,7 +59,7 @@ class MKSuite(ConfigurableObject):
         problem_max_id = 7
         cobi_configs = [get_config(func_id) for func_id in range(problem_max_id)]
         problems = [
-            CobiProblem(config, inst=i) for i, config in enumerate(cobi_configs)
+            tracked_CobiProblem(config, inst=i) for i, config in enumerate(cobi_configs)
         ]
         for p in problems:
             p.name = cobi_names[p.inst]
