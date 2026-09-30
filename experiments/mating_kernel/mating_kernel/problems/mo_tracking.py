@@ -77,3 +77,14 @@ class MOTrackingMixin:
         stats = self.archive.get_archive_stats()
         stats["fevals"] = getattr(self, "evaluations", None)
         return stats
+
+
+def make_tracked(cls: type[StaticProblem]) -> type[StaticProblem]:
+    if not issubclass(cls, StaticProblem):
+        raise TypeError(f"make_tracked expects a StaticProblem subclass, got {cls!r}")
+
+    return type(
+        f"Tracked{cls.__name__}",
+        (MOTrackingMixin, cls),
+        {},
+    )
