@@ -9,7 +9,7 @@ from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from mating_kernel.pymoo.recording_callback import RecordingCallback
 
 from mating_kernel.problems.mo_tracking import make_tracked
-from mating_kernel.pymoo.recording_parser import ReproductionParser
+from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
 from mating_kernel.pymoo.recordable_object import make_recordable
 
 
