@@ -1,6 +1,7 @@
-from jaix.env.utils.problem.static_problem import StaticProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from ttex.config import Config, ConfigurableObject
+
+from jaix.env.utils.problem.static_problem import StaticProblem
 
 
 class PerfExperimentConfig(Config):
