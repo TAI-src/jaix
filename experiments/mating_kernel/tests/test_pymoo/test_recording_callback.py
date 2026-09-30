@@ -1,11 +1,13 @@
-from pymoo.algorithms.moo.nsga2 import NSGA2
-from pymoo.optimize import minimize
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
-from mating_kernel.pymoo.recording_callback import RecordingCallback
+from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.optimize import minimize
+
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
+from mating_kernel.pymoo.recording_callback import RecordingCallback
+
 from .test_do_recorder import RecordedTournamentSelection, dummy_comp
 
 

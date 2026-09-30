@@ -1,11 +1,11 @@
 import pytest
-from mating_kernel.problems.mk_suite import MKSuite, MKSuiteConfig
-from mating_kernel.problems.problem_info import ProblemInfo
-
 from jaix.env.utils.problem.cobi_problem import CobiProblem
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
 )
+
+from mating_kernel.problems.mk_suite import MKSuite, MKSuiteConfig
+from mating_kernel.problems.problem_info import ProblemInfo
 
 
 def test_re_problem_list():

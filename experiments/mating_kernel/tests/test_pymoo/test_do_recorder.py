@@ -1,8 +1,9 @@
-from pymoo.operators.selection.tournament import TournamentSelection
-from mating_kernel.pymoo.do_recorder import DoRecorderMixin
-from pymoo.problems import get_problem
-from pymoo.core.population import Population
 import numpy as np
+from pymoo.core.population import Population
+from pymoo.operators.selection.tournament import TournamentSelection
+from pymoo.problems import get_problem
+
+from mating_kernel.pymoo.do_recorder import DoRecorderMixin
 
 
 class RecordedTournamentSelection(DoRecorderMixin, TournamentSelection):
