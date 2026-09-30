@@ -1,12 +1,13 @@
+import numpy as np
+import pytest
 from jaix.env.utils.archive.mo_archive import KeepDominated
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
-from mating_kernel.problems.mo_tracking import MOTrackingMixin, make_tracked
 from jaix.env.utils.problem.static_problem import StaticProblem
-import numpy as np
-import pytest
+
+from mating_kernel.problems.mo_tracking import MOTrackingMixin, make_tracked
 
 
 class TrackedREProblem(MOTrackingMixin, REProblem):

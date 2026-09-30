@@ -1,7 +1,6 @@
 from typing import Any, cast
 
 import numpy as np
-
 from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.archive.entry_scorer import (
     ReferenceVectorDistanceScorer,
@@ -13,6 +12,7 @@ from jaix.env.utils.archive.mo_archive import (
     MOArchiveEntry,
 )
 from jaix.env.utils.problem.static_problem import StaticProblem
+from typing import TypeVar
 
 
 class MOEvalEntry(MOArchiveEntry):
@@ -81,12 +81,18 @@ class MOTrackingMixin:
         return stats
 
 
-def make_tracked(cls: type[StaticProblem]) -> type[StaticProblem]:
+T = TypeVar("T", bound=StaticProblem)
+
+
+def make_tracked(cls: type[T]) -> type[T]:
     if not issubclass(cls, StaticProblem):
         raise TypeError(f"make_tracked expects a StaticProblem subclass, got {cls!r}")
 
     return type(
         f"Tracked{cls.__name__}",
         (MOTrackingMixin, cls),
-        {},
+        {
+            "__module__": cls.__module__,
+            "__doc__": cls.__doc__,
+        },
     )

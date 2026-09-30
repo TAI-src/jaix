@@ -5,8 +5,8 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 )
 
 from mating_kernel.problems.mk_suite import MKSuite, MKSuiteConfig
-from mating_kernel.problems.problem_info import ProblemInfo
 from mating_kernel.problems.mo_tracking import MOTrackingMixin
+from mating_kernel.problems.problem_info import ProblemInfo
 
 
 def test_re_problem_list():
