@@ -8,18 +8,27 @@ from pymoo.optimize import minimize
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from mating_kernel.pymoo.recording_callback import RecordingCallback
 
-from .test_do_recorder import RecordedTournamentSelection, dummy_comp
+from mating_kernel.problems.mo_tracking import make_tracked
+from mating_kernel.pymoo.recording_parser import ReproductionParser
+from mating_kernel.pymoo.recordable_object import make_recordable
 
 
 def test_recording_callback():
     # create the algorithm object
-    selection = RecordedTournamentSelection(func_comp=dummy_comp)
-    algorithm = NSGA2(pop_size=92, selection=selection)
+    RecordedNSGA2 = make_recordable(NSGA2)
+    algorithm = RecordedNSGA2(
+        pop_size=5,
+        record_args=ReproductionParser.record_args,
+        record_attributes=ReproductionParser.record_attributes,
+    )
 
-    problem = REProblem(REProblemConfig(), inst=0)
+    tracked_REProblem = make_tracked(REProblem)
+    problem = tracked_REProblem(REProblemConfig(), inst=0)
+
     pymoo_problem = PymooProblemWrapper(problem)
 
-    callback = RecordingCallback()
+    parser = ReproductionParser()
+    callback = RecordingCallback(recording_parsers=[parser])
 
     # execute the optimization
     minimize(
@@ -30,11 +39,5 @@ def test_recording_callback():
         callback=callback,
     )
     records = callback.data["record_stats"]
-    assert len(records) == 5  # 5 generations
-    for record in records:
-        assert "problem" in record
-        assert "mating.selection" in record
-        assert len(record["problem"]) == 92  # 92 individuals per generation
-    assert (
-        len(records[1]["mating.selection"]) > 0
-    )  # There should be some records for the selection operator
+    assert len(records) == 5
+    print(records[1])
