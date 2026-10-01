@@ -2,7 +2,6 @@ from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.perf_exp import PerfExperiment
 import argparse
 
-
 EXPERIMENTS: dict[str, type[Experiment]] = {
     "perf": PerfExperiment,
 }
