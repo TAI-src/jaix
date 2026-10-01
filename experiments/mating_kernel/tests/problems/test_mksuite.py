@@ -1,11 +1,12 @@
 import pytest
-from mating_kernel.problems.mk_suite import MKSuite, MKSuiteConfig
-from mating_kernel.problems.problem_info import ProblemInfo
-
 from jaix.env.utils.problem.cobi_problem import CobiProblem
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
 )
+
+from mating_kernel.problems.mk_suite import MKSuite, MKSuiteConfig
+from mating_kernel.problems.mo_tracking import MOTrackingMixin
+from mating_kernel.problems.problem_info import ProblemInfo
 
 
 def test_re_problem_list():
@@ -51,6 +52,7 @@ def test_generate_problem_list(cobi, re, constrained, num_objectives):
             assert all(isinstance(p, REProblem) for p in problems)
         else:
             assert any(isinstance(p, REProblem) for p in problems)
+    assert all(isinstance(p, MOTrackingMixin) for p in problems)
     if num_objectives is not None:
         assert all(p.num_objectives in num_objectives for p in problems)
 
