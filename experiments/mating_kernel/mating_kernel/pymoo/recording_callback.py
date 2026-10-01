@@ -43,7 +43,9 @@ class RecordingCallback(Callback):
         for parser in self.recording_parsers:
             parse_results[parser.__class__.__name__] = parser.parse(records_dict)
         result_dict = parse_results if len(parse_results) > 0 else records_dict
-        if isinstance(algorithm.problem.static_problem, MOTrackingMixin):
+        if hasattr(algorithm.problem, "static_problem") and isinstance(
+            algorithm.problem.static_problem, MOTrackingMixin
+        ):
             result_dict["archive_stats"] = (
                 algorithm.problem.static_problem.get_archive_stats()
             )

@@ -10,6 +10,7 @@ from mating_kernel.pymoo.recording_callback import RecordingCallback
 
 from mating_kernel.problems.mo_tracking import make_tracked
 from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
+from mating_kernel.pymoo.parser.population_parser import PopulationParser
 from mating_kernel.pymoo.recordable_object import make_recordable
 
 
@@ -27,8 +28,8 @@ def test_recording_callback():
 
     pymoo_problem = PymooProblemWrapper(problem)
 
-    parser = ReproductionParser()
-    callback = RecordingCallback(recording_parsers=[parser])
+    parsers = [ReproductionParser(), PopulationParser(ideal=problem.ideal_point)]
+    callback = RecordingCallback(recording_parsers=parsers)
 
     # execute the optimization
     minimize(
@@ -40,4 +41,19 @@ def test_recording_callback():
     )
     records = callback.data["record_stats"]
     assert len(records) == 5
-    print(records[1])
+    for i, entry in enumerate(records):
+        assert "ReproductionParser" in entry
+        rep_data = entry["ReproductionParser"]
+        if i == 0:  # first generation, no offspring yet
+            assert len(rep_data) == 0
+        else:
+            assert len(rep_data) > 0
+            assert "o_F" in rep_data[0]
+        assert "PopulationParser" in entry
+        pop_data = entry["PopulationParser"]
+        assert "n_gen_mean" in pop_data[0]
+        assert "archive_stats" in entry
+        archive_stats = entry["archive_stats"]
+        assert "size" in archive_stats
+        assert archive_stats["size"] > 0
+        assert archive_stats["fevals"] == (i + 1) * algorithm.pop_size
