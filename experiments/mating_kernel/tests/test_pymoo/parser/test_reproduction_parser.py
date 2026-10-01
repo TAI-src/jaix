@@ -47,12 +47,16 @@ def test_extract_lineage(n_offsprings):
 
 
 def test_parse_individual():
-    ind = Individual(X=[1, 2], F=[3], data={"attr": 4})
-    parser = ReproductionParser()
-    parsed = parser.parse_individual(ind)
+    ind = Individual(X=[1, 2], F=[3, 2], data={"attr": 4})
+    parsed = ReproductionParser.parse_individual(ind)
     assert parsed["X"] == [1, 2]
-    assert parsed["F"] == [3]
+    assert parsed["F"] == [3, 2]
     assert parsed["attr"] == 4
+
+    parsed_with_ideal = ReproductionParser.parse_individual(ind, ideal=np.array([0, 0]))
+    assert parsed_with_ideal["dist_to_ideal"] == pytest.approx(
+        np.linalg.norm(ind.F - np.array([0, 0]))
+    )
 
 
 def test_parse():
