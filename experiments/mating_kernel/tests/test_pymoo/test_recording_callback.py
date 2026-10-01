@@ -5,13 +5,12 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.optimize import minimize
 
-from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
-from mating_kernel.pymoo.recording_callback import RecordingCallback
-
 from mating_kernel.problems.mo_tracking import make_tracked
-from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
 from mating_kernel.pymoo.parser.population_parser import PopulationParser
+from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
+from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from mating_kernel.pymoo.recordable_object import make_recordable
+from mating_kernel.pymoo.recording_callback import RecordingCallback
 
 
 def test_recording_callback():

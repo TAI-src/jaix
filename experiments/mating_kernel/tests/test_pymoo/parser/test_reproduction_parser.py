@@ -1,8 +1,9 @@
-from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
-from pymoo.core.individual import Individual
-from pymoo.operators.crossover.sbx import SBX
 import numpy as np
 import pytest
+from pymoo.core.individual import Individual
+from pymoo.operators.crossover.sbx import SBX
+
+from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
 
 
 class DummyProblem:

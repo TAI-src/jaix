@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import ClassVar
 
 
 class RecordingParser(ABC):
@@ -12,9 +13,9 @@ class RecordingParser(ABC):
                     f"{cls.__name__} must define the '{attr}' class attribute."
                 )
 
-    record_args: list[str]
-    record_attributes: list[str]
-    record_retrieval: list[str]
+    record_args: ClassVar[list[str]]
+    record_attributes: ClassVar[list[str]]
+    record_retrieval: ClassVar[list[str]]
 
     @abstractmethod
     def parse(self, data: dict[str, list]) -> list[dict]: ...

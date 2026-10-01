@@ -1,8 +1,9 @@
-from mating_kernel.pymoo.parser.population_parser import PopulationParser
-from pymoo.core.individual import Individual
-from pymoo.core.population import Population
 import numpy as np
 import pytest
+from pymoo.core.individual import Individual
+from pymoo.core.population import Population
+
+from mating_kernel.pymoo.parser.population_parser import PopulationParser
 
 
 @pytest.mark.parametrize("ideal", [None, np.array([0, 0])])
@@ -17,7 +18,7 @@ def test_parse(ideal):
     simulated_selection_records = [{"args": "a", "kwargs": {}, "output": pop}]
 
     parser = PopulationParser(ideal=ideal)
-    parsed_data = parser.parse({"selection": simulated_selection_records})
+    parsed_data = parser.parse({"survival": simulated_selection_records})
     stats = parsed_data[0]
     assert "attr1_mean" in stats
     assert stats["attr1_mean"] == 2.0  # mean of [0, 1, 2, 3, 4]

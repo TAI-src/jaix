@@ -1,6 +1,7 @@
+from pymoo.core.callback import Callback
+
 from mating_kernel.problems.mo_tracking import MOTrackingMixin
 from mating_kernel.pymoo.parser.recording_parser import RecordingParser
-from pymoo.core.callback import Callback
 
 
 def recursive_getattr(obj, attr, default=None):

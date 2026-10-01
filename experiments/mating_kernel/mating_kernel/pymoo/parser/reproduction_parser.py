@@ -1,11 +1,18 @@
-from mating_kernel.pymoo.parser.recording_parser import RecordingParser
+from typing import ClassVar
+
 from pymoo.core.individual import Individual
+
+from mating_kernel.pymoo.parser.recording_parser import RecordingParser
 
 
 class ReproductionParser(RecordingParser):
-    record_args = ["selection", "survival", "crossover"]
-    record_attributes = []
-    record_retrieval = ["mating.selection", "mating.crossover", "survival"]
+    record_args: ClassVar[list[str]] = ["selection", "survival", "crossover"]
+    record_attributes: ClassVar[list[str]] = []
+    record_retrieval: ClassVar[list[str]] = [
+        "mating.selection",
+        "mating.crossover",
+        "survival",
+    ]
 
     def parse(self, data: dict[str, list]) -> list[dict]:
         # meta data about the recorded values

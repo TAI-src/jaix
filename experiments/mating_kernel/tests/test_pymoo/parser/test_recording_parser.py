@@ -1,13 +1,16 @@
-from mating_kernel.pymoo.parser.recording_parser import RecordingParser
+from typing import ClassVar
+
 import pytest
+
+from mating_kernel.pymoo.parser.recording_parser import RecordingParser
 
 
 def test_valid():
     # valid test
     class ValidParser(RecordingParser):
-        record_args = ["test"]
-        record_attributes = []
-        record_retrieval = ["a", "b", "c"]
+        record_args: ClassVar[list[str]] = ["test"]
+        record_attributes: ClassVar[list[str]] = []
+        record_retrieval: ClassVar[list[str]] = ["a", "b", "c"]
 
         def parse(self, data: dict[str, list]) -> list[dict]:
             return []
