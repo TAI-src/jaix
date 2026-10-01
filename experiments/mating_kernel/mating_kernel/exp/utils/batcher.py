@@ -35,7 +35,7 @@ class Batcher:
 
     @staticmethod
     def split_batches(
-        batches: list[ Batch], num_batches: int | None = None
+        batches: list[Batch], num_batches: int | None = None
     ) -> list[list[Batch]]:
 
         if num_batches is None:
@@ -63,7 +63,7 @@ class Batcher:
     def create_combinations(
         suite_config: MKSuiteConfig,
         settings: dict[str, list],
-        exp_dir: Path | str = Path(".")
+        exp_dir: Path | str = Path("."),
     ) -> list[Batch]:
         suite = MKSuite(suite_config)
         problem_ids = list(suite.problem_id_map.keys())
@@ -78,7 +78,9 @@ class Batcher:
             for sid, param_combination in enumerate(param_combinations):
                 batch_settings = dict(zip(param_names, param_combination))
                 batch_settings.update(suite.problem_id_map[problem_id])
-                batch = Batch(**batch_settings, pid=problem_id, sid=sid, parent_dir=exp_dir)
+                batch = Batch(
+                    **batch_settings, pid=problem_id, sid=sid, parent_dir=exp_dir
+                )
                 batches.append(batch)
 
         return batches
@@ -88,14 +90,12 @@ class Batcher:
         suite_config: MKSuiteConfig,
         settings: dict[str, list],
         reps: int = 1,
-        num_batches: int | None = None, # separate batches if not set
+        num_batches: int | None = None,  # separate batches if not set
         seed: int | None = None,
-        exp_dir: Path | str = Path(".")
+        exp_dir: Path | str = Path("."),
     ) -> list[list[Batch]]:
         batches = Batcher.create_combinations(suite_config, settings, exp_dir=exp_dir)
         seeded_batches = Batcher.seed_batches(batches, reps=reps, seed=seed)
-        batched_batches = Batcher.split_batches(seeded_batches, num_batches=num_batches)                                               num_batches)
+        batched_batches = Batcher.split_batches(seeded_batches, num_batches=num_batches)
 
         return batched_batches
-
-
