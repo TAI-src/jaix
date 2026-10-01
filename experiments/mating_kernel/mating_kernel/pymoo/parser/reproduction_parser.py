@@ -1,5 +1,6 @@
 from typing import ClassVar
 
+import numpy as np
 from pymoo.core.individual import Individual
 
 from mating_kernel.pymoo.parser.recording_parser import RecordingParser
@@ -13,6 +14,9 @@ class ReproductionParser(RecordingParser):
         "mating.crossover",
         "survival",
     ]
+
+    def __init__(self, ideal: np.ndarray | None = None):
+        self.ideal = ideal
 
     def parse(self, data: dict[str, list]) -> list[dict]:
         # meta data about the recorded values
@@ -35,10 +39,12 @@ class ReproductionParser(RecordingParser):
             )
             for entry in lineage:
                 # check if offspring survived in the final population
-                entry_dict = ReproductionParser.parse_individual(entry["offspring"])
+                entry_dict = ReproductionParser.parse_individual(
+                    entry["offspring"], ideal=self.ideal
+                )
                 res_dict = {f"o_{k}": v for k, v in entry_dict.items()}
                 for i, p in enumerate(entry["parents"]):
-                    p_dict = ReproductionParser.parse_individual(p)
+                    p_dict = ReproductionParser.parse_individual(p, ideal=self.ideal)
                     p_dict = {f"p{i}_{k}": v for k, v in p_dict.items()}
                     res_dict.update(p_dict)
                 res_dict["survived"] = entry["offspring"] in survived
@@ -47,8 +53,11 @@ class ReproductionParser(RecordingParser):
         return ret_data
 
     @staticmethod
-    def parse_individual(ind: Individual) -> dict:
-        return {"X": ind.X, "F": ind.F, **ind.data}
+    def parse_individual(ind: Individual, ideal: np.ndarray | None = None) -> dict:
+        ind_dict = {"X": ind.X, "F": ind.F, **ind.data}
+        if ideal is not None and len(ind.F) > 0:
+            ind_dict["dist_to_ideal"] = np.linalg.norm(ind.F - ideal)
+        return ind_dict
 
     @staticmethod
     def extract_lineage(parent_groups, offspring, n_offsprings):
