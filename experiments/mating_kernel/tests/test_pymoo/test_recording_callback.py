@@ -27,7 +27,10 @@ def test_recording_callback():
 
     pymoo_problem = PymooProblemWrapper(problem)
 
-    parsers = [ReproductionParser(), PopulationParser(ideal=problem.ideal_point)]
+    parsers = [
+        ReproductionParser(ideal=problem.ideal_point),
+        PopulationParser(ideal=problem.ideal_point),
+    ]
     callback = RecordingCallback(recording_parsers=parsers)
 
     # execute the optimization
