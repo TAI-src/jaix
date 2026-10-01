@@ -18,7 +18,7 @@ def test_make_recordable():
     RecordableNSGA2 = make_recordable(NSGA2)
 
     # Instantiate the recordable NSGA2 with 'selection' to be recorded
-    algorithm = RecordableNSGA2(pop_size=92, record=["selection"])
+    algorithm = RecordableNSGA2(pop_size=92, record_args=["selection"])
 
     # Check that the selection operator is now a subclass of DoRecorderMixin
     assert isinstance(algorithm.mating.selection, DoRecorderMixin)

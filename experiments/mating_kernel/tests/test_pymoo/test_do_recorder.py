@@ -26,17 +26,21 @@ def test_do_recorder():
     pop.set("F", problem.evaluate(pop.get("X")))
     off = selection.do(None, pop, n_select=3, n_parents=2)
 
-    assert len(selection.records) == 1
+    assert len(selection.records) == 2
     records = selection.retrieve_records()
-    assert np.array_equal(records[0]["output"], off)
-    assert len(records) == 1
-    assert len(selection.records) == 0
+    assert "pressure" in records[0]  # First record is alwas the metadata
+    assert np.array_equal(records[1]["output"], off)
+    assert len(records) == 2
+    assert (
+        len(selection.records) == 1
+    )  # just the metadata record remains after retrieval
+    assert "pressure" in selection.records[0]
 
     off2 = selection.do(None, pop, n_select=2, n_parents=2)
     off3 = selection.do(None, pop, n_select=1, n_parents=2)
-    assert len(selection.records) == 2
+    assert len(selection.records) == 3
     records = selection.retrieve_records()
-    assert np.array_equal(records[0]["output"], off2)
-    assert np.array_equal(records[1]["output"], off3)
-    assert len(records) == 2
-    assert len(selection.records) == 0
+    assert np.array_equal(records[1]["output"], off2)
+    assert np.array_equal(records[2]["output"], off3)
+    assert len(records) == 3
+    assert len(selection.records) == 1
