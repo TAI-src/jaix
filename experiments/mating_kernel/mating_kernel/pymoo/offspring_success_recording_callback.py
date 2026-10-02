@@ -76,17 +76,16 @@ class OffspringSuccessRecordingCallback(RecordingCallback):
     def record_stats(self) -> pd.DataFrame:
         if self._dirty:
             full_records = self._get_full_record_dicts()
-            df = pd.DataFrame(full_records)
+            self._record_stats_df = pd.DataFrame(full_records)
+            # TODO: remove when copied to postprocessing
+            """
             # Remove duplicate child records based on 'o_X' and 'o_F' columns, keeping the first occurrence
-            if df.empty:
-                self._record_stats_df = df
-                self._dirty = False
-                return self._record_stats_df
             duplicate_keys = pd.DataFrame(
                 {"o_X": df["o_X"].map(tuple), "o_F": df["o_F"].map(tuple)}
             )
             self._record_stats_df = df[
                 ~duplicate_keys.duplicated(keep="first")
             ].reset_index(drop=True)
+            """
             self._dirty = False  # Reset the dirty flag after updating the DataFrame
         return self._record_stats_df
