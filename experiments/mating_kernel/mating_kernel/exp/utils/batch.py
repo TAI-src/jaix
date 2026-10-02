@@ -94,7 +94,7 @@ class Batch(BaseModel):
             return []
         seeds = []
         for d in dir.iterdir():
-            if d.is_dir() and d.name.startswith(self.experiment_id):
+            if d.is_dir() and d.name.startswith(self.experiment_id) and any(d.iterdir()):
                 _, seed = self.parse_name(d.name)
                 seeds.append(seed)
         return seeds
@@ -107,7 +107,8 @@ class Batch(BaseModel):
         if not dir.exists():
             return False
         # check if self.out_dir is empty (it will always exist as it is created in the out_dir property)
-        return any(self.out_dir.iterdir())  # Check if the output directory is not empty
+        run_dir = dir / self.run_id
+        return run_dir.is_dir() and any(run_dir.iterdir())
 
 
 def hash_dict(d: dict, length: int = 12) -> str:

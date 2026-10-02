@@ -162,7 +162,7 @@ def test_create_combinations(tmp_path):
     mk_suite = MKSuite(mk_config)
     assert len(mk_suite.problems) == 2  # There should be 2 problems with 4 objectives
     settings = {"setting1": [1, 2], "setting2": ["a", "b", "c"]}
-    combinations = Batcher.create_combinations(mk_suite, settings, tmp_path)
+    combinations = Batcher.create_combinations(mk_config, settings, tmp_path)
     assert len(combinations) == len(mk_suite.problems) * len(
         settings["setting1"]
     ) * len(settings["setting2"])

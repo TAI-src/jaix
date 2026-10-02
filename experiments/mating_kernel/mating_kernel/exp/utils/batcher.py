@@ -113,7 +113,7 @@ class Batcher:
         seeded_batches = Batcher.seed_batches(batches, reps=reps, seed=seed)
         batched_batches = Batcher.split_batches(seeded_batches, num_batches=num_batches)
         if filter_bids is not None:
-            if any(bid >= len(batched_batches) for bid in filter_bids):
+            if any(bid < 0 or bid >= len(batched_batches) for bid in filter_bids):
                 raise ValueError(
                     f"filter_bids contains indices that are out of range. "
                     f"Max index is {len(batched_batches) - 1}."
