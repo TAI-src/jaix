@@ -60,10 +60,14 @@ def test_get_stat_gen_out_of_bounds(pop_size=5, n_gen=6):
         callback.get_stat_gen(-1, "offspring_success")
     except IndexError as e:
         assert str(e) == "Generation -1 is out of bounds."
+    else:
+        raise AssertionError("Expected an IndexError for generation -1")
     try:
         callback.get_stat_gen(n_gen, "offspring_success")
     except IndexError as e:
         assert str(e) == f"Generation {n_gen} is out of bounds."
+    else:
+        raise AssertionError(f"Expected an IndexError for generation {n_gen}")
 
 
 def test_record_stats_property(pop_size=5, n_gen=6):

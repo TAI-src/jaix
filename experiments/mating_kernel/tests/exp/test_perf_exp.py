@@ -60,6 +60,8 @@ def test_get_alg_class():
         PerfExperiment.get_alg_class("UnsupportedAlg")
     except ValueError as e:
         assert str(e) == "Unsupported algorithm: UnsupportedAlg"
+    else:
+        raise AssertionError("Expected get_alg_class to reject unsupported algorithm")
 
 
 def test_get_recorded_alg():
