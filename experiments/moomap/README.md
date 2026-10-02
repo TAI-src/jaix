@@ -119,3 +119,31 @@ module load gcc uv
 uv lock --upgrade --python 3.12
 uv sync --python 3.12
 ```
+
+## Firsttime setup cluster
+
+### Create pyproject.toml before running the uv lock
+
+```{toml}
+[project]
+name = "moomap"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12.13"
+dependencies = [
+    "cobi",
+    "tai-jaix",
+]
+
+[tool.uv.sources]
+cobi = { path = "../../deps/cobi" }
+```
+
+### Create venv
+
+```{bash}
+module load gcc uv
+uv lock --upgrade --python 3.12
+uv sync --python 3.12 # This should create the .venv that I am using
+```
