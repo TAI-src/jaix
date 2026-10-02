@@ -17,3 +17,7 @@ def main():
 
     experiment_class = EXPERIMENTS[args.experiment]
     experiment_class.run_from_args(unknown_args)
+
+
+if __name__ == "__main__":
+    main()

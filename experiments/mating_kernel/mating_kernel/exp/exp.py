@@ -43,6 +43,7 @@ class Experiment(ABC):
         Run the experiment from command line arguments.
         """
         config, filter_bids = cls.parse_args(argv)
+
         return cls.run(config, filter_bids=filter_bids, **kwargs)
 
     @classmethod
