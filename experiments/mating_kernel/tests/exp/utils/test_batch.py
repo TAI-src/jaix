@@ -6,6 +6,7 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.problems.problem_info import ProblemInfo
+import shutil
 
 
 def test_batch_creation(tmp_path):
@@ -62,13 +63,19 @@ def test_batch_creation(tmp_path):
     assert seed == batch.seed  # Check if the parsed seed matches the original seed
 
     assert batch.get_num_runs() == 2  # batch 1 and 2
+    # create folder
+    assert batch.out_dir.exists()  # Check if the output directory exists
+    assert not batch.exists()  # Check if the batch does not exist yet (empty dir)
+
+    for b in [batch, batch2]:
+        # Simulate running the batch by creating a result file in the output directory
+        with open(b.out_dir / "result.txt", "w") as f:
+            f.write("done")
     run_seeds = batch.get_run_seeds()
     assert set(run_seeds) == {batch.seed, batch2.seed}  # Check if the run seeds
-    assert not batch.exists()
-    # create dummy file in the outdir to simulate a completed run
-    with open(batch.out_dir / "dummy.txt", "w") as f:
-        f.write("dummy")
-    assert batch.exists()  # Now the batch should exist
+    assert batch.exists()
+    shutil.rmtree(batch.out_dir)  # Remove the output directory for batch 1
+    assert not batch.exists()  # Now the batch should not exist
 
     batch3 = Batch(
         problem=problem,
