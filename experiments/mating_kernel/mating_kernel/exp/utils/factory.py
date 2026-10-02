@@ -1,28 +1,30 @@
-from typing import Any
-from dataclasses import dataclass
 import argparse
+from pathlib import Path
+from typing import Any
+
+from ttex.config import Config
+
 from mating_kernel.problems.mk_suite import MKSuiteConfig
-from mating_kernel.exp.utils.parse_args import mk_suite_parser, experiment_parser
-from mating_kernel.experiments.experiment import ExperimentConfig
 
 
-@dataclass
-class SettingArg:
-    args: tuple[str, ...]
-    kwargs: dict[str, Any]
-
-
-def convert_settings(
-    settings: list[SettingArg],
-) -> tuple[argparse.ArgumentParser, list[str]]:
-    parser = argparse.ArgumentParser(
-        add_help=False, parents=[mk_suite_parser(), experiment_parser()]
-    )
-    setting_names = []
-    for setting in settings:
-        action = parser.add_argument(*setting.args, **setting.kwargs)
-        setting_names.append(action.dest)
-    return parser, setting_names
+class ExperimentConfig(Config):
+    def __init__(
+        self,
+        suite_config: MKSuiteConfig,
+        settings: dict[str, list],
+        reps: int = 1,
+        num_batches: int | None = None,
+        seed: int | None = None,
+        out_dir: str | Path = Path("."),
+    ):
+        super().__init__()
+        self.suite_config = suite_config
+        self.reps = reps
+        self.settings = settings
+        self.num_batches = num_batches
+        self.seed = seed
+        self.out_dir = Path(out_dir)
+        self.out_dir.mkdir(parents=True, exist_ok=True)
 
 
 def parse_mk_suite_args(args: argparse.Namespace) -> MKSuiteConfig:

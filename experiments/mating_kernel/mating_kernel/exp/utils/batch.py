@@ -1,9 +1,11 @@
-from pydantic import BaseModel, ConfigDict
 import hashlib
 import json
-from jaix.env.utils.problem.static_problem import StaticProblem
-from mating_kernel.problems.problem_info import ProblemInfo
 from pathlib import Path
+
+from jaix.env.utils.problem.static_problem import StaticProblem
+from pydantic import BaseModel, ConfigDict
+
+from mating_kernel.problems.problem_info import ProblemInfo
 
 
 class Batch(BaseModel):
@@ -14,7 +16,9 @@ class Batch(BaseModel):
     problem: StaticProblem
     pinfo: ProblemInfo
     parent_dir: str | Path = Path(".")
-    model_config = ConfigDict(extra="allow")  # Allow extra fields in the model
+    model_config = ConfigDict(
+        extra="allow", arbitrary_types_allowed=True
+    )  # Allow extra fields in the model
 
     @property
     def name(self) -> str:
@@ -30,7 +34,7 @@ class Batch(BaseModel):
         """
         Generate the output directory path for the batch based on its identifiers.
         """
-        out_path = Path(self.parent_dir) / self.name
+        out_path = Path(self.parent_dir) / self.run_id
         out_path.mkdir(parents=True, exist_ok=True)
         return out_path
 
@@ -43,7 +47,7 @@ class Batch(BaseModel):
         """
         Generate a unique name for the batch based on its identifiers.
         """
-        hashed_settings = self.hash_dict({**self.settings})
+        hashed_settings = hash_dict({**self.settings})
         return f"{self.pid}_{hashed_settings}"
 
     @property
@@ -102,7 +106,8 @@ class Batch(BaseModel):
         dir = Path(dir) if dir is not None else Path(self.parent_dir)
         if not dir.exists():
             return False
-        return any(d.is_dir() and d.name == self.run_id for d in dir.iterdir())
+        # check if self.out_dir is empty (it will always exist as it is created in the out_dir property)
+        return any(self.out_dir.iterdir())  # Check if the output directory is not empty
 
 
 def hash_dict(d: dict, length: int = 12) -> str:

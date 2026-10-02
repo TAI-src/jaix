@@ -1,6 +1,4 @@
 import argparse
-from mating_kernel.problems.mk_suite import MKSuiteConfig
-from mating_kernel.experiments.experiment import ExperimentConfig
 
 
 def mk_suite_parser():

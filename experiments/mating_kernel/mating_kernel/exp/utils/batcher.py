@@ -1,9 +1,12 @@
-import numpy as np
 import math
-from itertools import product
-from mating_kernel.problems.mk_suite import MKSuite, MKSuiteConfig
-from mating_kernel.exp.utils.batch import Batch
+from collections import defaultdict
+from itertools import product, zip_longest
 from pathlib import Path
+
+import numpy as np
+
+from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.problems.mk_suite import MKSuite, MKSuiteConfig
 
 
 class Batcher:
@@ -16,21 +19,25 @@ class Batcher:
     ) -> list[Batch]:
         rng = np.random.default_rng(seed)
         seeds = rng.integers(low=0, high=2**32 - 1, size=reps)
-        seeded_batches = []
-        for batch in batches:
-            if dir is not None:
-                existing_seeds = batch.get_run_seeds()
-                missing_seed_idx = [
-                    i for i, s in enumerate(seeds) if s not in existing_seeds
-                ]
-            else:
-                missing_seed_idx = list(range(reps))
+        seeded_batches_dict = defaultdict(list)
+        for bid, batch in enumerate(batches):
+            existing_seeds = batch.get_run_seeds()
+            missing_seed_idx = [
+                i for i, s in enumerate(seeds) if s not in existing_seeds
+            ]
             for sid in missing_seed_idx:
                 seeded_batch = batch.model_copy(
                     update={"seed": int(seeds[sid]), "rep": sid}
                 )
-                seeded_batches.append(seeded_batch)
-
+                seeded_batches_dict[bid].append(seeded_batch)
+        # Flatten the list of seeded batches
+        # But intersperse the batch ids
+        seeded_batches = [
+            batch
+            for bid in zip_longest(*seeded_batches_dict.values())
+            for batch in bid
+            if batch is not None
+        ]
         return seeded_batches
 
     @staticmethod
@@ -77,9 +84,14 @@ class Batcher:
         for problem_id in problem_ids:
             for sid, param_combination in enumerate(param_combinations):
                 batch_settings = dict(zip(param_names, param_combination))
-                batch_settings.update(suite.problem_id_map[problem_id])
+                pdata = suite.problem_id_map[problem_id]
                 batch = Batch(
-                    **batch_settings, pid=problem_id, sid=sid, parent_dir=exp_dir
+                    **batch_settings,
+                    pid=problem_id,
+                    sid=sid,
+                    parent_dir=exp_dir,
+                    pinfo=pdata["info"],
+                    problem=pdata["problem"],
                 )
                 batches.append(batch)
 
@@ -93,9 +105,20 @@ class Batcher:
         num_batches: int | None = None,  # separate batches if not set
         seed: int | None = None,
         exp_dir: Path | str = Path("."),
+        filter_bids: (
+            list[int] | None
+        ) = None,  # indices of batches to run, if None, run all
     ) -> list[list[Batch]]:
         batches = Batcher.create_combinations(suite_config, settings, exp_dir=exp_dir)
         seeded_batches = Batcher.seed_batches(batches, reps=reps, seed=seed)
         batched_batches = Batcher.split_batches(seeded_batches, num_batches=num_batches)
+        if filter_bids is not None:
+            if any(bid >= len(batched_batches) for bid in filter_bids):
+                raise ValueError(
+                    f"filter_bids contains indices that are out of range. "
+                    f"Max index is {len(batched_batches) - 1}."
+                )
+            # Filter the batched_batches to only include the specified batch ids
+            batched_batches = [batched_batches[bid] for bid in filter_bids]
 
         return batched_batches
