@@ -1,7 +1,7 @@
 from distutils.core import setup
 from setuptools import find_packages
 
-__version__ = "0.1.1.150"
+__version__ = "0.1.1.152"
 
 archive_deps = ["seaborn", "pandas", "pymoo", "matplotlib", "scikit-learn"]
 
