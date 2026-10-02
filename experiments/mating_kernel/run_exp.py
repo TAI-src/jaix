@@ -1,8 +1,7 @@
 import argparse
 
-from mating_kernel.exp.perf_exp import PerfExperiment
-
 from mating_kernel.exp.exp import Experiment
+from mating_kernel.exp.perf_exp import PerfExperiment
 
 EXPERIMENTS: dict[str, type[Experiment]] = {
     "perf": PerfExperiment,
@@ -18,3 +17,7 @@ def main():
 
     experiment_class = EXPERIMENTS[args.experiment]
     experiment_class.run_from_args(unknown_args)
+
+
+if __name__ == "__main__":
+    main()

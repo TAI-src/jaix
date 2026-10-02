@@ -1,7 +1,7 @@
 from pymoo.core.callback import Callback
 
 from mating_kernel.problems.mo_tracking import MOTrackingMixin
-from mating_kernel.pymoo.parser.recording_parser import RecordingParser
+from mating_kernel.pymoo.parser.recording_parser import RecordingParser, get_record_vars
 
 
 def recursive_getattr(obj, attr, default=None):
@@ -20,22 +20,30 @@ class RecordingCallback(Callback):
     ):
         super().__init__()
         self.recording_parsers = recording_parsers
-        self.recording_attributes = (
+        self.record_retrieval_keys = (
             recording_attributes if recording_attributes is not None else []
         )
-        for parser in recording_parsers:
-            self.recording_attributes.extend(parser.record_retrieval)
-        self.recording_attributes = list(set(self.recording_attributes))
-        if not self.recording_attributes:
+        self.record_retrieval_keys.extend(
+            get_record_vars(parsers=recording_parsers, attribute="record_retrieval")
+        )
+        self.record_retrieval_keys = list(set(self.record_retrieval_keys))
+        if not self.record_retrieval_keys:
             raise ValueError(
                 "No recording attributes specified. Please provide a list of recording attributes or at least one RecordingParser."
             )
+        # For convenience, also store the record_args and record_attributes keys from the parsers
+        self.record_arg_keys = get_record_vars(
+            parsers=recording_parsers, attribute="record_args"
+        )
+        self.record_attribute_keys = get_record_vars(
+            parsers=recording_parsers, attribute="record_attributes"
+        )
 
         self.data["record_stats"] = []
 
     def notify(self, algorithm):
         records_dict = {}
-        for attr in self.recording_attributes:
+        for attr in self.record_retrieval_keys:
             operator = recursive_getattr(algorithm, attr)
             if operator is not None and hasattr(operator, "retrieve_records"):
                 records = operator.retrieve_records()
@@ -47,7 +55,7 @@ class RecordingCallback(Callback):
         if hasattr(algorithm.problem, "static_problem") and isinstance(
             algorithm.problem.static_problem, MOTrackingMixin
         ):
-            result_dict["archive_stats"] = (
+            result_dict["archive_stats"] = [
                 algorithm.problem.static_problem.get_archive_stats()
-            )
+            ]  # Adding as a list to maintain consistency with other recorded attributes
         self.data["record_stats"].append(result_dict)

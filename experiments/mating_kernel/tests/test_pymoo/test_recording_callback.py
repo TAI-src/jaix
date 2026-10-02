@@ -13,11 +13,11 @@ from mating_kernel.pymoo.recordable_object import make_recordable
 from mating_kernel.pymoo.recording_callback import RecordingCallback
 
 
-def test_recording_callback():
+def run_with_callback(pop_size=5, n_gen=6):
     # create the algorithm object
     RecordedNSGA2 = make_recordable(NSGA2)
     algorithm = RecordedNSGA2(
-        pop_size=5,
+        pop_size=pop_size,
         record_args=ReproductionParser.record_args,
         record_attributes=ReproductionParser.record_attributes,
     )
@@ -38,11 +38,16 @@ def test_recording_callback():
         pymoo_problem,
         algorithm,
         seed=1,
-        termination=("n_gen", 5),
+        termination=("n_gen", n_gen),
         callback=callback,
     )
+    return callback
+
+
+def test_recording_callback(pop_size=5, n_gen=6):
+    callback = run_with_callback()
     records = callback.data["record_stats"]
-    assert len(records) == 5
+    assert len(records) == n_gen
     for i, entry in enumerate(records):
         assert "ReproductionParser" in entry
         rep_data = entry["ReproductionParser"]
@@ -55,7 +60,7 @@ def test_recording_callback():
         pop_data = entry["PopulationParser"]
         assert "n_gen_mean" in pop_data[0]
         assert "archive_stats" in entry
-        archive_stats = entry["archive_stats"]
+        archive_stats = entry["archive_stats"][0]
         assert "size" in archive_stats
         assert archive_stats["size"] > 0
-        assert archive_stats["fevals"] == (i + 1) * algorithm.pop_size
+        assert archive_stats["fevals"] == (i + 1) * pop_size
