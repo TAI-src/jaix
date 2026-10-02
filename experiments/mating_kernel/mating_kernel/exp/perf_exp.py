@@ -1,16 +1,17 @@
-from pymoo.algorithms.moo.nsga2 import NSGA2
+import argparse
+from typing import Any
 
+from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.optimize import minimize
+
+from jaix.env.utils.problem.static_problem import StaticProblem
+from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.experiments.experiment import Experiment
 from mating_kernel.pymoo.parser.population_parser import PopulationParser
 from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from mating_kernel.pymoo.recordable_object import make_recordable
 from mating_kernel.pymoo.recording_callback import RecordingCallback
-from mating_kernel.experiments.experiment import Experiment
-from mating_kernel.exp.utils.batch import Batch
-from jaix.env.utils.problem.static_problem import StaticProblem
-from typing import Any
-import argparse
 
 
 class PerfExperiment(Experiment):
@@ -43,7 +44,7 @@ class PerfExperiment(Experiment):
 
     @staticmethod
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
-        result, record_stats = PerfExperiment.run_instrumented_pymoo(
+        _result, _record_stats = PerfExperiment.run_instrumented_pymoo(
             problem=batch.problem,
             algorithm_name=batch.algorithm_name,
             selector=batch.selector,
@@ -61,12 +62,14 @@ class PerfExperiment(Experiment):
         algorithm_name: str,
         selector: str,
         n_gen: int,
-        algorithm_params: dict = {},
+        algorithm_params: dict | None = None,
         seed: int | None = None,
     ) -> tuple[Any, list[dict]]:
+        if algorithm_params is None:
+            algorithm_params = {}
         parser_classes = [ReproductionParser, PopulationParser]
-        record_args = list(set(p.record_args for p in parser_classes))
-        record_attributes = list(set(p.record_attributes for p in parser_classes))
+        record_args = list({p.record_args for p in parser_classes})
+        record_attributes = list({p.record_attributes for p in parser_classes})
         if algorithm_name == "NSGA2":
             algorithm_class = NSGA2
         else:
