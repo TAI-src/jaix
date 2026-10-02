@@ -2,9 +2,9 @@ import hashlib
 import json
 from pathlib import Path
 
-from jaix.env.utils.problem.static_problem import StaticProblem
 from pydantic import BaseModel, ConfigDict
 
+from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.problems.problem_info import ProblemInfo
 
 
