@@ -94,7 +94,11 @@ class Batch(BaseModel):
             return []
         seeds = []
         for d in dir.iterdir():
-            if d.is_dir() and d.name.startswith(self.experiment_id) and any(d.iterdir()):
+            if (
+                d.is_dir()
+                and d.name.startswith(self.experiment_id)
+                and any(d.iterdir())
+            ):
                 _, seed = self.parse_name(d.name)
                 seeds.append(seed)
         return seeds
