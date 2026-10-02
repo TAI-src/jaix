@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from copy import deepcopy
 from pymoo.core.individual import Individual
 from pymoo.operators.crossover.sbx import SBX
 
@@ -74,12 +75,20 @@ def test_parse():
         offspring[-1],
     ]  # only the first and last offspring survived
 
+    mutated_offspring = deepcopy(offspring)
+    for o in mutated_offspring:
+        o.X = o.X.astype(float)  # ensure X is float for mutation
+        o.X += np.random.normal(0, 1, size=o.X.shape)  # mutate the offspring
     # simulate the data structure that would be passed to the parser
     data = {
         "mating.selection": [{}, {"args": None, "kwargs": None, "output": parents}],
         "mating.crossover": [
             {"n_offsprings": 2},
             {"args": None, "kwargs": None, "output": offspring},
+        ],
+        "mating.mutation": [
+            {},
+            {"args_cpy": (None, mutated_offspring), "kwargs": None, "output": None},
         ],
         "survival": [{}, {"args": None, "kwargs": None, "output": survived}],
     }

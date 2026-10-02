@@ -7,11 +7,17 @@ from mating_kernel.pymoo.parser.recording_parser import RecordingParser
 
 
 class ReproductionParser(RecordingParser):
-    record_args: ClassVar[list[str]] = ["selection", "survival", "crossover"]
+    record_args: ClassVar[list[str]] = [
+        "selection",
+        "survival",
+        "crossover",
+        "mutation",
+    ]
     record_attributes: ClassVar[list[str]] = []
     record_retrieval: ClassVar[list[str]] = [
         "mating.selection",
         "mating.crossover",
+        "mating.mutation",
         "survival",
     ]
 
@@ -27,21 +33,24 @@ class ReproductionParser(RecordingParser):
                 parents = [entry["output"] for entry in v]
             elif k == "mating.crossover":
                 offspring = [entry["output"] for entry in v]
+            elif k == "mating.mutation":
+                b4mutation = [entry["args_cpy"][1] for entry in v]
             elif (
                 k == "survival"
             ):  # only need the last survival record, which is the final population
                 survived = v[-1]["output"]
         assert len(parents) == len(offspring)
         ret_data = []
-        for p, o in zip(parents, offspring):
+        for p, o, b4 in zip(parents, offspring, b4mutation):
             lineage = ReproductionParser.extract_lineage(
                 p, o, n_offsprings=meta["mating.crossover"]["n_offsprings"]
             )
-            for entry in lineage:
+            for entry, b4_entry in zip(lineage, b4):
                 # check if offspring survived in the final population
                 entry_dict = ReproductionParser.parse_individual(
                     entry["offspring"], ideal=self.ideal
                 )
+                entry_dict["X_b4"] = b4_entry.X
                 res_dict = {f"o_{k}": v for k, v in entry_dict.items()}
                 for i, p in enumerate(entry["parents"]):
                     p_dict = ReproductionParser.parse_individual(p, ideal=self.ideal)
