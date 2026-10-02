@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import ClassVar
 
 
@@ -19,3 +20,15 @@ class RecordingParser(ABC):
 
     @abstractmethod
     def parse(self, data: dict[str, list]) -> list[dict]: ...
+
+
+def get_record_vars(
+    parsers: Sequence[RecordingParser | type[RecordingParser]], attribute: str
+) -> list[str]:
+    assert attribute in [
+        "record_args",
+        "record_attributes",
+        "record_retrieval",
+    ], f"Invalid attribute: {attribute}. Must be one of 'record_args', 'record_attributes', 'record_retrieval'."
+    record_vars = list({var for p in parsers for var in getattr(p, attribute)})
+    return record_vars

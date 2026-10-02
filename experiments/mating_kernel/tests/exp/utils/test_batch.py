@@ -1,3 +1,5 @@
+import shutil
+
 import pytest
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
@@ -6,7 +8,6 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.problems.problem_info import ProblemInfo
-import shutil
 
 
 def test_batch_creation(tmp_path):

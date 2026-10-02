@@ -1,11 +1,11 @@
-from ttex.config import Config, ConfigurableObject
-
 from jaix.env.utils.problem.cobi_problem import CobiProblem
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
 from jaix.env.utils.problem.static_problem import StaticProblem
+from ttex.config import Config, ConfigurableObject
+
 from mating_kernel.problems.cobi_configs import get_config
 from mating_kernel.problems.cobi_configs import names as cobi_names
 from mating_kernel.problems.mo_tracking import make_tracked
