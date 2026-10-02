@@ -44,3 +44,12 @@ def test_do_recorder():
     assert np.array_equal(records[2]["output"], off3)
     assert len(records) == 3
     assert len(selection.records) == 1
+
+    # check the keys
+    for record in records[1:]:
+        assert "args" in record
+        assert "args_cpy" in record
+        assert "kwargs" in record
+        assert "kwargs_cpy" in record
+        assert "output" in record
+        assert "output_cpy" in record
