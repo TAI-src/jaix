@@ -1,8 +1,8 @@
 import copy
 
 import pandas as pd
-
 from jaix.env.utils.problem.static_problem import StaticProblem
+
 from mating_kernel.pymoo.parser.population_parser import PopulationParser
 from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper

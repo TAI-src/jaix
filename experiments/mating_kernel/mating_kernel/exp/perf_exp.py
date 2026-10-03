@@ -3,14 +3,15 @@ import copy
 import pickle
 
 import pandas as pd
+from jaix.env.utils.problem.static_problem import StaticProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.core.algorithm import Algorithm
 from pymoo.core.result import Result
 from pymoo.optimize import minimize
 
-from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.pymoo.do_recorder import RecordingConfig
 from mating_kernel.pymoo.offspring_success_recording_callback import (
     OffspringSuccessRecordingCallback,
 )
@@ -65,13 +66,23 @@ class PerfExperiment(Experiment):
             pickle.dump(result_cpy, f)
         record_stats_file = batch.out_dir / f"record_stats_{batch.name}.csv"
         record_stats.to_csv(record_stats_file, index=False)
+        # Save the archive as pkl as well
+        archive_entries = batch.problem.archive.archived_entries
+        archive_file = batch.out_dir / f"archive_{batch.name}.pkl"
+        with open(archive_file, "wb") as f:
+            pickle.dump(archive_entries, f)
         batch_file = batch.out_dir / f"batch_{batch.name}.pkl"
         with open(batch_file, "wb") as f:
             batch_cpy = batch.model_copy()
             batch_cpy.problem = str(batch.problem)
             pickle.dump(batch_cpy, f)
 
-        return [str(result_file), str(record_stats_file), str(batch_file)]
+        return [
+            str(result_file),
+            str(record_stats_file),
+            str(archive_file),
+            str(batch_file),
+        ]
 
     @staticmethod
     def get_alg_class(algorithm_name: str) -> Algorithm:
@@ -85,8 +96,8 @@ class PerfExperiment(Experiment):
         algorithm_name: str,
         selector: str | None,
         algorithm_params: dict | None,
-        record_args: list[str] | None = None,
-        record_attributes: list[str] | None = None,
+        record_args: dict[str, RecordingConfig] | None = None,
+        record_attributes: dict[str, RecordingConfig] | None = None,
     ) -> Algorithm:
         algorithm_class = PerfExperiment.get_alg_class(algorithm_name)
         record_alg_class = make_recordable(algorithm_class)

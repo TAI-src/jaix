@@ -3,11 +3,15 @@ from pymoo.core.population import Population
 from pymoo.operators.selection.tournament import TournamentSelection
 from pymoo.problems import get_problem
 
-from mating_kernel.pymoo.do_recorder import DoRecorderMixin
+from mating_kernel.pymoo.do_recorder import DoRecorderMixin, RecordingConfig
+
+rec_config = RecordingConfig(save_output=True, meta_fields=["pressure"])
 
 
 class RecordedTournamentSelection(DoRecorderMixin, TournamentSelection):
-    pass
+    def __init__(self, recording_config: RecordingConfig | None = None, **kwargs):
+        TournamentSelection.__init__(self, **kwargs)
+        DoRecorderMixin.__init__(self, recording_config=recording_config)
 
 
 def dummy_comp(pop, P, **kwargs):
@@ -16,7 +20,9 @@ def dummy_comp(pop, P, **kwargs):
 
 def test_do_recorder():
     # Create a TournamentSelection instance
-    selection = RecordedTournamentSelection(func_comp=dummy_comp)
+    selection = RecordedTournamentSelection(
+        recording_config=rec_config, func_comp=dummy_comp
+    )
 
     # Create a population of individuals
     problem = get_problem("zdt1")
@@ -53,3 +59,5 @@ def test_do_recorder():
         assert "kwargs_cpy" in record
         assert "output" in record
         assert "output_cpy" in record
+        assert record["args"] == []
+        assert record["output_cpy"] is None

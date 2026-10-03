@@ -1,7 +1,12 @@
 from pymoo.core.callback import Callback
 
 from mating_kernel.problems.mo_tracking import MOTrackingMixin
-from mating_kernel.pymoo.parser.recording_parser import RecordingParser, get_record_vars
+from mating_kernel.pymoo.do_recorder import RecordingConfig
+from mating_kernel.pymoo.parser.recording_parser import (
+    RecordingParser,
+    get_record_vars_config,
+    get_record_vars_strlist,
+)
 
 
 def recursive_getattr(obj, attr, default=None):
@@ -20,11 +25,11 @@ class RecordingCallback(Callback):
     ):
         super().__init__()
         self.recording_parsers = recording_parsers
-        self.record_retrieval_keys = (
-            recording_attributes if recording_attributes is not None else []
-        )
+        self.record_retrieval_keys: list[str] = list(recording_attributes or [])
         self.record_retrieval_keys.extend(
-            get_record_vars(parsers=recording_parsers, attribute="record_retrieval")
+            get_record_vars_strlist(
+                parsers=recording_parsers, attribute="record_retrieval"
+            )
         )
         self.record_retrieval_keys = list(set(self.record_retrieval_keys))
         if not self.record_retrieval_keys:
@@ -32,10 +37,10 @@ class RecordingCallback(Callback):
                 "No recording attributes specified. Please provide a list of recording attributes or at least one RecordingParser."
             )
         # For convenience, also store the record_args and record_attributes keys from the parsers
-        self.record_arg_keys = get_record_vars(
+        self.record_arg_keys: dict[str, RecordingConfig] = get_record_vars_config(
             parsers=recording_parsers, attribute="record_args"
         )
-        self.record_attribute_keys = get_record_vars(
+        self.record_attribute_keys: dict[str, RecordingConfig] = get_record_vars_config(
             parsers=recording_parsers, attribute="record_attributes"
         )
 

@@ -3,21 +3,26 @@ from typing import ClassVar
 import numpy as np
 from pymoo.core.individual import Individual
 
+from mating_kernel.pymoo.do_recorder import RecordingConfig
 from mating_kernel.pymoo.parser.recording_parser import RecordingParser
+
+SurvivalRecordingConfig = RecordingConfig(save_output=True)
+SelectionRecordingConfig = RecordingConfig(save_output=True)
+CrossoverRecordingConfig = RecordingConfig(
+    save_output=True, cpy_output=True, meta_fields=["n_offsprings"]
+)
 
 
 class ReproductionParser(RecordingParser):
-    record_args: ClassVar[list[str]] = [
-        "selection",
-        "survival",
-        "crossover",
-        "mutation",
-    ]
-    record_attributes: ClassVar[list[str]] = []
+    record_args: ClassVar[dict[str, RecordingConfig]] = {
+        "selection": SelectionRecordingConfig,
+        "crossover": CrossoverRecordingConfig,
+        "survival": SurvivalRecordingConfig,
+    }
+    record_attributes: ClassVar[dict[str, RecordingConfig]] = {}
     record_retrieval: ClassVar[list[str]] = [
         "mating.selection",
         "mating.crossover",
-        "mating.mutation",
         "survival",
     ]
 
@@ -33,8 +38,7 @@ class ReproductionParser(RecordingParser):
                 parents = [entry["output"] for entry in v]
             elif k == "mating.crossover":
                 offspring = [entry["output"] for entry in v]
-            elif k == "mating.mutation":
-                b4mutation = [entry["args_cpy"][1] for entry in v]
+                b4mutation = [entry["output_cpy"] for entry in v]
             elif (
                 k == "survival"
             ):  # only need the last survival record, which is the final population

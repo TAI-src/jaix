@@ -3,12 +3,17 @@ from typing import ClassVar
 import numpy as np
 import pandas as pd
 
+from mating_kernel.pymoo.do_recorder import RecordingConfig
 from mating_kernel.pymoo.parser.recording_parser import RecordingParser
+
+SurvivalRecordingConfig = RecordingConfig(save_output=True)
 
 
 class PopulationParser(RecordingParser):
-    record_args: ClassVar[list[str]] = ["survival"]
-    record_attributes: ClassVar[list[str]] = []
+    record_args: ClassVar[dict[str, RecordingConfig]] = {
+        "survival": SurvivalRecordingConfig,
+    }
+    record_attributes: ClassVar[dict[str, RecordingConfig]] = {}
     record_retrieval: ClassVar[list[str]] = ["survival"]
 
     def __init__(self, ideal: np.ndarray | None = None):
