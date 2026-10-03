@@ -1,8 +1,8 @@
 import argparse
 import logging
+import pickle
 from abc import ABC
 from pathlib import Path
-import pickle
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.batcher import Batcher
