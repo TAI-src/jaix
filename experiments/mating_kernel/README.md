@@ -49,7 +49,7 @@ uv sync --python 3.12
 #SBATCH --mail-user=<email>
 
 module load gcc uv
-PYTHONUNBUFFERED=1 ./venv/bin/python <fill_in_commands>
+PYTHONUNBUFFERED=1 .venv/bin/python <fill_in_commands>
 ```
 
 - The array id is available as `$SLURM_ARRAY_TASK_ID` in the script.
@@ -91,7 +91,7 @@ python run_exp.py perf ...
 #SBATCH --mail-user=thehedgeify@gmail.com
 
 module load gcc uv
-PYTHONUNBUFFERED=1 .venv/bin/python run_exp.py perf --nth "$SLURM_ARRAY_TASK_ID" --out_dir perf_nsga2 --cobi --re --num_objectives 2 --seed 1337 --rep 30 --num_batches 360 --n_gen 1000
+PYTHONUNBUFFERED=1 .venv/bin/python run_exp.py perf --nth "$SLURM_ARRAY_TASK_ID" --out_dir perf_nsga2 --cobi --re --num_objectives 2 --seed 1337 --reps 30 --num_batches 360 --n_gen 1000
 ```
 
 We are running on all problems with 2 objectives, i.e. 7 cobi problems plus 5 RE problems, with 30 repetitions each, resulting in 360 tasks. Each task runs for 1000 generations.
