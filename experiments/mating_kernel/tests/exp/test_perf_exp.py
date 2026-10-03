@@ -116,11 +116,10 @@ def test_run_batch(tmp_path):
     )
     batch_cpy = batch.model_copy()
     result_files = PerfExperiment._run_batch(batch)
-    assert len(result_files) == 4
-    result_file, record_stats_file, archive_file, batch_file = result_files
+    assert len(result_files) == 3
+    result_file, record_stats_file, archive_file = result_files
     assert Path(result_file).exists()
     assert Path(record_stats_file).exists()
-    assert Path(batch_file).exists()
     assert Path(archive_file).exists()
     # check that the batch and problem are not modified
     assert batch == batch_cpy

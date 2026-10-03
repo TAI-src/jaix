@@ -1,6 +1,8 @@
 import argparse
 import logging
+import pickle
 from abc import ABC
+from pathlib import Path
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.batcher import Batcher
@@ -22,9 +24,22 @@ class Experiment(ABC):
         """
         Run a single batch of the experiment.
         """
-        raise NotImplementedError(
-            "Experiment cls must implement the _run_batch() method to run a single batch."
-        )
+        batch_file = Experiment.file_paths(batch)["batch"]
+        with open(batch_file, "wb") as f:
+            batch_cpy = batch.model_copy()
+            batch_cpy.problem = str(batch.problem)
+            pickle.dump(batch_cpy, f)
+        return [str(batch_file)]
+
+    @staticmethod
+    def file_paths(batch: Batch) -> dict[str, Path]:
+        """
+        Return a dictionary of file paths for the batch.
+        """
+        file_paths_dict = {
+            "batch": batch.out_dir / f"batch_{batch.name}.pkl",
+        }
+        return file_paths_dict
 
     @staticmethod
     def parser() -> argparse.ArgumentParser:
@@ -35,14 +50,19 @@ class Experiment(ABC):
             "Experiment cls must implement the parser() method to return an argparse.ArgumentParser."
         )
 
-    @staticmethod
-    def _check_batch_out(batch: Batch, **kwargs) -> bool:
+    @classmethod
+    def _check_batch_out(cls, batch: Batch, **kwargs) -> bool:
         """
         Check if the batch output is valid.
         """
-        raise NotImplementedError(
-            "Experiment cls must implement the _check_batch_out() method to check if the batch output is valid."
+        files_to_check = list(cls.file_paths(batch).values()) + list(
+            Experiment.file_paths(batch).values()
         )
+        for file_path in files_to_check:
+            if not file_path.exists():
+                logger.warning(f"Batch {batch.name} is missing file: {file_path}")
+                return False
+        return True
 
     @staticmethod
     def _post_process_batch(batch: Batch, **kwargs) -> list[str]:
@@ -82,12 +102,12 @@ class Experiment(ABC):
 
         return cls.run(config, filter_bids=filter_bids, **kwargs)
 
-    @classmethod
-    def run(
-        cls, config: ExperimentConfig, filter_bids: list[int] | None = None, **kwargs
-    ) -> list[list[str] | bool]:
+    @staticmethod
+    def create_batches(
+        config: ExperimentConfig, filter_bids: list[int] | None = None
+    ) -> list[Batch]:
         """
-        Run all batches of the experiment.
+        Create batches for the experiment.
         """
         batches = Batcher.create_batches(
             suite_config=config.suite_config,
@@ -100,6 +120,16 @@ class Experiment(ABC):
             skip_existing=(config.mode == ExperimentMode.RUN),
         )
         flattened_batches = [batch for bgroup in batches for batch in bgroup]
+        return flattened_batches
+
+    @classmethod
+    def run(
+        cls, config: ExperimentConfig, filter_bids: list[int] | None = None, **kwargs
+    ) -> list[list[str] | bool]:
+        """
+        Run all batches of the experiment.
+        """
+        flattened_batches = Experiment.create_batches(config, filter_bids=filter_bids)
         logger.info(
             f"Running Experiment {cls.__name__} mode {config.mode} for {len(flattened_batches)} batches in total."
         )
@@ -108,11 +138,12 @@ class Experiment(ABC):
             result: list[str] | bool
             logger.debug(f"Running batch {batch.name}...")
             if config.mode == ExperimentMode.CHECK:
-                result = cls._check_batch_out(batch, **kwargs)
+                result = Experiment._check_batch_out(batch, **kwargs)
             elif config.mode == ExperimentMode.PP:
                 result = cls._post_process_batch(batch, **kwargs)
             elif config.mode == ExperimentMode.RUN:
                 result = cls._run_batch(batch, **kwargs)
+                result.extend(Experiment._run_batch(batch, **kwargs))
             else:
                 raise ValueError(f"Unknown mode: {config.mode}")
             logger.debug(f"Batch {batch.name} result: {result}")
