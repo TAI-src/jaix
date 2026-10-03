@@ -1,13 +1,13 @@
 import argparse
-from abc import ABC
 import logging
+from abc import ABC
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.batcher import Batcher
 from mating_kernel.exp.utils.factory import (
     ExperimentConfig,
-    parse_experiment_config,
     ExperimentMode,
+    parse_experiment_config,
 )
 from mating_kernel.exp.utils.parse_args import experiment_parser
 
