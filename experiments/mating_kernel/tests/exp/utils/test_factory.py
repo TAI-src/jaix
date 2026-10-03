@@ -34,6 +34,7 @@ def test_experiment_config_parser():
         num_batches=5,
         seed=42,
         out_dir="results",
+        mode="run",
     )
     settings = {"some_setting": "value"}
     experiment_config = parse_experiment_config(args, settings)

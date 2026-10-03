@@ -33,14 +33,11 @@ def sim_run(batch: Batch):
         f.write("done")
 
 
-def test_seed_batches(tmp_path):
+@pytest.mark.parametrize("skip_existing", [True, False])
+def test_seed_batches(skip_existing, tmp_path):
     batch = make_batch(tmp_path)
 
-    result = Batcher.seed_batches(
-        [batch],
-        reps=3,
-        seed=123,
-    )
+    result = Batcher.seed_batches([batch], reps=3, seed=123, skip_existing=False)
 
     assert len(result) == 3
     assert [b.rep for b in result] == [0, 1, 2]
@@ -49,16 +46,19 @@ def test_seed_batches(tmp_path):
     for b in result:
         sim_run(b)
     # remove out_dir for batch2 and see that it is picked up again
-    seed1 = result[1].seed
+    seeds = [b.seed for b in result]
     shutil.rmtree(result[1].out_dir)
     result1 = Batcher.seed_batches(
-        [batch],
-        reps=3,
-        seed=123,
+        [batch], reps=3, seed=123, skip_existing=skip_existing
     )
-    assert len(result1) == 1
-    assert result1[0].rep == 1
-    assert result1[0].seed == seed1
+    if skip_existing:
+        assert len(result1) == 1
+        assert [b.rep for b in result1] == [1]
+        assert result1[0].seed == seeds[1]
+    else:
+        assert len(result1) == 3
+        assert [b.rep for b in result1] == [0, 1, 2]
+        assert [b.seed for b in result1] == seeds
 
     result2 = Batcher.seed_batches(
         [batch],
@@ -175,3 +175,24 @@ def test_create_combinations(tmp_path):
     assert fbatch.pinfo.num_objectives == 4
     assert fbatch.rep is None
     assert fbatch.seed is None
+
+
+def test_create_batches(tmp_path):
+    from mating_kernel.problems.mk_suite import MKSuiteConfig
+
+    mk_config = MKSuiteConfig(cobi=True, re=True, constrained=False, num_objectives=[4])
+    settings = {"setting1": [1, 2], "setting2": ["a", "b", "c"]}
+    batches = Batcher.create_batches(
+        suite_config=mk_config,
+        settings=settings,
+        reps=2,
+        num_batches=3,
+        seed=123,
+        exp_dir=tmp_path,
+        filter_bids=None,
+        skip_existing=False,
+    )
+    # There should be 2 problems * 2 * 3 = 12 combinations, each with 2 reps = 24 batches
+    assert len(batches) == 3  # Split into 3 batches
+    total_batches = sum(len(batch_group) for batch_group in batches)
+    assert total_batches == 24
