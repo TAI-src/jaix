@@ -1,7 +1,7 @@
 import argparse
 import copy
-import pickle
 import logging
+import pickle
 
 import pandas as pd
 from pymoo.algorithms.moo.nsga2 import NSGA2

@@ -1,7 +1,7 @@
 import argparse
+from enum import Enum
 from pathlib import Path
 from typing import Any
-from enum import Enum
 
 from ttex.config import Config
 
