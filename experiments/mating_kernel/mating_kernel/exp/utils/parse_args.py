@@ -47,4 +47,11 @@ def experiment_parser():
     parser.add_argument(
         "--nth", type=int, nargs="+", default=None, help="Run only the nth batch(es)."
     )
+    parser.add_argument(
+        "--mode",
+        choices=["run", "check", "pp"],
+        default="run",
+        help="Mode of operation. Run, check, or post-process.",
+    )
+
     return parser

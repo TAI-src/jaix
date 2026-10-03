@@ -1,5 +1,6 @@
 import argparse
 import copy
+import logging
 import pickle
 
 import pandas as pd
@@ -16,6 +17,8 @@ from mating_kernel.pymoo.offspring_success_recording_callback import (
 )
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from mating_kernel.pymoo.recordable_object import make_recordable
+
+logger = logging.getLogger(__name__)
 
 
 class PerfExperiment(Experiment):
@@ -126,5 +129,6 @@ class PerfExperiment(Experiment):
             seed=seed,
             termination=("n_gen", n_gen),
             callback=callback,
+            verbose=logger.isEnabledFor(logging.DEBUG),
         )
         return result, callback.record_stats

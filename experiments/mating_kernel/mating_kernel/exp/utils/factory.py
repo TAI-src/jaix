@@ -1,10 +1,17 @@
 import argparse
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
 from ttex.config import Config
 
 from mating_kernel.problems.mk_suite import MKSuiteConfig
+
+
+class ExperimentMode(Enum):
+    RUN = "run"
+    CHECK = "check"
+    PP = "pp"
 
 
 class ExperimentConfig(Config):
@@ -16,6 +23,7 @@ class ExperimentConfig(Config):
         num_batches: int | None = None,
         seed: int | None = None,
         out_dir: str | Path = Path("."),
+        mode: ExperimentMode = ExperimentMode.RUN,
     ):
         super().__init__()
         self.suite_config = suite_config
@@ -25,6 +33,7 @@ class ExperimentConfig(Config):
         self.seed = seed
         self.out_dir = Path(out_dir)
         self.out_dir.mkdir(parents=True, exist_ok=True)
+        self.mode = mode
 
 
 def parse_mk_suite_args(args: argparse.Namespace) -> MKSuiteConfig:
@@ -47,4 +56,5 @@ def parse_experiment_config(
         num_batches=args.num_batches,
         seed=args.seed,
         out_dir=args.out_dir,
+        mode=ExperimentMode(args.mode),
     )
