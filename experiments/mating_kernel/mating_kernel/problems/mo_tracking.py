@@ -1,4 +1,3 @@
-import logging
 from typing import Any, TypeVar, cast
 
 import numpy as np
@@ -13,8 +12,6 @@ from jaix.env.utils.archive.mo_archive import (
     MOArchiveEntry,
 )
 from jaix.env.utils.problem.static_problem import StaticProblem
-
-logger = logging.getLogger(__name__)
 
 
 class MOEvalEntry(MOArchiveEntry):
@@ -74,8 +71,6 @@ class MOTrackingMixin:
         y_raw, y_noisy = cast(Any, super())._eval(x)
         entry = MOEvalEntry(x=np.array(x), y=np.array(y_raw))
         self.archive.add([entry], queue=True)
-        logger.debug(f"Queued entry {len(self.archive.queued_entries)}")
-        logger.debug(f"Archive size: {self.archive.size}")
         return y_raw, y_noisy
 
     def get_archive_stats(self) -> dict[str, Any]:
