@@ -28,16 +28,21 @@ class DummyExperiment(Experiment):
         return parser
 
     @staticmethod
-    def _run_batch(batch: Batch, **kwargs) -> list[str]:
-        return [f"ran_{batch.name}"]
+    def file_paths(batch: Batch) -> dict[str, Path]:
+        file_paths_dict = {
+            "run": batch.out_dir / f"ran_{batch.name}",
+        }
+        return file_paths_dict
 
     @staticmethod
-    def _check_batch_out(batch: Batch, **kwargs) -> bool:
-        return True
+    def _run_batch(batch: Batch, **kwargs) -> list[str]:
+        files = list(DummyExperiment.file_paths(batch).values())
+        return [str(f) for f in files]
 
     @staticmethod
     def _post_process_batch(batch: Batch, **kwargs) -> list[str]:
-        return [f"pp_{batch.name}"]
+        pp_file = batch.out_dir / f"pp_{batch.name}"
+        return [str(pp_file)]
 
 
 def test_parse_args():
@@ -100,7 +105,8 @@ def test_run(tmp_path):
             for sid in range(2):  # 2 different settings based on --foo
                 expected_batches.append([f"ran_p{cobi_name}_s{sid}_r{rep}"])
     assert len(results) == len(expected_batches)
-    assert results == expected_batches
+    res_names = [[Path(r[0]).name] for r in results]
+    assert res_names == expected_batches
 
 
 def test_run_from_args(tmp_path):
@@ -128,7 +134,33 @@ def test_run_from_args(tmp_path):
             for sid in range(2):  # 2 different settings based on --foo
                 expected_batches.append([f"ran_p{cobi_name}_s{sid}_r{rep}"])
     assert len(results) == len(expected_batches)
-    assert results == expected_batches
+    res_names = [[Path(r[0]).name] for r in results]
+    assert res_names == expected_batches
+
+
+def test_check_batch_out(tmp_path):
+    config = ExperimentConfig(
+        suite_config=MKSuiteConfig(
+            cobi=True, re=True, constrained=False, num_objectives=[4]
+        ),
+        settings={"foo": [1, 2], "bar": ["a"]},
+        reps=2,
+        num_batches=1,
+        seed=123,
+        out_dir=tmp_path,
+        mode=ExperimentMode.CHECK,
+    )
+    batches = DummyExperiment.create_batches(config)
+    for batch in batches:
+        assert not DummyExperiment._check_batch_out(batch)
+        # Now create the expected output files for each batch
+        for file_path in DummyExperiment.file_paths(batch).values():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.touch()  # Create an empty file
+        for file_path in Experiment.file_paths(batch).values():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.touch()  # Create an empty file
+        assert DummyExperiment._check_batch_out(batch)
 
 
 @pytest.mark.parametrize(
@@ -150,12 +182,9 @@ def test_run_check_mode(mode, tmp_path):
     results = DummyExperiment.run(config)
     assert len(results) == 2 * 2 * 2  # 2 problems * 2 settings * 2 reps
     if mode == ExperimentMode.CHECK:
-        assert all(isinstance(res, bool) and res for res in results)
+        assert all(isinstance(res, bool) and not res for res in results)
     elif mode == ExperimentMode.PP:
-        assert all(
-            isinstance(res, list) and res[0].startswith("pp_") for res in results
-        )
+        assert all(isinstance(res, list) and "pp_" in res[0] for res in results)
     elif mode == ExperimentMode.RUN:
-        assert all(
-            isinstance(res, list) and res[0].startswith("ran_") for res in results
-        )
+        assert all(isinstance(res, list) and "ran_" in res[0] for res in results)
+        assert all(isinstance(res, list) and "batch_" in res[1] for res in results)

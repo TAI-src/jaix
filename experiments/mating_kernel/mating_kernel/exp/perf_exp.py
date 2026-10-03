@@ -2,6 +2,7 @@ import argparse
 import copy
 import logging
 import pickle
+from pathlib import Path
 
 import pandas as pd
 from pymoo.algorithms.moo.nsga2 import NSGA2
@@ -51,6 +52,15 @@ class PerfExperiment(Experiment):
         return parser
 
     @staticmethod
+    def file_paths(batch: Batch) -> dict[str, Path]:
+        file_paths_dict = {
+            "result": batch.out_dir / f"result_{batch.name}.pkl",
+            "record_stats": batch.out_dir / f"record_stats_{batch.name}.csv",
+            "archive": batch.out_dir / f"archive_{batch.name}.pkl",
+        }
+        return file_paths_dict
+
+    @staticmethod
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
         result, record_stats = PerfExperiment.run_instrumented_pymoo(
             problem=batch.problem,
@@ -60,15 +70,15 @@ class PerfExperiment(Experiment):
             algorithm_params={},  # type: ignore[attr-defined]
             seed=batch.seed,
         )
+        files = PerfExperiment.file_paths(batch)
+
         # Save the result and record_stats to files in batch.out_dir
-        result_file = batch.out_dir / f"result_{batch.name}.pkl"
-        with open(result_file, "wb") as f:
+        with open(files["result"], "wb") as f:
             result_cpy = copy.deepcopy(result)
             result_cpy.problem = str(batch.problem)
             result_cpy.algorithm = batch.alg_name  # type: ignore[attr-defined]
             pickle.dump(result_cpy, f)
-        record_stats_file = batch.out_dir / f"record_stats_{batch.name}.csv"
-        record_stats.to_csv(record_stats_file, index=False)
+        record_stats.to_csv(files["record_stats"], index=False)
         # Save the archive as pkl as well
         if hasattr(batch.problem, "archive") and hasattr(
             batch.problem.archive, "archived_entries"
@@ -76,21 +86,10 @@ class PerfExperiment(Experiment):
             archive_entries = batch.problem.archive.archived_entries
         else:
             archive_entries = []  # If no archive exists, save an empty list
-        archive_file = batch.out_dir / f"archive_{batch.name}.pkl"
-        with open(archive_file, "wb") as f:
+        with open(files["archive"], "wb") as f:
             pickle.dump(archive_entries, f)
-        batch_file = batch.out_dir / f"batch_{batch.name}.pkl"
-        with open(batch_file, "wb") as f:
-            batch_cpy = batch.model_copy()
-            batch_cpy.problem = str(batch.problem)
-            pickle.dump(batch_cpy, f)
 
-        return [
-            str(result_file),
-            str(record_stats_file),
-            str(archive_file),
-            str(batch_file),
-        ]
+        return [str(f) for f in files.values()]
 
     @staticmethod
     def get_alg_class(algorithm_name: str) -> Algorithm:
