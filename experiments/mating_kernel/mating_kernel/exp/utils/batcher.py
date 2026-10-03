@@ -16,12 +16,13 @@ class Batcher:
         batches: list[Batch],
         reps: int,
         seed: int | None = None,
+        skip_existing: bool = True,  # if True, skip batches that already have results
     ) -> list[Batch]:
         rng = np.random.default_rng(seed)
         seeds = rng.integers(low=0, high=2**32 - 1, size=reps)
         seeded_batches_dict = defaultdict(list)
         for bid, batch in enumerate(batches):
-            existing_seeds = batch.get_run_seeds()
+            existing_seeds = batch.get_run_seeds() if skip_existing else []
             missing_seed_idx = [
                 i for i, s in enumerate(seeds) if s not in existing_seeds
             ]
@@ -108,9 +109,12 @@ class Batcher:
         filter_bids: (
             list[int] | None
         ) = None,  # indices of batches to run, if None, run all
+        skip_existing: bool = True,  # if True, skip batches that already have results
     ) -> list[list[Batch]]:
         batches = Batcher.create_combinations(suite_config, settings, exp_dir=exp_dir)
-        seeded_batches = Batcher.seed_batches(batches, reps=reps, seed=seed)
+        seeded_batches = Batcher.seed_batches(
+            batches, reps=reps, seed=seed, skip_existing=skip_existing
+        )
         batched_batches = Batcher.split_batches(seeded_batches, num_batches=num_batches)
         if filter_bids is not None:
             if any(bid < 0 or bid >= len(batched_batches) for bid in filter_bids):
