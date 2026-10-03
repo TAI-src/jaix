@@ -2,14 +2,17 @@ from typing import ClassVar
 
 import pytest
 
+from mating_kernel.pymoo.do_recorder import RecordingConfig
 from mating_kernel.pymoo.parser.recording_parser import RecordingParser, get_record_vars
 
 
 def test_valid():
     # valid test
     class ValidParser(RecordingParser):
-        record_args: ClassVar[list[str]] = ["test"]
-        record_attributes: ClassVar[list[str]] = []
+        record_args: ClassVar[dict[str, RecordingConfig]] = {
+            "test": RecordingConfig(save_output=True)
+        }
+        record_attributes: ClassVar[dict[str, RecordingConfig]] = {}
         record_retrieval: ClassVar[list[str]] = ["a", "b", "c"]
 
         def parse(self, data: dict[str, list]) -> list[dict]:
@@ -24,7 +27,7 @@ def test_valid():
 )
 def test_recording_parser_subclass_requires_each_attribute(missing_attribute):
     attributes = {
-        "record_args": ["test"],
+        "record_args": {"test": RecordingConfig(save_output=True)},
         "record_attributes": [],
         "record_retrieval": ["a", "b", "c"],
     }
@@ -38,8 +41,14 @@ def test_recording_parser_subclass_requires_each_attribute(missing_attribute):
 
 
 class DummyParser(RecordingParser):
-    record_args: ClassVar[list[str]] = ["arg1", "arg2"]
-    record_attributes: ClassVar[list[str]] = ["attr1", "attr2"]
+    record_args: ClassVar[dict[str, RecordingConfig]] = {
+        "arg1": RecordingConfig(save_output=True),
+        "arg2": RecordingConfig(save_output=True),
+    }
+    record_attributes: ClassVar[dict[str, RecordingConfig]] = {
+        "attr1": RecordingConfig(save_output=True),
+        "attr2": RecordingConfig(save_output=True),
+    }
     record_retrieval: ClassVar[list[str]] = ["ret1", "ret2"]
 
     def parse(self, data: dict[str, list]) -> list[dict]:
@@ -47,8 +56,12 @@ class DummyParser(RecordingParser):
 
 
 class DummyParser2(RecordingParser):
-    record_args: ClassVar[list[str]] = ["arg1", "arg3"]
-    record_attributes: ClassVar[list[str]] = ["attr3"]
+    record_args: ClassVar[dict[str, RecordingConfig]] = {
+        "arg3": RecordingConfig(cpy_output=True),
+    }
+    record_attributes: ClassVar[dict[str, RecordingConfig]] = {
+        "attr3": RecordingConfig(cpy_output=True),
+    }
     record_retrieval: ClassVar[list[str]] = ["ret3"]
 
     def parse(self, data: dict[str, list]) -> list[dict]:
@@ -72,4 +85,10 @@ def test_get_record_vars(attribute, parsers):
         "record_retrieval": ["ret1", "ret2", "ret3"],
     }
     result = get_record_vars(parsers, attribute)
+    if isinstance(result, dict):
+        assert list(result.keys()) == expected[attribute]
+        for conf in result.values():
+            assert isinstance(conf, RecordingConfig)
+            # check that either save_output or cpy_output is True with xor
+            assert conf.save_output ^ conf.cpy_output
     assert set(result) == set(expected[attribute])
