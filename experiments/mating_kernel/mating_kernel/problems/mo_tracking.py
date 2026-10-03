@@ -2,6 +2,7 @@ import logging
 from typing import Any, TypeVar, cast
 
 import numpy as np
+
 from jaix.env.singular.ec_env import ECEnvironment, ECEnvironmentConfig
 from jaix.env.utils.archive.entry_scorer import (
     ReferenceVectorDistanceScorer,
