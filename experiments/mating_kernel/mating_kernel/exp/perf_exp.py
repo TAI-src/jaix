@@ -67,7 +67,12 @@ class PerfExperiment(Experiment):
         record_stats_file = batch.out_dir / f"record_stats_{batch.name}.csv"
         record_stats.to_csv(record_stats_file, index=False)
         # Save the archive as pkl as well
-        archive_entries = batch.problem.archive.archived_entries
+        if hasattr(batch.problem, "archive") and hasattr(
+            batch.problem.archive, "archived_entries"
+        ):
+            archive_entries = batch.problem.archive.archived_entries
+        else:
+            archive_entries = []  # If no archive exists, save an empty list
         archive_file = batch.out_dir / f"archive_{batch.name}.pkl"
         with open(archive_file, "wb") as f:
             pickle.dump(archive_entries, f)
