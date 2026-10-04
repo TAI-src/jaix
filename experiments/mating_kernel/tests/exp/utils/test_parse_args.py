@@ -47,6 +47,9 @@ def test_experiment_parser_parses_all_arguments():
             "--nth",
             "0",
             "3",
+            "--group_by",
+            "pid",
+            "sid",
         ]
     )
 
@@ -60,6 +63,7 @@ def test_experiment_parser_parses_all_arguments():
     assert args.num_batches == 4
     assert args.out_dir == "results"
     assert args.nth == [0, 3]
+    assert args.group_by == ["pid", "sid"]
 
 
 def test_experiment_parser_requires_out_dir():

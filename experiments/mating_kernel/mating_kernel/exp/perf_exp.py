@@ -61,6 +61,15 @@ class PerfExperiment(Experiment):
         return file_paths_dict
 
     @staticmethod
+    def _run_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
+        batch_files = []
+        for b in batches:
+            logger.debug(f"Running batch {b.name}")
+            files = PerfExperiment._run_batch(b, **kwargs)
+            batch_files.append(files)
+        return batch_files
+
+    @staticmethod
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
         result, record_stats = PerfExperiment.run_instrumented_pymoo(
             problem=batch.problem,
