@@ -53,5 +53,12 @@ def experiment_parser():
         default="run",
         help="Mode of operation. Run, check, or post-process.",
     )
+    parser.add_argument(
+        "--group_by",
+        type=str,
+        nargs="+",
+        default=None,
+        help="List of settings to group by when creating batches.",
+    )
 
     return parser

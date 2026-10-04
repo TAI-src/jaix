@@ -104,8 +104,9 @@ class Batcher:
     ) -> dict[str, list[Batch]]:
         grouped_batches = defaultdict(list)
         for batch in batches:
-            group_key = tuple(getattr(batch, attr) for attr in group_by)
-            grouped_batches[group_key].append(batch)
+            group_key = list(getattr(batch, attr) for attr in group_by)
+            str_key = "_".join(str(k) for k in group_key)
+            grouped_batches[str_key].append(batch)
         return dict(grouped_batches)
 
     @staticmethod

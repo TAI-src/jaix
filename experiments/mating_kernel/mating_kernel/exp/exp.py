@@ -76,7 +76,7 @@ class Experiment(ABC):
         Post-process the batch output.
         """
         raise NotImplementedError(
-            "Experiment cls must implement the _post_process_batch() method to post-process the batch output."
+            "Experiment cls must implement the _post_process_batches() method to post-process the batch output."
         )
 
     @classmethod
@@ -124,6 +124,7 @@ class Experiment(ABC):
             exp_dir=config.out_dir,
             filter_bids=filter_bids,
             skip_existing=(config.mode == ExperimentMode.RUN),
+            group_by=config.group_by,
         )
         return batches
 

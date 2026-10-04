@@ -67,6 +67,9 @@ def test_parse_args():
             "--foo",
             "99",
             "100",
+            "--group_by",
+            "pid",
+            "sid",
         ]
     )
 
@@ -77,6 +80,7 @@ def test_parse_args():
     assert config.out_dir == Path("results")
 
     assert config.settings == {"foo": [99, 100], "bar": ["default"]}
+    assert config.group_by == ["pid", "sid"]
 
     assert filter_bids == [1, 3]
 
@@ -163,8 +167,18 @@ def test_check_batch_out(tmp_path):
         for file_path in flattened_files:
             Path(file_path).parent.mkdir(parents=True, exist_ok=True)
             Path(file_path).touch()
+        # We didn't create the batch.pkl files, so the check should still fail
+        assert not any(DummyExperiment._check_batches(bgroup))
+        batch_pkl_files = Experiment._run_batches(
+            bgroup
+        )  # This will create the batch.pkl files
+        flattened_files = [f for sublist in batch_pkl_files for f in sublist]
+        for file_path in flattened_files:
+            Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+            Path(file_path).touch()
 
-        assert DummyExperiment._check_batches(bgroup)
+        # Now the check should pass
+        assert all(DummyExperiment._check_batches(bgroup))
 
 
 @pytest.mark.parametrize(

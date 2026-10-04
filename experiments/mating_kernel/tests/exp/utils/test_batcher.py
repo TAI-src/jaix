@@ -186,11 +186,11 @@ def test_group_batches(tmp_path):
     grouped = Batcher.group_batches(batches, group_by=["sid"])
 
     assert len(grouped) == 2
-    assert len(grouped[(0,)]) == 2
-    assert len(grouped[(1,)]) == 1
-    assert grouped[(0,)][0].test == "a"
-    assert grouped[(0,)][1].test == "c"
-    assert grouped[(1,)][0].test == "b"
+    assert len(grouped["0"]) == 2
+    assert len(grouped["1"]) == 1
+    assert grouped["0"][0].test == "a"
+    assert grouped["0"][1].test == "c"
+    assert grouped["1"][0].test == "b"
 
 
 def test_group_batches_multiple_keys(tmp_path):
@@ -203,10 +203,10 @@ def test_group_batches_multiple_keys(tmp_path):
     grouped = Batcher.group_batches(batches, group_by=["sid", "test"])
 
     assert len(grouped) == 4
-    assert grouped[(0, "a")][0].test == "a"
-    assert grouped[(0, "c")][0].test == "c"
-    assert grouped[(1, "b")][0].test == "b"
-    assert grouped[(1, "d")][0].test == "d"
+    assert grouped["0_a"][0].test == "a"
+    assert grouped["0_c"][0].test == "c"
+    assert grouped["1_b"][0].test == "b"
+    assert grouped["1_d"][0].test == "d"
 
 
 def test_create_batches(tmp_path):
