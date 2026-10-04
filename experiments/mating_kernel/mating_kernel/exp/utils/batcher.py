@@ -1,8 +1,8 @@
+import logging
 import math
 from collections import defaultdict
 from itertools import product, zip_longest
 from pathlib import Path
-import logging
 
 import numpy as np
 
