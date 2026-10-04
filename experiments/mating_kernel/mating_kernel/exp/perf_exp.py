@@ -101,6 +101,25 @@ class PerfExperiment(Experiment):
         return [str(f) for f in files.values()]
 
     @staticmethod
+    def _post_process_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
+        # Expecting batches to all be from the experiment, i.e. have the same expeirment id. (this means same problem and same settings)
+        exp_id = batches[0].experiment_id
+        assert all(
+            b.experiment_id == exp_id for b in batches
+        ), "All batches must have the same experiment id"
+        # Merge the record_stats files into one
+        record_stats_files = [
+            PerfExperiment.file_paths(b)["record_stats"] for b in batches
+        ]
+        merged_record_stats = pd.concat(
+            [pd.read_csv(f) for f in record_stats_files], ignore_index=True
+        )
+        # Save the merged record_stats to a new file
+        out_path = Path(batches[0].parent_dir) / f"merged_record_stats_{exp_id}.csv"
+        merged_record_stats.to_csv(out_path, index=False)
+        return [[str(out_path)]]
+
+    @staticmethod
     def get_alg_class(algorithm_name: str) -> Algorithm:
         if algorithm_name == "NSGA2":
             return NSGA2

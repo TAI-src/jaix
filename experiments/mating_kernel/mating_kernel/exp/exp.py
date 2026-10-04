@@ -172,6 +172,10 @@ class Experiment(ABC):
                 for batch, res in zip(flattened_batches, results):
                     if not res:
                         logger.warning(f"Batch {batch.name} failed the check.")
+                # If any batch failed, raise an exception
+                raise RuntimeError(
+                    "Some batches failed the check. See logs for details."
+                )
         else:
             logger.info(f"Finished running {len(results)} batches.")
         return results

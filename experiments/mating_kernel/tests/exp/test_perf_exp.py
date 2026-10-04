@@ -124,3 +124,32 @@ def test_run_batch(tmp_path):
     # check that the batch and problem are not modified
     assert batch == batch_cpy
     assert batch.problem == batch_cpy.problem
+
+
+def test_post_process_batches(tmp_path):
+    problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
+    pinfo = ProblemInfo(problem)
+    batches = []
+    for i in range(3):
+        batch = Batch(
+            problem=problem,
+            alg_name="NSGA2",
+            selector=None,
+            n_gen=2,
+            seed=123 + i,
+            pid=pinfo.uuid,
+            sid=0,
+            rep=i,
+            pinfo=pinfo,
+            parent_dir=tmp_path,
+        )
+        PerfExperiment._run_batch(batch)
+        batches.append(batch)
+    merged_files = PerfExperiment._post_process_batches(batches)
+    assert len(merged_files) == 1
+    merged_file = merged_files[0][0]
+    assert Path(merged_file).exists()
+    merged_df = pd.read_csv(merged_file)
+    assert (
+        len(merged_df) >= 3 * 1 * 100
+    )  # 3 batches * 2 generation * 100 (at least) offspring per generation
