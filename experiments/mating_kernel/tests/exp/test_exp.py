@@ -35,14 +35,18 @@ class DummyExperiment(Experiment):
         return file_paths_dict
 
     @staticmethod
-    def _run_batch(batch: Batch, **kwargs) -> list[str]:
-        files = list(DummyExperiment.file_paths(batch).values())
-        return [str(f) for f in files]
+    def _run_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
+        res_files = []
+        for batch in batches:
+            files = list(DummyExperiment.file_paths(batch).values())
+            str_files = [str(f) for f in files]
+            res_files.append(str_files)
+        return res_files
 
     @staticmethod
-    def _post_process_batch(batch: Batch, **kwargs) -> list[str]:
-        pp_file = batch.out_dir / f"pp_{batch.name}"
-        return [str(pp_file)]
+    def _post_process_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
+        pp_file = batches[0].out_dir / f"pp_{batches[0].name}"
+        return [[str(pp_file)] for batch in batches]
 
 
 def test_parse_args():
@@ -151,16 +155,16 @@ def test_check_batch_out(tmp_path):
         mode=ExperimentMode.CHECK,
     )
     batches = DummyExperiment.create_batches(config)
-    for batch in batches:
-        assert not DummyExperiment._check_batch_out(batch)
+    for bgroup in batches:
+        assert not any(DummyExperiment._check_batches(bgroup))
         # Now create the expected output files for each batch
-        for file_path in DummyExperiment.file_paths(batch).values():
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            file_path.touch()  # Create an empty file
-        for file_path in Experiment.file_paths(batch).values():
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            file_path.touch()  # Create an empty file
-        assert DummyExperiment._check_batch_out(batch)
+        run_files = DummyExperiment._run_batches(bgroup)
+        flattened_files = [f for sublist in run_files for f in sublist]
+        for file_path in flattened_files:
+            Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+            Path(file_path).touch()
+
+        assert DummyExperiment._check_batches(bgroup)
 
 
 @pytest.mark.parametrize(

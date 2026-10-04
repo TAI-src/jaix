@@ -99,6 +99,16 @@ class Batcher:
         return batches
 
     @staticmethod
+    def group_batches(
+        batches: list[Batch], group_by: list[str]
+    ) -> dict[str, list[Batch]]:
+        grouped_batches = defaultdict(list)
+        for batch in batches:
+            group_key = tuple(getattr(batch, attr) for attr in group_by)
+            grouped_batches[group_key].append(batch)
+        return dict(grouped_batches)
+
+    @staticmethod
     def create_batches(
         suite_config: MKSuiteConfig,
         settings: dict[str, list],
@@ -110,12 +120,24 @@ class Batcher:
             list[int] | None
         ) = None,  # indices of batches to run, if None, run all
         skip_existing: bool = True,  # if True, skip batches that already have results
+        group_by: list[str] | None = None,  # group batches by these attributes
     ) -> list[list[Batch]]:
         batches = Batcher.create_combinations(suite_config, settings, exp_dir=exp_dir)
         seeded_batches = Batcher.seed_batches(
             batches, reps=reps, seed=seed, skip_existing=skip_existing
         )
-        batched_batches = Batcher.split_batches(seeded_batches, num_batches=num_batches)
+        if group_by is not None:
+            grouped_batches = Batcher.group_batches(seeded_batches, group_by=group_by)
+            # Flatten the grouped batches into a list of lists
+            batched_batches = list(grouped_batches.values())
+            if num_batches is not None and len(batched_batches) > num_batches:
+                raise ValueError(
+                    f"Number of grouped batches ({len(batched_batches)}) exceeds the specified num_batches ({num_batches})."
+                )
+        else:
+            batched_batches = Batcher.split_batches(
+                seeded_batches, num_batches=num_batches
+            )
         if filter_bids is not None:
             if any(bid < 0 or bid >= len(batched_batches) for bid in filter_bids):
                 raise ValueError(

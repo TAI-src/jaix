@@ -177,6 +177,38 @@ def test_create_combinations(tmp_path):
     assert fbatch.seed is None
 
 
+def test_group_batches(tmp_path):
+    batch1 = make_batch(tmp_path, sid=0, test="a")
+    batch2 = make_batch(tmp_path, sid=1, test="b")
+    batch3 = make_batch(tmp_path, sid=0, test="c")
+    batches = [batch1, batch2, batch3]
+
+    grouped = Batcher.group_batches(batches, group_by=["sid"])
+
+    assert len(grouped) == 2
+    assert len(grouped[(0,)]) == 2
+    assert len(grouped[(1,)]) == 1
+    assert grouped[(0,)][0].test == "a"
+    assert grouped[(0,)][1].test == "c"
+    assert grouped[(1,)][0].test == "b"
+
+
+def test_group_batches_multiple_keys(tmp_path):
+    batch1 = make_batch(tmp_path, sid=0, test="a")
+    batch2 = make_batch(tmp_path, sid=1, test="b")
+    batch3 = make_batch(tmp_path, sid=0, test="c")
+    batch4 = make_batch(tmp_path, sid=1, test="d")
+    batches = [batch1, batch2, batch3, batch4]
+
+    grouped = Batcher.group_batches(batches, group_by=["sid", "test"])
+
+    assert len(grouped) == 4
+    assert grouped[(0, "a")][0].test == "a"
+    assert grouped[(0, "c")][0].test == "c"
+    assert grouped[(1, "b")][0].test == "b"
+    assert grouped[(1, "d")][0].test == "d"
+
+
 def test_create_batches(tmp_path):
     from mating_kernel.problems.mk_suite import MKSuiteConfig
 
@@ -196,3 +228,66 @@ def test_create_batches(tmp_path):
     assert len(batches) == 3  # Split into 3 batches
     total_batches = sum(len(batch_group) for batch_group in batches)
     assert total_batches == 24
+
+
+def test_create_batches_with_filter(tmp_path):
+    from mating_kernel.problems.mk_suite import MKSuiteConfig
+
+    mk_config = MKSuiteConfig(cobi=True, re=True, constrained=False, num_objectives=[4])
+    settings = {"setting1": [1, 2], "setting2": ["a", "b", "c"]}
+    batches = Batcher.create_batches(
+        suite_config=mk_config,
+        settings=settings,
+        reps=2,
+        num_batches=3,
+        seed=123,
+        exp_dir=tmp_path,
+        filter_bids=[0, 2],  # Only take the first and third batch groups
+        skip_existing=False,
+    )
+    assert len(batches) == 2  # Only two batch groups should be returned
+    total_batches = sum(len(batch_group) for batch_group in batches)
+    assert (
+        total_batches == 16
+    )  # Each group should have 8 batches (24 total / 3 groups * 2 selected)
+
+
+def test_create_batches_with_group(tmp_path):
+    from mating_kernel.problems.mk_suite import MKSuiteConfig
+
+    mk_config = MKSuiteConfig(cobi=True, re=True, constrained=False, num_objectives=[4])
+    settings = {"setting1": [1, 2], "setting2": ["a", "b", "c"]}
+    batches = Batcher.create_batches(
+        suite_config=mk_config,
+        settings=settings,
+        reps=2,
+        num_batches=None,  # Let it group by sid
+        seed=123,
+        exp_dir=tmp_path,
+        filter_bids=None,
+        skip_existing=False,
+        group_by=["rep"],  # Group by rep to create 2 groups (rep 0 and rep 1)
+    )
+    # There should be 2 unique sids (0 and 1), so we expect 2 groups
+    assert len(batches) == 2
+    total_batches = sum(len(batch_group) for batch_group in batches)
+    assert total_batches == 24  # Total number of batches remains the same
+
+
+def test_create_batches_group_num_conflict(tmp_path):
+    from mating_kernel.problems.mk_suite import MKSuiteConfig
+
+    mk_config = MKSuiteConfig(cobi=True, re=True, constrained=False, num_objectives=[4])
+    settings = {"setting1": [1, 2], "setting2": ["a", "b", "c"]}
+    with pytest.raises(ValueError):
+        Batcher.create_batches(
+            suite_config=mk_config,
+            settings=settings,
+            reps=2,
+            num_batches=2,  # This conflicts with group_by
+            seed=123,
+            exp_dir=tmp_path,
+            filter_bids=None,
+            skip_existing=False,
+            group_by=["sid"],  # Group by sid to create 6 groups
+        )

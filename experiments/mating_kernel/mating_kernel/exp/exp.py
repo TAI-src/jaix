@@ -20,16 +20,17 @@ class Experiment(ABC):
     # TODO: Implement subclass checking to ensure that subclasses implement the required methods.
 
     @staticmethod
-    def _run_batch(batch: Batch, **kwargs) -> list[str]:
+    def _run_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
         """
         Run a single batch of the experiment.
         """
-        batch_file = Experiment.file_paths(batch)["batch"]
-        with open(batch_file, "wb") as f:
-            batch_cpy = batch.model_copy()
-            batch_cpy.problem = str(batch.problem)
-            pickle.dump(batch_cpy, f)
-        return [str(batch_file)]
+        batch_files = [Experiment.file_paths(batch)["batch"] for batch in batches]
+        for batch, batch_file in zip(batches, batch_files):
+            logger.debug(f"Finishing batch {batch.name} and saving to {batch_file}")
+            with open(batch_file, "wb") as f:
+                b_copy = batch.model_copy(update={"problem": str(batch.problem)})
+                pickle.dump(b_copy, f)
+        return [[str(b_file)] for b_file in batch_files]
 
     @staticmethod
     def file_paths(batch: Batch) -> dict[str, Path]:
@@ -51,21 +52,26 @@ class Experiment(ABC):
         )
 
     @classmethod
-    def _check_batch_out(cls, batch: Batch, **kwargs) -> bool:
+    def _check_batches(cls, batches: list[Batch], **kwargs) -> list[bool]:
         """
         Check if the batch output is valid.
         """
-        files_to_check = list(cls.file_paths(batch).values()) + list(
-            Experiment.file_paths(batch).values()
-        )
-        for file_path in files_to_check:
-            if not file_path.exists():
-                logger.warning(f"Batch {batch.name} is missing file: {file_path}")
-                return False
-        return True
+        checked = [False] * len(batches)
+        for i, batch in enumerate(batches):
+            files_to_check = list(cls.file_paths(batch).values()) + list(
+                Experiment.file_paths(batch).values()
+            )
+            for file_path in files_to_check:
+                if not file_path.exists():
+                    logger.warning(f"Batch {batch.name} is missing file: {file_path}")
+                    break
+            else:  # If all files exist, mark the batch as checked
+                checked[i] = True
+
+        return checked
 
     @staticmethod
-    def _post_process_batch(batch: Batch, **kwargs) -> list[str]:
+    def _post_process_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
         """
         Post-process the batch output.
         """
@@ -105,7 +111,7 @@ class Experiment(ABC):
     @staticmethod
     def create_batches(
         config: ExperimentConfig, filter_bids: list[int] | None = None
-    ) -> list[Batch]:
+    ) -> list[list[Batch]]:
         """
         Create batches for the experiment.
         """
@@ -119,8 +125,7 @@ class Experiment(ABC):
             filter_bids=filter_bids,
             skip_existing=(config.mode == ExperimentMode.RUN),
         )
-        flattened_batches = [batch for bgroup in batches for batch in bgroup]
-        return flattened_batches
+        return batches
 
     @classmethod
     def run(
@@ -129,32 +134,42 @@ class Experiment(ABC):
         """
         Run all batches of the experiment.
         """
-        flattened_batches = Experiment.create_batches(config, filter_bids=filter_bids)
+        batch_groups = Experiment.create_batches(config, filter_bids=filter_bids)
+        total_batches = sum(len(bgroup) for bgroup in batch_groups)
         logger.info(
-            f"Running Experiment {cls.__name__} mode {config.mode} for {len(flattened_batches)} batches in total."
+            f"Running Experiment {cls.__name__} mode {config.mode} with {total_batches} batches in {len(batch_groups)} groups."
         )
         results: list[list[str] | bool] = []
-        for batch in flattened_batches:
-            result: list[str] | bool
-            logger.debug(f"Running batch {batch.name}...")
+        for bgroup in batch_groups:
+            result: list[list[str]] | list[bool]
             if config.mode == ExperimentMode.CHECK:
-                result = Experiment._check_batch_out(batch, **kwargs)
+                result = Experiment._check_batches(bgroup, **kwargs)
             elif config.mode == ExperimentMode.PP:
-                result = cls._post_process_batch(batch, **kwargs)
+                result = cls._post_process_batches(bgroup, **kwargs)
             elif config.mode == ExperimentMode.RUN:
-                result = cls._run_batch(batch, **kwargs)
-                result.extend(Experiment._run_batch(batch, **kwargs))
+                cls_files = cls._run_batches(bgroup, **kwargs)
+                exp_files = Experiment._run_batches(bgroup, **kwargs)
+                result = [
+                    cls_file + exp_file
+                    for cls_file, exp_file in zip(cls_files, exp_files)
+                ]
             else:
                 raise ValueError(f"Unknown mode: {config.mode}")
-            logger.debug(f"Batch {batch.name} result: {result}")
-            results.append(result)
+            logger.debug(f"Batch group result: {result}")
+            results.extend(result)
 
         if config.mode == ExperimentMode.CHECK:
             if all(results):
                 logger.info("All batches passed the check.")
             else:
-                for batch, result in zip(flattened_batches, results):
-                    if not result:
+                flattened_batches = [
+                    batch for bgroup in batch_groups for batch in bgroup
+                ]
+                assert all(
+                    isinstance(res, bool) for res in results
+                ), "Results should be a list of bools in CHECK mode."
+                for batch, res in zip(flattened_batches, results):
+                    if not res:
                         logger.warning(f"Batch {batch.name} failed the check.")
         else:
             logger.info(f"Finished running {len(results)} batches.")
