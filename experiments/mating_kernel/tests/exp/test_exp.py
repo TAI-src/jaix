@@ -197,12 +197,15 @@ def test_run_check_mode(mode, tmp_path):
         out_dir=tmp_path,
         mode=mode,
     )
-    results = DummyExperiment.run(config)
-    assert len(results) == 2 * 2 * 2  # 2 problems * 2 settings * 2 reps
     if mode == ExperimentMode.CHECK:
-        assert all(isinstance(res, bool) and not res for res in results)
-    elif mode == ExperimentMode.PP:
-        assert all(isinstance(res, list) and "pp_" in res[0] for res in results)
-    elif mode == ExperimentMode.RUN:
-        assert all(isinstance(res, list) and "ran_" in res[0] for res in results)
-        assert all(isinstance(res, list) and "batch_" in res[1] for res in results)
+        # We are expecting the check to fail because we haven't created any output files yet
+        with pytest.raises(RuntimeError):
+            results = DummyExperiment.run(config)
+    else:
+        results = DummyExperiment.run(config)
+        assert len(results) == 2 * 2 * 2  # 2 problems * 2 settings * 2 reps
+        if mode == ExperimentMode.PP:
+            assert all(isinstance(res, list) and "pp_" in res[0] for res in results)
+        elif mode == ExperimentMode.RUN:
+            assert all(isinstance(res, list) and "ran_" in res[0] for res in results)
+            assert all(isinstance(res, list) and "batch_" in res[1] for res in results)
