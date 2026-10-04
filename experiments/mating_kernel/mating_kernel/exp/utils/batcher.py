@@ -134,7 +134,7 @@ class Batcher:
             grouped_batches = Batcher.group_batches(seeded_batches, group_by=group_by)
             # Flatten the grouped batches into a list of lists
             batched_batches = list(grouped_batches.values())
-            if num_batches is not None:
+            if num_batches is not None and num_batches < len(batched_batches):
                 # TODO: Implement stratified split
                 raise ValueError(
                     "Cannot specify num_batches when group_by is set. "
