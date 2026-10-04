@@ -1,3 +1,4 @@
+import logging
 import math
 from collections import defaultdict
 from itertools import product, zip_longest
@@ -7,6 +8,8 @@ import numpy as np
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.problems.mk_suite import MKSuite, MKSuiteConfig
+
+logger = logging.getLogger(__name__)
 
 
 class Batcher:
@@ -131,10 +134,13 @@ class Batcher:
             grouped_batches = Batcher.group_batches(seeded_batches, group_by=group_by)
             # Flatten the grouped batches into a list of lists
             batched_batches = list(grouped_batches.values())
-            if num_batches is not None and len(batched_batches) > num_batches:
+            if num_batches is not None:
+                # TODO: Implement stratified split
                 raise ValueError(
-                    f"Number of grouped batches ({len(batched_batches)}) exceeds the specified num_batches ({num_batches})."
+                    "Cannot specify num_batches when group_by is set. "
+                    "Batches are already grouped by the specified attributes."
                 )
+
         else:
             batched_batches = Batcher.split_batches(
                 seeded_batches, num_batches=num_batches
