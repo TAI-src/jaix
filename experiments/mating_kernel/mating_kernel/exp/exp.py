@@ -153,8 +153,9 @@ class Experiment(ABC):
                 result = cls._post_process_batches(bgroup, **kwargs)
             elif config.mode == ExperimentMode.RUN:
                 if not config.force_recompute:
-                    result = Experiment._check_batches(
-                        bgroup, log_level=logging.DEBUG, **kwargs
+result = cls._check_batches(
+    bgroup, log_level=logging.DEBUG, **kwargs
+)
                     )
                     # Skip batches that have already been computed and passed the check
                     if any(result):
