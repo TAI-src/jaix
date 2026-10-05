@@ -120,10 +120,7 @@ class Batch(BaseModel):
             return False
         # Check for batch file since they are the last thing to be written
         # FIXME: This is a hacky way to check if the run is complete, but it works for now.
-        if any(f.name.startswith("batch_") for f in run_dir.iterdir()):
-            return True
-        else:
-            return False
+        return bool(any(f.name.startswith("batch_") for f in run_dir.iterdir()))
 
 
 def hash_dict(d: dict, length: int = 12) -> str:
