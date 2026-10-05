@@ -7,7 +7,21 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 )
 
 from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.exp.exp import Experiment
 from mating_kernel.problems.problem_info import ProblemInfo
+
+
+def sim_run(batch: Batch, incomplete=False):
+    # Simulate running the batch by creating a result file in the output directory
+    batch.out_dir.mkdir(parents=True, exist_ok=True)
+    with open(batch.out_dir / "result.txt", "w") as f:
+        f.write("done")
+    if incomplete:
+        # Create an incomplete run by not creating the batch file
+        return
+    # Create the batch file to simulate a completed batch
+    batch_file_pth = Experiment.file_paths(batch)["batch"]
+    batch_file_pth.touch()  # create the batch file
 
 
 def test_batch_creation(tmp_path):
@@ -69,9 +83,18 @@ def test_batch_creation(tmp_path):
     assert not batch.exists()  # Check if the batch does not exist yet (empty dir)
 
     for b in [batch, batch2]:
-        # Simulate running the batch by creating a result file in the output directory
-        with open(b.out_dir / "result.txt", "w") as f:
-            f.write("done")
+        # Simulate half-finished batches by creating a dummy result file in the output directory
+        sim_run(b, incomplete=True)
+    run_seeds = batch.get_run_seeds()
+    assert len(run_seeds) == 0  # No completed runs yet
+    assert (
+        not batch.exists()
+    )  # Check if the batch does not exist yet (no completed runs)
+
+    for b in [batch, batch2]:
+        # Create the batch file to simulate a completed batch
+        sim_run(b, incomplete=False)
+
     run_seeds = batch.get_run_seeds()
     assert set(run_seeds) == {batch.seed, batch2.seed}  # Check if the run seeds
     assert batch.exists()

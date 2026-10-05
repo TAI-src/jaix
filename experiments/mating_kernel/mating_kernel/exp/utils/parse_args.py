@@ -60,5 +60,15 @@ def experiment_parser():
         default=None,
         help="List of settings to group by when creating batches.",
     )
+    parser.add_argument(
+        "--skip_existing",
+        action="store_true",
+        help="Skip existing results when running the experiment.",
+    )
+    parser.add_argument(
+        "--force_recompute",
+        action="store_true",
+        help="Force recomputation of results even if they already exist.",
+    )
 
     return parser

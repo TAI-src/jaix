@@ -9,6 +9,7 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.batcher import Batcher
 from mating_kernel.problems.problem_info import ProblemInfo
+from .test_batch import sim_run
 
 
 def make_batch(tmp_path, **kwargs) -> Batch:
@@ -24,13 +25,6 @@ def make_batch(tmp_path, **kwargs) -> Batch:
     }
     defaults.update(kwargs)
     return Batch(**defaults)
-
-
-def sim_run(batch: Batch):
-    # Simulate running the batch by creating a result file in the output directory
-    batch.out_dir.mkdir(parents=True, exist_ok=True)
-    with open(batch.out_dir / "result.txt", "w") as f:
-        f.write("done")
 
 
 @pytest.mark.parametrize("skip_existing", [True, False])
