@@ -39,6 +39,9 @@ class DummyExperiment(Experiment):
         res_files = []
         for batch in batches:
             files = list(DummyExperiment.file_paths(batch).values())
+            # Actually create the files
+            for f in files:
+                f.touch()
             str_files = [str(f) for f in files]
             res_files.append(str_files)
         return res_files
@@ -227,6 +230,7 @@ def test_skip_existing(skip_existing, tmp_path):
         out_dir=tmp_path,
         mode=ExperimentMode.RUN,
         skip_existing=skip_existing,
+        force_recompute=False,
     )
     # Run the experiment once to create the output files
     results_first_run = DummyExperiment.run(config)
