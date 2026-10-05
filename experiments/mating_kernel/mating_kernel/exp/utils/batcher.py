@@ -123,7 +123,7 @@ class Batcher:
         filter_bids: (
             list[int] | None
         ) = None,  # indices of batches to run, if None, run all
-        skip_existing: bool = True,  # if True, skip batches that already have results
+        skip_existing: bool = False,  # if True, skip batches that already have results
         group_by: list[str] | None = None,  # group batches by these attributes
     ) -> list[list[Batch]]:
         batches = Batcher.create_combinations(suite_config, settings, exp_dir=exp_dir)
