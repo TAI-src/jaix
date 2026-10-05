@@ -15,9 +15,10 @@ def find_data_files(
     res_dict = defaultdict(list)
     for f in files:
         name_found = False
-        for problem_idx, name in enumerate(sorted_problem_names):
+        for name in sorted_problem_names:
             if name in f.name:
-                res_dict[problem_idx].append(f)
+                res_dict[name].append(f)
+                name_found = True
                 break
         if not name_found:
             res_dict["unknown"].append(f)

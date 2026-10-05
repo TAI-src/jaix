@@ -111,5 +111,5 @@ def get_data(perf_stats_dir: Path | str, pid: str) -> pd.DataFrame:
         len(perf_merged_files[pid]) == 1
     ), f"Found {len(perf_merged_files[pid])} files for problem {pid}"
     merged_file = perf_merged_files[pid][0]
-    df = merged_file.read_csv(merged_file)
+    df = pd.read_csv(merged_file)
     return df
