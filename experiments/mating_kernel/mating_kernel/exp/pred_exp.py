@@ -1,24 +1,22 @@
 import argparse
 from mating_kernel.exp.exp import Experiment
+import logging
+from pathlib import Path
+import pickle
 
-input_scenarios = {
-    "kernel": ["x_dist", "f_dist"],
-    "abs": ["p0_X", "p1_x", "p0_F", "p1_F"],
-    "pop_fitness": [
-        "p1_rank",
-        "p1_crowding",
-        "p0_rank",
-        "p0_crowding",
-    ],
-    "pop_state": ["b_rank_mean", "b_crowding_mean"],
-    # "archive_state": ["b_size", "b_coverage", "b_avg_dist_to_ideal"],
-    "age": ["p0_age", "p1_age"],
-}
+from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.exp.utils.pre_pred_exp import (
+    get_features,
+    preprocess,
+    get_data,
+    target_types,
+)
+from mating_kernel.exp.utils.pred import run_analysis
+
+logger = logging.getLogger(__name__)
 
 
-# TODO: compute pangle, pdist, age etc
-# Could also use age info at some point
-# For now ignore ideal info
+# TODO: Add information computed on ideal point later
 
 
 class PredExperiment(Experiment):
@@ -34,24 +32,35 @@ class PredExperiment(Experiment):
         parser.add_argument(
             "--kernel",
             action="store_true",
-            help="Whether to use the kernel for the prediction experiment.",
+            help="Wether to use the kernel information for the prediction experiment.",
         )
         parser.add_argument(
-            "--use_ideal",
-            default=False,
+            "--abs",
             action="store_true",
-            help="Whether to use the ideal point for the prediction experiment.",
+            help="Whether to use the absolute information for the prediction experiment.",
         )
+
         parser.add_argument(
-            "--fitness_info",
+            "--pop_fitness",
             action="store_true",
             help="Whether to use the fitness information for the prediction experiment.",
         )
         parser.add_argument(
-            "--state",
+            "--pop_state",
             action="store_true",
-            help="Whether to use the state information for the prediction experiment.",
+            help="Whether to use the state information of the populations",
         )
+        parser.add_argument(
+            "--age",
+            action="store_true",
+            help="Whether to use the age information for the prediction experiment.",
+        )
+        parser.add_argument(
+            "--keep_mutated",
+            action="store_true",
+            help="Whether to keep mutated children in the prediction experiment.",
+        )
+
         parser.add_argument(
             "--target",
             type=str,
@@ -59,4 +68,65 @@ class PredExperiment(Experiment):
             default="survived",
             help="The target variable for the prediction experiment.",
         )
+        parser.add_argument(
+            "--feature_analysis",
+            action="store_true",
+            help="Whether to perform feature analysis for the prediction experiment.",
+        )
+
         return parser
+
+    # TODO: This should somehow move up to general Experiment
+    @staticmethod
+    def _run_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
+        batch_files = []
+        for b in batches:
+            logger.debug(f"Running batch {b.name}")
+            files = PredExperiment._run_batch(b, **kwargs)
+            batch_files.append(files)
+        return batch_files
+
+    @staticmethod
+    def file_paths(batch: Batch) -> dict[str, Path]:
+        file_paths_dict = {
+            "dataset": batch.out_dir / f"dataset_{batch.name}.csv",
+            "result": batch.out_dir / f"result_{batch.name}.pkl",
+        }
+        return file_paths_dict
+
+    @staticmethod
+    def _run_batch(batch: Batch, **kwargs) -> list[str]:
+        out_files = PredExperiment.file_paths(batch)
+        # Find the file for the batch
+        df = get_data(batch.perf_stats_dir, batch.problem_name)
+        # Determine the features to use
+        features = get_features(
+            batch.kernel,
+            batch.abs,
+            batch.pop_fitness,
+            batch.pop_state,
+            batch.age,
+        )
+        # Preprocess
+        df = preprocess(
+            features=features + [batch.target],
+            df=df,
+            remove_mutated=not batch.keep_mutated,
+        )
+        df.to_csv(out_files["dataset"], index=False)
+        # run the analysis
+        res = run_analysis(
+            df,
+            input_cols=features,
+            target_col=batch.target,
+            target_type=target_types[batch.target],
+            group_cols=["seed"],
+            skip_feature_analysis=not batch.feature_analysis,
+            random_state=batch.seed,
+            **kwargs,
+        )
+        # Save the result
+        with open(out_files["result"], "wb") as f:
+            pickle.dump(res, f)
+
+        return [str(f) for f in out_files.values()]
