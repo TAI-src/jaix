@@ -64,6 +64,29 @@ def test_experiment_parser_parses_all_arguments():
     assert args.out_dir == "results"
     assert args.nth == [0, 3]
     assert args.group_by == ["pid", "sid"]
+    assert args.mode == "run"
+    assert args.skip_existing is False
+    assert args.force_recompute is False
+
+
+def test_exp_parser_with_options():
+    parser = experiment_parser()
+
+    args = parser.parse_args(
+        [
+            "--out_dir",
+            "results",
+            "--mode",
+            "check",
+            "--skip_existing",
+            "--force_recompute",
+        ]
+    )
+
+    assert args.out_dir == "results"
+    assert args.mode == "check"
+    assert args.skip_existing is True
+    assert args.force_recompute is True
 
 
 def test_experiment_parser_requires_out_dir():

@@ -25,6 +25,8 @@ class ExperimentConfig(Config):
         out_dir: str | Path = Path("."),
         mode: ExperimentMode = ExperimentMode.RUN,
         group_by: list[str] | None = None,
+        skip_existing: bool = False,
+        force_recompute: bool = False,
     ):
         super().__init__()
         self.suite_config = suite_config
@@ -36,6 +38,8 @@ class ExperimentConfig(Config):
         self.out_dir.mkdir(parents=True, exist_ok=True)
         self.mode = mode
         self.group_by = group_by
+        self.skip_existing = skip_existing
+        self.force_recompute = force_recompute
 
 
 def parse_mk_suite_args(args: argparse.Namespace) -> MKSuiteConfig:
@@ -60,4 +64,6 @@ def parse_experiment_config(
         out_dir=args.out_dir,
         mode=ExperimentMode(args.mode),
         group_by=args.group_by,
+        skip_existing=args.skip_existing,
+        force_recompute=args.force_recompute,
     )

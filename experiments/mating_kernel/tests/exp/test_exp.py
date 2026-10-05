@@ -209,3 +209,66 @@ def test_run_check_mode(mode, tmp_path):
         elif mode == ExperimentMode.RUN:
             assert all(isinstance(res, list) and "ran_" in res[0] for res in results)
             assert all(isinstance(res, list) and "batch_" in res[1] for res in results)
+
+
+@pytest.mark.parametrize(
+    "skip_existing",
+    [True, False],
+)
+def test_skip_existing(skip_existing, tmp_path):
+    config = ExperimentConfig(
+        suite_config=MKSuiteConfig(
+            cobi=True, re=True, constrained=False, num_objectives=[4]
+        ),
+        settings={"foo": [1], "bar": ["a"]},
+        reps=1,
+        num_batches=1,
+        seed=123,
+        out_dir=tmp_path,
+        mode=ExperimentMode.RUN,
+        skip_existing=skip_existing,
+    )
+    # Run the experiment once to create the output files
+    results_first_run = DummyExperiment.run(config)
+    assert len(results_first_run) == 2  # 2 problems * 1 setting * 1 rep
+    # Run the experiment again with skip_existing=True
+    # Modify config to create more batches (that have not been run)
+    config.reps = 2  # Increase reps to create new batches
+
+    results_second_run = DummyExperiment.run(config)
+    # The second run should only process the new batches (the ones that were not run in the first run)
+    assert len(results_second_run) == 2  # 2 problems * 1 setting * 1 new rep
+    # check that the first batch was skipped and the second batch was run
+    for res in results_second_run:
+        assert "s0_r1" in res[0]
+    # If we run now, everything should be skipped
+    results_third_run = DummyExperiment.run(config)
+    assert len(results_third_run) == 0
+
+
+@pytest.mark.parametrize("skip_existing", [True, False])
+def test_force_recompute(skip_existing, tmp_path):
+    config = ExperimentConfig(
+        suite_config=MKSuiteConfig(
+            cobi=True, re=True, constrained=False, num_objectives=[4]
+        ),
+        settings={"foo": [1], "bar": ["a"]},
+        reps=1,
+        num_batches=1,
+        seed=123,
+        out_dir=tmp_path,
+        mode=ExperimentMode.RUN,
+        skip_existing=skip_existing,
+        force_recompute=False,
+    )
+    # Run the experiment once to create the output files
+    results_first_run = DummyExperiment.run(config)
+    assert len(results_first_run) == 2  # 2 problems * 1 setting * 1 rep
+    # Run again, should not have new results
+    results_second_run = DummyExperiment.run(config)
+    assert len(results_second_run) == 0  # No new results since nothing changed
+
+    # Now set force_recompute to True and run again
+    config.force_recompute = True
+    results_third_run = DummyExperiment.run(config)
+    assert len(results_third_run) == 2  # Should recompute all batches

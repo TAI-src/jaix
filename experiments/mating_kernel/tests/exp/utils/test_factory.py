@@ -37,6 +37,8 @@ def test_experiment_config_parser():
         out_dir="results",
         mode="run",
         group_by=["pid", "sid"],
+        skip_existing=True,
+        force_recompute=True,
     )
     settings = {"some_setting": "value"}
     experiment_config = parse_experiment_config(args, settings)
@@ -51,4 +53,6 @@ def test_experiment_config_parser():
     assert experiment_config.settings == settings
     assert experiment_config.mode == ExperimentMode.RUN
     assert experiment_config.group_by == ["pid", "sid"]
+    assert experiment_config.skip_existing is True
+    assert experiment_config.force_recompute is True
     assert isinstance(experiment_config, ExperimentConfig)

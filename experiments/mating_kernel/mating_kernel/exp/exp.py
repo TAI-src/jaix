@@ -52,7 +52,9 @@ class Experiment(ABC):
         )
 
     @classmethod
-    def _check_batches(cls, batches: list[Batch], **kwargs) -> list[bool]:
+    def _check_batches(
+        cls, batches: list[Batch], log_level: int = 40, **kwargs
+    ) -> list[bool]:
         """
         Check if the batch output is valid.
         """
@@ -63,7 +65,9 @@ class Experiment(ABC):
             )
             for file_path in files_to_check:
                 if not file_path.exists():
-                    logger.warning(f"Batch {batch.name} is missing file: {file_path}")
+                    logger.log(
+                        log_level, f"Batch {batch.name} is missing file: {file_path}"
+                    )
                     break
             else:  # If all files exist, mark the batch as checked
                 checked[i] = True
@@ -123,7 +127,7 @@ class Experiment(ABC):
             seed=config.seed,
             exp_dir=config.out_dir,
             filter_bids=filter_bids,
-            skip_existing=(config.mode == ExperimentMode.RUN),
+            skip_existing=config.skip_existing and not config.force_recompute,
             group_by=config.group_by,
         )
         return batches
@@ -148,8 +152,22 @@ class Experiment(ABC):
             elif config.mode == ExperimentMode.PP:
                 result = cls._post_process_batches(bgroup, **kwargs)
             elif config.mode == ExperimentMode.RUN:
-                cls_files = cls._run_batches(bgroup, **kwargs)
-                exp_files = Experiment._run_batches(bgroup, **kwargs)
+                if not config.force_recompute:
+                    result = Experiment._check_batches(
+                        bgroup, log_level=logging.DEBUG, **kwargs
+                    )
+                    # Skip batches that have already been computed and passed the check
+                    if any(result):
+                        logger.info(
+                            f"Skipping {sum(result)} batches that have already been computed and passed the check."
+                        )
+                    bgrp_to_run = [
+                        batch for batch, res in zip(bgroup, result) if not res
+                    ]
+                else:
+                    bgrp_to_run = bgroup
+                cls_files = cls._run_batches(bgrp_to_run, **kwargs)
+                exp_files = Experiment._run_batches(bgrp_to_run, **kwargs)
                 result = [
                     cls_file + exp_file
                     for cls_file, exp_file in zip(cls_files, exp_files)
