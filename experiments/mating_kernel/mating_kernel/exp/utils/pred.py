@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 import numpy as np
-from mating_kernel.exp.pred_exp import PredExperiment
 import pandas as pd
 from sklearn.base import clone
 from sklearn.ensemble import (
@@ -70,15 +69,10 @@ def get_mutual_information(
 
 def get_scoring_method(
     target_type: str = "binary",
-    scoring: str | None = None,
-    larger_is_better: bool = True,
+    scoring: tuple[str, bool] | None = None,
 ) -> tuple[str, bool]:
-    if scoring is not None and larger_is_better is not None:
-        return scoring, larger_is_better
-    elif scoring is not None or larger_is_better is not None:
-        raise ValueError(
-            "Neither scoring nor larger_is_better can be None if the other is not None"
-        )
+    if scoring is not None:
+        return scoring
     elif target_type == "binary":
         return "roc_auc", True
     elif target_type in ("ordinal", "regression"):
@@ -93,15 +87,13 @@ def get_cv_score(
     model,
     cv,
     scoring: str,
-    group_cols: list[str],
+    groups: pd.Series,
     input_cols: list[str] | None = None,
 ):
-    assert all(col in X.columns for col in group_cols)
-    groups = X[group_cols].apply(tuple, axis=1)
     if input_cols is not None:
         X_to_use = X[input_cols]
     else:
-        X_to_use = X.drop(columns=group_cols)
+        X_to_use = X
 
     cv_scores = cross_val_score(
         model,
@@ -123,6 +115,7 @@ def permutation_importance_analysis(
     model,
     cv,
     scoring: str,
+    groups: pd.Series,
     n_permutation_repeats: int = 10,
     random_state: int = 42,
     **kwargs,
@@ -130,7 +123,7 @@ def permutation_importance_analysis(
 
     importance_vals: list[np.ndarray] = []
 
-    for fold_idx, (train_idx, test_idx) in enumerate(cv.split(X, y)):
+    for fold_idx, (train_idx, test_idx) in enumerate(cv.split(X, y, groups=groups)):
 
         X_train = X.iloc[train_idx]
         X_test = X.iloc[test_idx]
@@ -155,6 +148,34 @@ def permutation_importance_analysis(
     mean_perm_importance = np.mean(importance_vals, axis=0)
     std_perm_importance = np.std(importance_vals, axis=0)
     return mean_perm_importance, std_perm_importance
+
+
+def get_loo_cv_scores(
+    X: pd.DataFrame,
+    y: pd.Series,
+    model,
+    cv,
+    scoring: str,
+    input_cols: list[str],
+    groups: pd.Series,
+) -> tuple[list[float], list[float]]:
+    loo_cv_scores = []
+    loo_cv_scores_std = []
+    for input_col in input_cols:
+        # leave-one-feature-out analysis
+        input_cols_reduced = [col for col in input_cols if col != input_col]
+        loo_cv_score_mean, loo_cv_score_std = get_cv_score(
+            X,
+            y,
+            model,
+            cv,
+            scoring,
+            input_cols=input_cols_reduced,
+            groups=groups,
+        )
+        loo_cv_scores.append(loo_cv_score_mean)
+        loo_cv_scores_std.append(loo_cv_score_std)
+    return loo_cv_scores, loo_cv_scores_std
 
 
 @dataclass
@@ -198,9 +219,10 @@ def run_analysis(
     model = get_model(target_type=target_type, **kwargs)
     cv = LeaveOneGroupOut()
     scoring, larger_is_better = get_scoring_method(target_type=target_type)
+    groups = df[group_cols].astype(str).agg("_".join, axis=1)
 
     cv_score_mean, cv_score_std = get_cv_score(
-        X, y, model, cv, scoring, input_cols=input_cols, group_cols=group_cols
+        X, y, model, cv, scoring, input_cols=input_cols, groups=groups
     )
     logger.debug(
         f"Cross-validation score for target {target_col}: {cv_score_mean:.4f} ± {cv_score_std:.4f}"
@@ -225,27 +247,14 @@ def run_analysis(
     logger.debug(mutual_info)
 
     perm_importance, perm_importance_std = permutation_importance_analysis(
-        X, y, model, cv, scoring, **kwargs
+        X, y, model, cv, scoring, groups=groups, **kwargs
     )
     logger.debug(f"Permutation importance for target {target_col} computed")
     logger.debug(perm_importance)
 
-    loo_cv_scores = []
-    loo_cv_scores_std = []
-    for input_col in input_cols:
-        # leave-one-feature-out analysis
-        input_cols_reduced = [col for col in input_cols if col != input_col]
-        loo_cv_score_mean, loo_cv_score_std = get_cv_score(
-            X,
-            y,
-            model,
-            cv,
-            scoring,
-            input_cols=input_cols_reduced,
-            group_cols=group_cols,
-        )
-        loo_cv_scores.append(loo_cv_score_mean)
-        loo_cv_scores_std.append(loo_cv_score_std)
+    loo_cv_scores, loo_cv_scores_std = get_loo_cv_scores(
+        X, y, model, cv, scoring, input_cols=input_cols, groups=groups
+    )
     logger.debug(
         f"Leave-one-feature-out cross-validation scores for target {target_col}"
     )
