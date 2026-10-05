@@ -97,8 +97,12 @@ class Batch(BaseModel):
             if (
                 d.is_dir()
                 and d.name.startswith(self.experiment_id)
-                and any(d.iterdir())
+                and any(f.name.startswith("batch_") for f in d.iterdir())
             ):
+                # Check if the batch file is there, since it is the last thing to be written, if it is there, the run is complete
+                # batch files contain "batch_" in the name
+                # FIXME: This is a hacky way to check if the run is complete, but it works for now.
+                # since it hardcodes the batch file name, it is not very robust.
                 _, seed = self.parse_name(d.name)
                 seeds.append(seed)
         return seeds
@@ -112,7 +116,11 @@ class Batch(BaseModel):
             return False
         # check if self.out_dir is empty (it will always exist as it is created in the out_dir property)
         run_dir = dir / self.run_id
-        return run_dir.is_dir() and any(run_dir.iterdir())
+        if not run_dir.exists():
+            return False
+        # Check for batch file since they are the last thing to be written
+        # FIXME: This is a hacky way to check if the run is complete, but it works for now.
+        return bool(any(f.name.startswith("batch_") for f in run_dir.iterdir()))
 
 
 def hash_dict(d: dict, length: int = 12) -> str:

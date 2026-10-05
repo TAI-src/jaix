@@ -111,8 +111,13 @@ class PerfExperiment(Experiment):
         record_stats_files = [
             PerfExperiment.file_paths(b)["record_stats"] for b in batches
         ]
+        seeds = [b.seed for b in batches]
         merged_record_stats = pd.concat(
-            [pd.read_csv(f) for f in record_stats_files], ignore_index=True
+            [
+                pd.read_csv(f).assign(seed=seed)
+                for f, seed in zip(record_stats_files, seeds)
+            ],
+            ignore_index=True,
         )
         # Save the merged record_stats to a new file
         out_path = Path(batches[0].parent_dir) / f"merged_record_stats_{exp_id}.csv"

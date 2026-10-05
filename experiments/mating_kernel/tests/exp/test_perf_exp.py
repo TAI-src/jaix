@@ -153,3 +153,6 @@ def test_post_process_batches(tmp_path):
     assert (
         len(merged_df) >= 3 * 1 * 100
     )  # 3 batches * 2 generation * 100 (at least) offspring per generation
+    assert "seed" in merged_df.columns
+    unique_seeds = merged_df["seed"].unique()
+    assert set(unique_seeds) == {123, 124, 125}  # seeds used in the batches
