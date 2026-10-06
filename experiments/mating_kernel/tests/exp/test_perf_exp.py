@@ -135,13 +135,13 @@ def test_post_process_batches(tmp_path):
             problem=problem,
             alg_name="NSGA2",
             selector=None,
-            n_gen=2,
+            n_gen=3,
             seed=123 + i,
             pid=pinfo.uuid,
             sid=0,
             rep=i,
             pinfo=pinfo,
-            parent_dir=tmp_path,
+            parent_dir=".",
         )
         PerfExperiment._run_batch(batch)
         batches.append(batch)
