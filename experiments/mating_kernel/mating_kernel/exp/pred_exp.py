@@ -64,6 +64,7 @@ class PredExperiment(Experiment):
         parser.add_argument(
             "--target",
             type=str,
+            nargs="+",
             choices=["survived", "o_dist_to_ideal", "o_F_0", "o_F_1"],
             default="survived",
             help="The target variable for the prediction experiment.",
@@ -98,30 +99,30 @@ class PredExperiment(Experiment):
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
         out_files = PredExperiment.file_paths(batch)
         # Find the file for the batch
-        df = get_data(batch.perf_stats_dir, batch.pid)
+        df = get_data(batch.perf_stats_dir, batch.pid)  # type: ignore[attr-defined]
         # Determine the features to use
         features = get_features(
-            batch.kernel,
-            batch.abs,
-            batch.rel_fit,
-            batch.state,
-            batch.age,
+            batch.kernel,  # type: ignore[attr-defined]
+            batch.abs,  # type: ignore[attr-defined]
+            batch.rel_fit,  # type: ignore[attr-defined]
+            batch.state,  # type: ignore[attr-defined]
+            batch.age,  # type: ignore[attr-defined]
         )
         # Preprocess
         df = preprocess(
-            features=features + [batch.target],
+            features=features + [batch.target],  # type: ignore[attr-defined]
             df=df,
-            remove_mutated=not batch.keep_mutated,
+            remove_mutated=not batch.keep_mutated,  # type: ignore[attr-defined]
         )
         df.to_csv(out_files["dataset"], index=False)
         # run the analysis
         res = run_analysis(
             df,
-            input_cols=list(df.columns.difference([batch.target])),
-            target_col=batch.target,
-            target_type=target_types[batch.target],
+            input_cols=list(df.columns.difference([batch.target])),  # type: ignore[attr-defined]
+            target_col=batch.target,  # type: ignore[attr-defined]
+            target_type=target_types[batch.target],  # type: ignore[attr-defined]
             group_cols=["seed"],
-            skip_feature_analysis=not batch.feature_analysis,
+            skip_feature_analysis=not batch.feature_analysis,  # type: ignore[attr-defined]
             random_state=batch.seed,
             **kwargs,
         )

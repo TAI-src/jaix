@@ -18,8 +18,6 @@ input_scenarios = {
         "p0_crowding",
     ],
     "state": ["b_rank_mean", "b_crowding_mean", "b_score"],
-    # TODO: score is hypervolume!
-    # "archive_state": ["b_size", "b_coverage", "b_avg_dist_to_ideal"],
     "age": ["p0_age", "p1_age"],
 }
 
@@ -29,7 +27,6 @@ target_types = {
     "o_F_0": "regression",
     "o_F_1": "regression",
 }
-# TODO: Add f objective values as targets
 
 
 def add_features(df: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
@@ -203,9 +200,6 @@ def get_data(perf_stats_dir: Path | str, pid: str) -> pd.DataFrame:
         file_type_pattern="merged_record_stats_*.csv",  # FIXME: Should not be hardcoded
         problem_names=[pid],
     )
-    assert (
-        len(perf_merged_files) == 1
-    ), f"Found {len(perf_merged_files)} files for problem {pid}"
     assert (
         len(perf_merged_files[pid]) == 1
     ), f"Found {len(perf_merged_files[pid])} files for problem {pid}"

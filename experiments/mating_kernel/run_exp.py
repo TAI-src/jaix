@@ -3,9 +3,11 @@ import logging
 
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.perf_exp import PerfExperiment
+from mating_kernel.exp.pred_exp import PredExperiment
 
 EXPERIMENTS: dict[str, type[Experiment]] = {
     "perf": PerfExperiment,
+    "pred": PredExperiment,
 }
 
 
