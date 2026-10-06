@@ -118,7 +118,7 @@ def test_run_batches(tmp_path, setting_name):
             pinfo=pinfo,
             parent_dir=tmp_path,
             perf_stats_dir=str(Path(__file__).parent.parent / "data"),
-            **settings
+            **settings,
         )
         for i in range(2)
     ]
