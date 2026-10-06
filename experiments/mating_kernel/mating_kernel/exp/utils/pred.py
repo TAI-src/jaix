@@ -22,7 +22,7 @@ def get_model(
     learning_rate: float = 0.05,
     max_leaf_nodes: int = 15,
     l2_regularization: float = 1.0,
-    random_state=42,
+    random_state: int | None = None,
     target_type: str = "binary",
     **kwargs,
 ):
@@ -48,7 +48,7 @@ def get_model(
 
 
 def get_mutual_information(
-    X: pd.DataFrame, y: pd.Series, target_type: str, random_state=42
+    X: pd.DataFrame, y: pd.Series, target_type: str, random_state: int | None = None
 ):
     if target_type == "binary":
         mi = mutual_info_classif(
@@ -117,11 +117,14 @@ def permutation_importance_analysis(
     scoring: str,
     groups: pd.Series,
     n_permutation_repeats: int = 10,
-    random_state: int = 42,
+    random_state: int | None = None,
     **kwargs,
 ):
 
     importance_vals: list[np.ndarray] = []
+    seeds = np.random.RandomState(random_state).randint(
+        0, 10000, size=cv.get_n_splits(X, y, groups=groups)
+    )
 
     for fold_idx, (train_idx, test_idx) in enumerate(cv.split(X, y, groups=groups)):
 
@@ -140,7 +143,7 @@ def permutation_importance_analysis(
             y_test,
             scoring=scoring,
             n_repeats=n_permutation_repeats,
-            random_state=random_state + fold_idx,
+            random_state=seeds[fold_idx],
         )
         avg_importance = np.mean(perm.importances, axis=1)
         importance_vals.append(avg_importance)
@@ -206,7 +209,7 @@ def run_analysis(
     target_type: str,
     group_cols: list[str],
     skip_feature_analysis: bool = False,
-    random_state: int = 42,
+    random_state: int | None = None,
     **kwargs,
 ) -> PredResult:
     X = df[input_cols]

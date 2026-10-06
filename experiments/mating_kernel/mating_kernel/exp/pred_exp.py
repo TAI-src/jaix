@@ -41,12 +41,12 @@ class PredExperiment(Experiment):
         )
 
         parser.add_argument(
-            "--pop_fitness",
+            "--rel_fit",
             action="store_true",
             help="Whether to use the fitness information for the prediction experiment.",
         )
         parser.add_argument(
-            "--pop_state",
+            "--state",
             action="store_true",
             help="Whether to use the state information of the populations",
         )
@@ -98,13 +98,13 @@ class PredExperiment(Experiment):
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
         out_files = PredExperiment.file_paths(batch)
         # Find the file for the batch
-        df = get_data(batch.perf_stats_dir, batch.problem_name)
+        df = get_data(batch.perf_stats_dir, batch.pid)
         # Determine the features to use
         features = get_features(
             batch.kernel,
             batch.abs,
-            batch.pop_fitness,
-            batch.pop_state,
+            batch.rel_fit,
+            batch.state,
             batch.age,
         )
         # Preprocess
@@ -117,7 +117,7 @@ class PredExperiment(Experiment):
         # run the analysis
         res = run_analysis(
             df,
-            input_cols=features,
+            input_cols=list(df.columns.difference([batch.target])),
             target_col=batch.target,
             target_type=target_types[batch.target],
             group_cols=["seed"],

@@ -1,5 +1,8 @@
 from collections import defaultdict
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def find_data_files(
@@ -9,6 +12,9 @@ def find_data_files(
 ) -> dict[str, list[Path]]:
     path = Path(folder)
     files = list(path.rglob(file_type_pattern))
+    logger.debug(
+        f"Found {len(files)} files in {folder} matching pattern '{file_type_pattern}'"
+    )
 
     # group files by problem names
     sorted_problem_names = sorted(problem_names or [])
