@@ -9,6 +9,7 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 
 from mating_kernel.problems.mo_tracking import make_tracked
 from mating_kernel.problems.problem_info import ProblemInfo
+import pytest
 
 
 def test_parsing():
@@ -77,7 +78,7 @@ def test_get_batch(tmp_path):
         age=True,
         keep_mutated=True,
         target="survived",
-        feature_analysis=True,
+        feature_analysis=False,
     )
     batch_cpy = batch.model_copy()
     result_files = PredExperiment._run_batch(batch)
@@ -86,3 +87,44 @@ def test_get_batch(tmp_path):
         assert Path(f).exists()
     assert batch == batch_cpy
     assert batch.problem == batch_cpy.problem
+
+
+common_settings = {
+    "f_pred": {
+        "kernel": True,
+        "abs": False,
+        "rel_fit": False,
+        "state": False,
+        "age": False,
+        "keep_mutated": False,
+        "target": "o_F_0",
+        "feature_analysis": False,
+    }
+}
+
+
+@pytest.mark.parametrize("setting_name", list(common_settings.keys()))
+def test_run_batches(tmp_path, setting_name):
+    settings = common_settings[setting_name]
+    problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
+    pinfo = ProblemInfo(problem)
+    batches = [
+        Batch(
+            problem=problem,
+            n_gen=5,
+            seed=123,
+            pid=pinfo.uuid,
+            sid=i,
+            pinfo=pinfo,
+            parent_dir=tmp_path,
+            perf_stats_dir=str(Path(__file__).parent.parent / "data"),
+            **settings
+        )
+        for i in range(2)
+    ]
+    result_files = PredExperiment._run_batches(batches)
+    assert len(result_files) == len(batches)
+    for batch, files in zip(batches, result_files):
+        assert len(files) == len(PredExperiment.file_paths(batch))
+        for f in files:
+            assert Path(f).exists()

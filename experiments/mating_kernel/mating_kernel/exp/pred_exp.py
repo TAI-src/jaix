@@ -64,7 +64,7 @@ class PredExperiment(Experiment):
         parser.add_argument(
             "--target",
             type=str,
-            choices=["survived", "o_dist_to_ideal"],
+            choices=["survived", "o_dist_to_ideal", "o_F_0", "o_F_1"],
             default="survived",
             help="The target variable for the prediction experiment.",
         )

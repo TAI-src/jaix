@@ -62,7 +62,13 @@ def add_features(df: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
     if not all(
         feature_name in feature_definitions for feature_name in missing_features
     ):
-        raise ValueError(f"One or more unknown features provided: {missing_features}")
+        logger.info(
+            f"One or more unknown features provided: {missing_features}. Known features are: {list(feature_definitions.keys())}"
+        )
+        # Remove known features from the missing_features list to avoid raising an error for them
+        missing_features = [
+            feature for feature in missing_features if feature in feature_definitions
+        ]
 
     new_val_dict = {}
     for feature_name in missing_features:
@@ -139,7 +145,7 @@ def expand_array_column(df: pd.DataFrame, column: str) -> pd.DataFrame:
 
 def expand_array_columns(
     df: pd.DataFrame, column_names: list[str] | None = None
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, dict[str, list[str]]]:
     if column_names is None:
         # Identify all columns that are of type 'object' and contain numpy arrays
         column_names = [
@@ -148,8 +154,9 @@ def expand_array_columns(
             if df[col].apply(lambda x: isinstance(x, np.ndarray)).all()
         ]
     expanded_dfs = [expand_array_column(df, col) for col in column_names]
+    col_names = {col: list(df.columns) for col, df in zip(column_names, expanded_dfs)}
     joined_df = pd.concat([df.drop(columns=column_names)] + expanded_dfs, axis=1)
-    return joined_df
+    return joined_df, col_names
 
 
 def preprocess(
@@ -168,10 +175,21 @@ def preprocess(
     df = str_to_np(df)
     # Add features that are computed from existing columns
     df = add_features(df, features)
-    # Drop all other columns that are not in features
-    df = df[features]
     # Expand numpy array columns into separate columns
-    df = expand_array_columns(df)
+    df, expanded_names = expand_array_columns(df)
+    # Record changes in column names after expansion
+    for original_col, new_cols in expanded_names.items():
+        if original_col in features:
+            features.remove(original_col)
+            features.extend(new_cols)
+
+    # Drop all other columns that are not in features
+    if not all(feature in df.columns for feature in features):
+        missing_features = [
+            feature for feature in features if feature not in df.columns
+        ]
+        raise ValueError(f"Missing required features: {missing_features}")
+    df = df[features]
     # Replace inf values with NaN
     df = df.replace([np.inf, -np.inf], np.nan)
     # Drop all rows with NaN values

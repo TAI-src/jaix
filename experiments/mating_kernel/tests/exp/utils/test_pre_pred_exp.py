@@ -83,9 +83,10 @@ def test_add_feature_missing_columns(example_data):
         add_features(df_missing_cols, ["p_x_dist"])
 
 
-def test_add_feature_unknown_feature(example_data):
-    with pytest.raises(ValueError, match="One or more unknown features provided:"):
-        add_features(example_data, ["unknown_feature"])
+def test_add_feature_unknown_feature(example_data, caplog):
+    caplog.set_level(logging.INFO)
+    add_features(example_data, ["unknown_feature"])
+    assert "One or more unknown features provided" in caplog.text
 
 
 @pytest.mark.parametrize("remove_mutated", [True, False])
@@ -182,7 +183,7 @@ def test_expand_array_columns(columns, example_data):
     np_df.dropna(
         subset=["o_n_gen"], inplace=True
     )  # Ensure no NaN values in 'o_n_gen' which generate empty o_F values
-    expanded_df = expand_array_columns(np_df, columns)
+    expanded_df, col_names = expand_array_columns(np_df, columns)
     for col in columns or np_cols:
         for i in range(len(np_df[col].iloc[0])):
             assert f"{col}_{i}" in expanded_df.columns
@@ -190,3 +191,11 @@ def test_expand_array_columns(columns, example_data):
     assert len(example_data.columns) < len(
         expanded_df.columns
     ), "Expanded DataFrame should have more columns than original"
+
+    assert isinstance(col_names, dict)
+    assert all(isinstance(v, list) for v in col_names.values())
+    assert all(isinstance(k, str) for k in col_names.keys())
+    assert set(col_names.keys()) == set(columns or np_cols)
+    assert all(
+        len(v) == len(np_df[k].iloc[0]) for k, v in col_names.items()
+    ), "Each list in col_names should match the length of the corresponding numpy array"
