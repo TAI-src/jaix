@@ -3,6 +3,8 @@ from mating_kernel.exp.exp import Experiment
 import logging
 from pathlib import Path
 import pickle
+from collections import defaultdict
+import pandas as pd
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.pre_pred_exp import (
@@ -94,6 +96,59 @@ class PredExperiment(Experiment):
             "result": batch.out_dir / f"result_{batch.name}.pkl",
         }
         return file_paths_dict
+
+    @staticmethod
+    def setting_name(batch: Batch) -> str:
+        """
+        Return a string representation of the batch settings by giving back only true settings plus target
+        """
+        settings = []
+        if batch.kernel:  # type: ignore[attr-defined]
+            settings.append("kernel")
+        if batch.abs:  # type: ignore[attr-defined]
+            settings.append("abs")
+        if batch.rel_fit:  # type: ignore[attr-defined]
+            settings.append("rel_fit")
+        if batch.state:  # type: ignore[attr-defined]
+            settings.append("state")
+        if batch.age:  # type: ignore[attr-defined]
+            settings.append("age")
+        if batch.keep_mutated:  # type: ignore[attr-defined]
+            settings.append("keep_mutated")
+        settings.append(batch.target)  # type: ignore[attr-defined]
+        return "_".join(settings)
+
+    @staticmethod
+    def _post_process_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
+        # Create dataframe with all cv results and save to csv
+        result_files = [PredExperiment.file_paths(batch)["result"] for batch in batches]
+        names = [PredExperiment.setting_name(batch) for batch in batches]
+        # Load all results
+        results = {}
+        for name, result_file, batch in zip(names, result_files, batches):
+            with open(result_file, "rb") as f:
+                res = pickle.load(f)
+            results[(name, batch.pid)] = {
+                "cv_score_mean": res.cv_score_mean,
+                "cv_score_std": res.cv_score_std,
+            }
+        df = pd.DataFrame.from_dict(results, orient="index")
+        df.index = pd.MultiIndex.from_tuples(df.index, names=["setting", "pid"])
+        df = df.reset_index()
+        out_dir = batches[0].out_dir.parent
+        res_names = "_".join(sorted(set(names)))
+        out_file = out_dir / f"summary_{res_names}.csv"
+        df.to_csv(out_file)
+
+        # combine all summary files in the same directory into one summary file
+        # FIXME: A bit dirty, but needs this until we can combine true/false batches
+        summary_file = out_dir / "cv_results_agg.csv"
+        if summary_file.exists():
+            df.to_csv(summary_file, mode="a", header=False, index=False)
+        else:
+            df.to_csv(summary_file, index=False)
+
+        return [[str(out_file), str(summary_file)]]
 
     @staticmethod
     def _run_batch(batch: Batch, **kwargs) -> list[str]:

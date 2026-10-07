@@ -10,6 +10,7 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 from mating_kernel.problems.mo_tracking import make_tracked
 from mating_kernel.problems.problem_info import ProblemInfo
 import pytest
+import pandas as pd
 
 
 def test_parsing():
@@ -103,28 +104,53 @@ common_settings = {
 }
 
 
-@pytest.mark.parametrize("setting_name", list(common_settings.keys()))
-def test_run_batches(tmp_path, setting_name):
-    settings = common_settings[setting_name]
-    problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
-    pinfo = ProblemInfo(problem)
+def make_batches(tmp_path, settings, num_batches=2):
+    problems = [
+        make_tracked(REProblem)(REProblemConfig(), inst=i) for i in range(num_batches)
+    ]
     batches = [
         Batch(
             problem=problem,
-            n_gen=5,
             seed=123,
-            pid=pinfo.uuid,
-            sid=i,
-            pinfo=pinfo,
+            pid=ProblemInfo(problem).uuid,
+            sid=0,
+            pinfo=ProblemInfo(problem),
             parent_dir=tmp_path,
             perf_stats_dir=str(Path(__file__).parent.parent / "data"),
             **settings,
         )
-        for i in range(2)
+        for problem in problems
     ]
+    return batches
+
+
+@pytest.mark.parametrize("setting_name", list(common_settings.keys()))
+def test_run_batches(tmp_path, setting_name):
+    settings = common_settings[setting_name]
+    batches = make_batches(tmp_path, settings)
     result_files = PredExperiment._run_batches(batches)
     assert len(result_files) == len(batches)
     for batch, files in zip(batches, result_files):
         assert len(files) == len(PredExperiment.file_paths(batch))
         for f in files:
             assert Path(f).exists()
+
+
+@pytest.mark.parametrize("setting_name", list(common_settings.keys()))
+def test_post_process_batches(tmp_path, setting_name):
+    settings = common_settings[setting_name]
+    batches = make_batches(tmp_path, settings)
+
+    PredExperiment._run_batches(batches)
+    post_files = PredExperiment._post_process_batches(batches)
+    assert len(post_files) == 1
+    assert len(post_files[0]) == 2
+    for f in post_files[0]:
+        assert Path(f).exists()
+        data = pd.read_csv(f)  # Check if the file can be read as a CSV
+        assert not data.empty  # Check if the DataFrame is not empty
+        assert "cv_score_mean" in data.columns  # Check for expected column
+        assert "cv_score_std" in data.columns  # Check for expected column
+        assert "setting" in data.columns  # Check for expected column
+        assert "pid" in data.columns  # Check for expected column
+        assert "RE22" in data["pid"].values  # Check for expected pid value
