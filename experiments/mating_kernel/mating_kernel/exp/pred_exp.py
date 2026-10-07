@@ -3,7 +3,6 @@ from mating_kernel.exp.exp import Experiment
 import logging
 from pathlib import Path
 import pickle
-from collections import defaultdict
 import pandas as pd
 
 from mating_kernel.exp.utils.batch import Batch
@@ -62,6 +61,11 @@ class PredExperiment(Experiment):
             action="store_true",
             help="Whether to keep mutated children in the prediction experiment.",
         )
+        parser.add_argument(
+            "--no_x",
+            action="store_true",
+            help="Whether to exclude the x information for the prediction experiment.",
+        )
 
         parser.add_argument(
             "--target",
@@ -115,6 +119,8 @@ class PredExperiment(Experiment):
             settings.append("age")
         if batch.keep_mutated:  # type: ignore[attr-defined]
             settings.append("keep_mutated")
+        if batch.no_x:  # type: ignore[attr-defined]
+            settings.append("no_x")
         settings.append(batch.target)  # type: ignore[attr-defined]
         return "_".join(settings)
 
@@ -162,6 +168,7 @@ class PredExperiment(Experiment):
             batch.rel_fit,  # type: ignore[attr-defined]
             batch.state,  # type: ignore[attr-defined]
             batch.age,  # type: ignore[attr-defined]
+            batch.no_x,  # type: ignore[attr-defined]
         )
         # Preprocess
         df = preprocess(

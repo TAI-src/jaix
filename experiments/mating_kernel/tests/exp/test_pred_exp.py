@@ -54,6 +54,7 @@ def test_parsing():
         "state": [True],
         "age": [True],
         "keep_mutated": [True],
+        "no_x": [False],
         "target": ["survived"],
         "feature_analysis": [True],
     }
@@ -78,6 +79,7 @@ def test_get_batch(tmp_path):
         state=True,
         age=True,
         keep_mutated=True,
+        no_x=False,
         target="survived",
         feature_analysis=False,
     )
@@ -91,7 +93,7 @@ def test_get_batch(tmp_path):
 
 
 common_settings = {
-    "f_pred": {
+    "kernel_f": {
         "kernel": True,
         "abs": False,
         "rel_fit": False,
@@ -100,7 +102,19 @@ common_settings = {
         "keep_mutated": False,
         "target": "o_F_0",
         "feature_analysis": False,
-    }
+        "no_x": False,
+    },
+    "rel_f": {
+        "kernel": True,
+        "abs": False,
+        "rel_fit": True,
+        "state": False,
+        "age": True,
+        "keep_mutated": False,
+        "target": "o_F_0",
+        "feature_analysis": False,
+        "no_x": True,
+    },
 }
 
 

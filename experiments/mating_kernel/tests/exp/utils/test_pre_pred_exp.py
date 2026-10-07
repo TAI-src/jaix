@@ -6,6 +6,7 @@ from mating_kernel.exp.utils.pre_pred_exp import (
     add_features,
     expand_array_column,
     expand_array_columns,
+    input_scenarios,
 )
 from pathlib import Path
 import pytest
@@ -125,9 +126,19 @@ def test_with_computed_features(example_data, caplog):
 
 
 def test_get_features():
-    features = get_features(kernel=True, abs=True, rel_fit=True, state=True, age=True)
+    features = get_features(
+        kernel=True, abs=True, rel_fit=True, state=True, age=True, no_x=False
+    )
     assert "seed" in features, "'seed' should be included in the features"
     assert isinstance(features, list), "Features should be returned as a list"
+    expected_features = [f for flist in input_scenarios.values() for f in flist]
+    assert set(features) == set(
+        expected_features + ["seed"]
+    ), "Features should match expected features"
+    features2 = get_features(
+        kernel=True, abs=True, rel_fit=True, state=True, age=True, no_x=True
+    )
+    assert set(features2) == set(features) - {"p_x_dist", "p0_X", "p1_X"}
 
 
 def test_remove_mutated(caplog):
