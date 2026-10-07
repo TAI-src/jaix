@@ -85,7 +85,7 @@ def add_features(df: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
 
 
 def get_features(
-    kernel: bool, abs: bool, rel_fit: bool, state: bool, age: bool
+    kernel: bool, abs: bool, rel_fit: bool, state: bool, age: bool, no_x: bool
 ) -> list[str]:
     features = []
     if kernel:
@@ -98,6 +98,8 @@ def get_features(
         features.extend(input_scenarios["state"])
     if age:
         features.extend(input_scenarios["age"])
+    if no_x:
+        features = [f for f in features if not "x" in f and not "X" in f]
     features.append("seed")  # This is needed done for stratification
     return features
 
