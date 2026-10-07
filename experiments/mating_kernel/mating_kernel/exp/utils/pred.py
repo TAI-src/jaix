@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+
 import numpy as np
 import pandas as pd
 from sklearn.base import clone
@@ -249,7 +250,7 @@ def run_analysis(
     logger.debug(f"Mutual information for target {target_col}:")
     logger.debug(mutual_info)
 
-    perm_importance, perm_importance_std = permutation_importance_analysis(
+    perm_importance, _perm_importance_std = permutation_importance_analysis(
         X, y, model, cv, scoring, groups=groups, **kwargs
     )
     logger.debug(f"Permutation importance for target {target_col} computed")

@@ -1,15 +1,16 @@
 import argparse
-from mating_kernel.exp.exp import Experiment
 import logging
-from pathlib import Path
 import pickle
+from pathlib import Path
+
 import pandas as pd
 
+from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.pre_pred_exp import (
+    get_data,
     get_features,
     preprocess,
-    get_data,
     target_types,
 )
 from mating_kernel.exp.utils.pred import run_analysis
