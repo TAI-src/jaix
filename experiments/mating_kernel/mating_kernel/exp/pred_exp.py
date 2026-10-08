@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 import pickle
 import pandas as pd
+import numpy as np
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.pre_pred_exp import (
@@ -13,6 +14,7 @@ from mating_kernel.exp.utils.pre_pred_exp import (
     target_types,
 )
 from mating_kernel.exp.utils.pred import run_analysis
+from mating_kernel.plots.heatmap import plot_heatmap
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +156,26 @@ class PredExperiment(Experiment):
         else:
             df.to_csv(summary_file, index=False)
 
-        return [[str(out_file), str(summary_file)]]
+        file_paths = [[str(out_file), str(summary_file)]]
+        for val in ["cv_score_mean", "cv_score_std"]:
+            # replace extreme outliers for plotting with nan
+            # values that are smaller than 0, and larger than 10.
+            df[val] = df[val].apply(lambda x: x if 0 <= x <= 10 else np.nan)
+
+            file_path = plot_heatmap(
+                source_df=df,
+                max_grid=None,
+                grid_colx="pid",
+                grid_coly="setting",
+                hue_col=val,
+                output_dir=out_dir,
+                file_prefix=val,
+                cmap_pal="viridis",
+                annot=False,
+            )
+            file_paths[0].append(str(file_path))
+
+        return file_paths
 
     @staticmethod
     def _run_batch(batch: Batch, **kwargs) -> list[str]:

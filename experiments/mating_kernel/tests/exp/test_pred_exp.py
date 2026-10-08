@@ -13,7 +13,7 @@ import pytest
 import pandas as pd
 
 
-def test_parsing():
+def test_parsing(tmp_path):
     config, filter_bids = PredExperiment.parse_args(
         [
             "--cobi",
@@ -24,7 +24,7 @@ def test_parsing():
             "--seed",
             "123",
             "--out_dir",
-            "test",
+            str(tmp_path / "test"),
             "--nth",
             "0",
             "1",
@@ -45,7 +45,7 @@ def test_parsing():
     assert config.reps == 5
     assert config.num_batches == 1
     assert config.seed == 123
-    assert config.out_dir == Path("test")
+    assert config.out_dir == tmp_path / "test"
     assert config.settings == {
         "perf_stats_dir": ["this"],
         "kernel": [True],
@@ -158,13 +158,14 @@ def test_post_process_batches(tmp_path, setting_name):
     PredExperiment._run_batches(batches)
     post_files = PredExperiment._post_process_batches(batches)
     assert len(post_files) == 1
-    assert len(post_files[0]) == 2
+    assert len(post_files[0]) == 4
     for f in post_files[0]:
         assert Path(f).exists()
-        data = pd.read_csv(f)  # Check if the file can be read as a CSV
-        assert not data.empty  # Check if the DataFrame is not empty
-        assert "cv_score_mean" in data.columns  # Check for expected column
-        assert "cv_score_std" in data.columns  # Check for expected column
-        assert "setting" in data.columns  # Check for expected column
-        assert "pid" in data.columns  # Check for expected column
-        assert "RE22" in data["pid"].values  # Check for expected pid value
+        if f.endswith(".csv"):
+            data = pd.read_csv(f)  # Check if the file can be read as a CSV
+            assert not data.empty  # Check if the DataFrame is not empty
+            assert "cv_score_mean" in data.columns  # Check for expected column
+            assert "cv_score_std" in data.columns  # Check for expected column
+            assert "setting" in data.columns  # Check for expected column
+            assert "pid" in data.columns  # Check for expected column
+            assert "RE22" in data["pid"].values  # Check for expected pid value
