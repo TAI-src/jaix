@@ -162,7 +162,7 @@ class PredExperiment(Experiment):
             # replace extreme outliers for plotting with nan
             # values that are smaller than 0, and larger than 10.
             df[val] = df[val].apply(lambda x: x if 0 <= x <= 10 else np.nan)
-
+            # FIXME: Should be plotting the agg df
             file_path = plot_heatmap(
                 source_df=df,
                 max_grid=None,
