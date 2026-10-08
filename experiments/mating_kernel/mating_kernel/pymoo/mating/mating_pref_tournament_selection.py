@@ -1,6 +1,7 @@
-from pymoo.operators.selection.tournament import TournamentSelection
-import numpy as np
 from abc import ABC, abstractmethod
+
+import numpy as np
+from pymoo.operators.selection.tournament import TournamentSelection
 
 
 class PreferredMatingTournamentSelection(TournamentSelection, ABC):
