@@ -1,7 +1,8 @@
+import numpy as np
+
 from mating_kernel.pymoo.mating.mating_pref_tournament_selection import (
     PreferredMatingTournamentSelection,
 )
-import numpy as np
 
 
 class RandomPrefTournamentSelection(PreferredMatingTournamentSelection):
@@ -11,7 +12,7 @@ class RandomPrefTournamentSelection(PreferredMatingTournamentSelection):
         pop,
         problem,
         random_state: np.random.Generator | None = None,
-        **kwargs
+        **kwargs,
     ) -> int:
         # Select a random mate from the population
         if random_state is None:

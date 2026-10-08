@@ -10,7 +10,6 @@ from pymoo.core.algorithm import Algorithm
 from pymoo.core.result import Result
 from pymoo.optimize import minimize
 
-
 from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
