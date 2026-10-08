@@ -2,8 +2,9 @@ import argparse
 import logging
 import pickle
 from pathlib import Path
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
