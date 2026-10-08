@@ -108,7 +108,7 @@ common_settings = {
         "kernel": True,
         "abs": False,
         "rel_fit": True,
-        "state": False,
+        "state": True,
         "age": True,
         "keep_mutated": False,
         "target": "o_F_0",

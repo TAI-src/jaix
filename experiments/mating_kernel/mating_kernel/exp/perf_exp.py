@@ -143,7 +143,7 @@ class PerfExperiment(Experiment):
         record_alg_class = make_recordable(algorithm_class)
         if algorithm_params is None:
             algorithm_params = {}
-        if selector == "default":
+        if selector in (None, "default"):
             from pymoo.operators.selection.tournament import TournamentSelection
 
             algorithm_params["selection"] = TournamentSelection(
