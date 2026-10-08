@@ -3,15 +3,10 @@ import pytest
 from mating_kernel.exp.utils.parse_args import experiment_parser
 
 
-def test_experiment_parser_defaults():
+def test_experiment_parser_defaults(tmp_path):
     parser = experiment_parser()
 
-    args = parser.parse_args(
-        [
-            "--out_dir",
-            "results",
-        ]
-    )
+    args = parser.parse_args(["--out_dir", str(tmp_path / "results")])
 
     assert args.cobi is False
     assert args.re is False
@@ -21,11 +16,11 @@ def test_experiment_parser_defaults():
     assert args.seed is None
     assert args.reps == 30
     assert args.num_batches == 1
-    assert args.out_dir == "results"
+    assert args.out_dir == str(tmp_path / "results")
     assert args.nth is None
 
 
-def test_experiment_parser_parses_all_arguments():
+def test_experiment_parser_parses_all_arguments(tmp_path):
     parser = experiment_parser()
 
     args = parser.parse_args(
@@ -43,7 +38,7 @@ def test_experiment_parser_parses_all_arguments():
             "--num_batches",
             "4",
             "--out_dir",
-            "results",
+            str(tmp_path / "results"),
             "--nth",
             "0",
             "3",
@@ -61,7 +56,7 @@ def test_experiment_parser_parses_all_arguments():
     assert args.seed == 123
     assert args.reps == 10
     assert args.num_batches == 4
-    assert args.out_dir == "results"
+    assert args.out_dir == str(tmp_path / "results")
     assert args.nth == [0, 3]
     assert args.group_by == ["pid", "sid"]
     assert args.mode == "run"
@@ -69,13 +64,13 @@ def test_experiment_parser_parses_all_arguments():
     assert args.force_recompute is False
 
 
-def test_exp_parser_with_options():
+def test_exp_parser_with_options(tmp_path):
     parser = experiment_parser()
 
     args = parser.parse_args(
         [
             "--out_dir",
-            "results",
+            str(tmp_path / "results"),
             "--mode",
             "check",
             "--skip_existing",
@@ -83,7 +78,7 @@ def test_exp_parser_with_options():
         ]
     )
 
-    assert args.out_dir == "results"
+    assert args.out_dir == str(tmp_path / "results")
     assert args.mode == "check"
     assert args.skip_existing is True
     assert args.force_recompute is True
@@ -96,13 +91,14 @@ def test_experiment_parser_requires_out_dir():
         parser.parse_args([])
 
 
-def test_experiment_parser_rejects_unknown_arguments():
+def test_experiment_parser_rejects_unknown_arguments(tmp_path):
     parser = experiment_parser()
 
     with pytest.raises(SystemExit):
         parser.parse_args(
             [
                 "--out_dir",
+                str(tmp_path / "results"),
                 "results",
                 "--does-not-exist",
             ]

@@ -1,5 +1,4 @@
 import argparse
-from pathlib import Path
 
 from mating_kernel.exp.utils.factory import (
     ExperimentConfig,
@@ -25,7 +24,7 @@ def test_mk_suite_parser():
     assert isinstance(mk_suite_config, MKSuiteConfig)
 
 
-def test_experiment_config_parser():
+def test_experiment_config_parser(tmp_path):
     args = argparse.Namespace(
         cobi=True,
         re=True,
@@ -34,7 +33,7 @@ def test_experiment_config_parser():
         reps=10,
         num_batches=5,
         seed=42,
-        out_dir="results",
+        out_dir=tmp_path / "results",
         mode="run",
         group_by=["pid", "sid"],
         skip_existing=True,
@@ -49,7 +48,7 @@ def test_experiment_config_parser():
     assert experiment_config.reps == 10
     assert experiment_config.num_batches == 5
     assert experiment_config.seed == 42
-    assert experiment_config.out_dir == Path("results")
+    assert experiment_config.out_dir == tmp_path / "results"
     assert experiment_config.settings == settings
     assert experiment_config.mode == ExperimentMode.RUN
     assert experiment_config.group_by == ["pid", "sid"]

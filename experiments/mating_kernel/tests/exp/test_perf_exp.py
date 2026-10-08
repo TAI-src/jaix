@@ -14,7 +14,7 @@ from mating_kernel.pymoo.parser.reproduction_parser import ReproductionParser
 from mating_kernel.pymoo.recording_callback import recursive_getattr
 
 
-def test_parsing():
+def test_parsing(tmp_path):
     # Test parser together with the parse base experiment
     config, filter_bids = PerfExperiment.parse_args(
         [
@@ -26,7 +26,7 @@ def test_parsing():
             "--seed",
             "123",
             "--out_dir",
-            "results",
+            str(tmp_path / "results"),
             "--nth",
             "0",
             "1",
@@ -41,7 +41,7 @@ def test_parsing():
     assert config.reps == 5
     assert config.num_batches == 1
     assert config.seed == 123
-    assert config.out_dir == Path("results")
+    assert config.out_dir == tmp_path / "results"
     assert config.settings == {
         "alg_name": ["NSGA2"],
         "selector": ["random", "default"],
@@ -141,7 +141,7 @@ def test_post_process_batches(tmp_path):
             sid=0,
             rep=i,
             pinfo=pinfo,
-            parent_dir=".",
+            parent_dir=tmp_path,
         )
         PerfExperiment._run_batch(batch)
         batches.append(batch)
