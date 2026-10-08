@@ -19,4 +19,4 @@ class RandomPrefTournamentSelection(PreferredMatingTournamentSelection):
             mate_idx = rng.integers(low=0, high=len(pop))
         else:
             mate_idx = random_state.integers(low=0, high=len(pop))
-        return mate_idx
+        return int(mate_idx)
