@@ -169,3 +169,4 @@ cython_debug/
 
 # Related to R language
 .Rhistory
+experiments/*/data
