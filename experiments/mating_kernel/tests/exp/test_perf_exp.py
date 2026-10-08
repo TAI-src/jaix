@@ -35,6 +35,9 @@ def test_parsing(tmp_path):
             "default",
             "--n_gen",
             "1000",
+            "--num_candidates",
+            "3",
+            "1",
         ]
     )
     assert config.suite_config.cobi is True
@@ -46,6 +49,8 @@ def test_parsing(tmp_path):
         "alg_name": ["NSGA2"],
         "selector": ["random", "default"],
         "n_gen": [1000],
+        "num_candidates": [3, 1],
+        "candidate_pressure": [2],
     }
     assert filter_bids == [0, 1]
 
@@ -69,6 +74,7 @@ def test_get_recorded_alg(selector):
     algorithm = PerfExperiment.get_recorded_alg(
         algorithm_name="NSGA2",
         selector=selector,
+        selector_params={"num_candidates": 3, "candidate_pressure": 2},
         algorithm_params={"pop_size": 5},
         record_args=ReproductionParser.record_args,
         record_attributes=ReproductionParser.record_attributes,
@@ -93,6 +99,7 @@ def test_run_instrumented_pymoo(selector):
         problem=problem,
         algorithm_name="NSGA2",
         selector=selector,
+        selector_params={"num_candidates": 3, "candidate_pressure": 2},
         n_gen=5,
         algorithm_params={"pop_size": 10},
         seed=123,
@@ -116,6 +123,8 @@ def test_run_batch(tmp_path, selector):
         sid=0,
         pinfo=pinfo,
         parent_dir=tmp_path,
+        num_candidates=3,
+        candidate_pressure=2,
     )
     batch_cpy = batch.model_copy()
     result_files = PerfExperiment._run_batch(batch)
@@ -146,6 +155,8 @@ def test_post_process_batches(tmp_path, selector):
             rep=i,
             pinfo=pinfo,
             parent_dir=tmp_path,
+            num_candidates=3,
+            candidate_pressure=2,
         )
         PerfExperiment._run_batch(batch)
         batches.append(batch)

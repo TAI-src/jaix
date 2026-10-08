@@ -48,6 +48,21 @@ class PerfExperiment(Experiment):
             default=1000,
             help="Number of generations to run the algorithm for.",
         )
+        parser.add_argument(
+            "--num_candidates",
+            type=int,
+            default=1,
+            nargs="+",
+            help="Number of candidates for preference selection",
+        )
+        parser.add_argument(
+            "--candidate_pressure",
+            type=int,
+            default=2,
+            nargs="+",
+            help="Pressure for candidate selection",
+        )
+
         return parser
 
     @staticmethod
@@ -70,10 +85,18 @@ class PerfExperiment(Experiment):
 
     @staticmethod
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
+        selector_attrs = ["num_candidates", "candidate_pressure"]
+
+        selector_params = {
+            attr: getattr(batch, attr)
+            for attr in selector_attrs
+            if hasattr(batch, attr)
+        }
         result, record_stats = PerfExperiment.run_instrumented_pymoo(
             problem=batch.problem,
             algorithm_name=batch.alg_name,  # type: ignore[attr-defined]
             selector=batch.selector,  # type: ignore[attr-defined]
+            selector_params=selector_params,
             n_gen=batch.n_gen,  # type: ignore[attr-defined]
             algorithm_params={},  # type: ignore[attr-defined]
             seed=batch.seed,
@@ -134,6 +157,7 @@ class PerfExperiment(Experiment):
     def get_recorded_alg(
         algorithm_name: str,
         selector: str | None,
+        selector_params: dict | None,
         algorithm_params: dict | None,
         record_args: dict[str, RecordingConfig] | None = None,
         record_attributes: dict[str, RecordingConfig] | None = None,
@@ -154,7 +178,7 @@ class PerfExperiment(Experiment):
             )
 
             algorithm_params["selection"] = RandomPrefTournamentSelection(
-                func_comp=binary_tournament
+                func_comp=binary_tournament, **(selector_params or {})
             )
         else:
             raise ValueError(f"Unsupported selector: {selector}")
@@ -170,6 +194,7 @@ class PerfExperiment(Experiment):
         problem: StaticProblem,
         algorithm_name: str,
         selector: str | None,
+        selector_params: dict | None,
         n_gen: int,
         algorithm_params: dict | None = None,
         seed: int | None = None,
@@ -179,6 +204,7 @@ class PerfExperiment(Experiment):
         algorithm = PerfExperiment.get_recorded_alg(
             algorithm_name=algorithm_name,
             selector=selector,
+            selector_params=selector_params,
             algorithm_params=algorithm_params,
             record_args=callback.record_arg_keys,
             record_attributes=callback.record_attribute_keys,
