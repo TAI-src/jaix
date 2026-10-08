@@ -74,7 +74,7 @@ class PredExperiment(Experiment):
             "--target",
             type=str,
             nargs="+",
-            choices=["survived", "o_dist_to_ideal", "o_F_0", "o_F_1"],
+            choices=["survived", "o_dist_to_ideal", "o_F_0", "o_F_1", "o_ndp"],
             default="survived",
             help="The target variable for the prediction experiment.",
         )

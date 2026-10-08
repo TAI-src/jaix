@@ -115,6 +115,17 @@ common_settings = {
         "feature_analysis": False,
         "no_x": True,
     },
+    "o_ndp": {
+        "kernel": True,
+        "abs": False,
+        "rel_fit": True,
+        "state": False,
+        "age": False,
+        "keep_mutated": False,
+        "target": "o_ndp",
+        "feature_analysis": False,
+        "no_x": False,
+    },
 }
 
 

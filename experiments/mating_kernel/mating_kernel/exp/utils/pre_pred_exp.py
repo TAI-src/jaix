@@ -1,7 +1,7 @@
 import logging
 import re
 from pathlib import Path
-
+import moocore
 import numpy as np
 import pandas as pd
 
@@ -28,32 +28,44 @@ target_types = {
     "o_dist_to_ideal": "regression",
     "o_F_0": "regression",
     "o_F_1": "regression",
+    "o_ndp": "binary",
+}
+
+feature_definitions = {
+    "p_x_dist": (
+        ["p0_X", "p1_X"],
+        lambda df: np.linalg.norm(
+            np.stack(df["p0_X"].values) - np.stack(df["p1_X"].values), axis=1
+        ),
+    ),
+    "p_f_dist": (
+        ["p0_F", "p1_F"],
+        lambda df: np.linalg.norm(
+            np.stack(df["p0_F"].values) - np.stack(df["p1_F"].values), axis=1
+        ),
+    ),
+    "p0_age": (
+        ["p0_n_gen", "o_n_gen"],
+        lambda df: df["o_n_gen"] - df["p0_n_gen"],
+    ),
+    "p1_age": (
+        ["p1_n_gen", "o_n_gen"],
+        lambda df: df["o_n_gen"] - df["p1_n_gen"],
+    ),
+    "o_ndp": (
+        ["p0_F", "p1_F", "o_F"],
+        lambda df: df.apply(
+            lambda row: moocore.is_nondominated(
+                np.array([row["o_F"], row["p0_F"], row["p1_F"]]), maximise=False
+            )[0],
+            axis=1,
+        ),
+    ),
 }
 
 
 def add_features(df: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
-    feature_definitions = {
-        "p_x_dist": (
-            ["p0_X", "p1_X"],
-            lambda df: np.linalg.norm(
-                np.stack(df["p0_X"].values) - np.stack(df["p1_X"].values), axis=1
-            ),
-        ),
-        "p_f_dist": (
-            ["p0_F", "p1_F"],
-            lambda df: np.linalg.norm(
-                np.stack(df["p0_F"].values) - np.stack(df["p1_F"].values), axis=1
-            ),
-        ),
-        "p0_age": (
-            ["p0_n_gen", "o_n_gen"],
-            lambda df: df["o_n_gen"] - df["p0_n_gen"],
-        ),
-        "p1_age": (
-            ["p1_n_gen", "o_n_gen"],
-            lambda df: df["o_n_gen"] - df["p1_n_gen"],
-        ),
-    }
+
     missing_features = [
         feature for feature in feature_names if feature not in df.columns
     ]

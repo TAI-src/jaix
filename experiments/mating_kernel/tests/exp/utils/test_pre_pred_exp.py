@@ -7,6 +7,7 @@ from mating_kernel.exp.utils.pre_pred_exp import (
     expand_array_column,
     expand_array_columns,
     input_scenarios,
+    feature_definitions,
 )
 from pathlib import Path
 import pytest
@@ -43,15 +44,39 @@ def test_str_to_np(cols, example_data):
         ), f"All elements in {col} should be numpy arrays after conversion"
 
 
-@pytest.mark.parametrize(
-    "add_feature_name", ["p_x_dist", "p_f_dist", "p0_age", "p1_age"]
-)
+@pytest.mark.parametrize("add_feature_name", list(feature_definitions.keys()))
 def test_add_feature_run(add_feature_name, example_data):
     df = str_to_np(example_data.copy(), column_names=np_cols)
+    # remove unevaluated offspring
+    df.dropna(subset=["o_n_gen"], inplace=True)
     df_with_feature = add_features(df, [add_feature_name])
     assert (
         add_feature_name in df_with_feature.columns
     ), f"{add_feature_name} should be added to the DataFrame"
+
+
+def test_add_feature_value_o_ndfp():
+    p1 = np.array([1, 3])
+    p0 = np.array([3, 1])
+    o_list = [
+        (np.array([2, 2]), True),  # non_dominated offspring
+        (np.array([1, 2]), True),  # dominates parent,
+        (np.array([3, 3]), False),  # dominated by parent (weakly)
+        (np.array([4, 4]), False),  # dominated by parent (strongly)
+        (np.array([0, 5]), True),  # dominates parent (but outside)
+    ]
+    df = pd.DataFrame(
+        {
+            "p0_F": [p0] * len(o_list),
+            "p1_F": [p1] * len(o_list),
+            "o_F": [o[0] for o in o_list],
+        }
+    )
+    df_with_features = add_features(df.copy(), ["o_ndp"])
+    expected_values = [o[1] for o in o_list]
+    assert all(
+        df_with_features["o_ndp"].values == expected_values
+    ), "o_ndp feature values do not match expected values"
 
 
 def test_add_feature_value():
