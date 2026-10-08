@@ -12,7 +12,7 @@ def test_preferred_mate_selection():
     calls = []
 
     class TestSelection(PreferredMatingTournamentSelection):
-        def select_mate(self, parents, options, problem, **kwargs):
+        def select_mate(self, parents, options, problem, pop, **kwargs):
             calls.append((parents, options))
             return 1
 
@@ -37,7 +37,7 @@ def test_preferred_mate_selection():
 
 def test_candidate_selection_configuration():
     class TestSelection(PreferredMatingTournamentSelection):
-        def select_mate(self, parents, options, problem, **kwargs):
+        def select_mate(self, parents, options, problem, pop, **kwargs):
             return 1
 
     selector = TestSelection(

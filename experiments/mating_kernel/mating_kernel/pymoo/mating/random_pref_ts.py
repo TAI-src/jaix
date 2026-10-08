@@ -12,6 +12,7 @@ class RandomPrefTournamentSelection(PreferredMatingTournamentSelection):
         parents,
         options,
         problem,
+        pop,
         random_state: np.random.Generator | None = None,
         **kwargs,
     ) -> int:

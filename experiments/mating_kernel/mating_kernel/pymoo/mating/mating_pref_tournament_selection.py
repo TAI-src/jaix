@@ -46,10 +46,12 @@ class PreferredMatingTournamentSelection(TournamentSelection, ABC):
             parents = selection[i].tolist()
             options = preselect[i].tolist()
             mate_idx = self.select_mate(
-                parents, options, problem, random_state=random_state, **kwargs
+                parents, options, problem, pop, random_state=random_state, **kwargs
             )
             selection[i][-1] = options[mate_idx]
         return selection
 
     @abstractmethod
-    def select_mate(self, parents, options, problem, random_state, **kwargs) -> int: ...
+    def select_mate(
+        self, parents, options, problem, pop, random_state, **kwargs
+    ) -> int: ...
