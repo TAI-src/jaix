@@ -12,7 +12,7 @@ class PreferredMatingTournamentSelection(TournamentSelection, ABC):
         n_select: int,
         n_parents: int = 2,
         random_state: np.random.Generator | None = None,
-        **kwargs
+        **kwargs,
     ) -> np.ndarray:
         # Perform tournament selection to select individuals from the population
         selection = super()._do(

@@ -11,7 +11,7 @@ class RandomPrefTournamentSelection(PreferredMatingTournamentSelection):
         pop,
         problem,
         random_state: np.random.Generator | None = None,
-        **kwargs
+        **kwargs,
     ) -> int:
         # Select a random mate from the population
         if random_state is None:
