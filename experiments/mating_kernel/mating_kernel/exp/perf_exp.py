@@ -5,7 +5,7 @@ import pickle
 from pathlib import Path
 
 import pandas as pd
-from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.algorithms.moo.nsga2 import NSGA2, binary_tournament
 from pymoo.core.algorithm import Algorithm
 from pymoo.core.result import Result
 from pymoo.optimize import minimize
@@ -40,8 +40,7 @@ class PerfExperiment(Experiment):
             "--selector",
             nargs="+",
             type=str,
-            required=False,
-            default=None,
+            default="default",
         )
         parser.add_argument(
             "--n_gen",
@@ -143,8 +142,22 @@ class PerfExperiment(Experiment):
         record_alg_class = make_recordable(algorithm_class)
         if algorithm_params is None:
             algorithm_params = {}
-        if selector is not None:
-            raise NotImplementedError("Selector conversion is not implemented yet.")
+        if selector in (None, "default"):
+            from pymoo.operators.selection.tournament import TournamentSelection
+
+            algorithm_params["selection"] = TournamentSelection(
+                func_comp=binary_tournament
+            )
+        elif selector == "random":
+            from mating_kernel.pymoo.mating.random_pref_ts import (
+                RandomPrefTournamentSelection,
+            )
+
+            algorithm_params["selection"] = RandomPrefTournamentSelection(
+                func_comp=binary_tournament
+            )
+        else:
+            raise ValueError(f"Unsupported selector: {selector}")
         algorithm = record_alg_class(
             **algorithm_params,
             record_args=record_args,

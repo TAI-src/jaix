@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import pytest
 import pandas as pd
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
@@ -64,10 +64,11 @@ def test_get_alg_class():
         raise AssertionError("Expected get_alg_class to reject unsupported algorithm")
 
 
-def test_get_recorded_alg():
+@pytest.mark.parametrize("selector", ["default", "random"])
+def test_get_recorded_alg(selector):
     algorithm = PerfExperiment.get_recorded_alg(
         algorithm_name="NSGA2",
-        selector=None,
+        selector=selector,
         algorithm_params={"pop_size": 5},
         record_args=ReproductionParser.record_args,
         record_attributes=ReproductionParser.record_attributes,
@@ -84,13 +85,14 @@ def test_get_recorded_alg():
         assert attr is not None and hasattr(attr, "retrieve_records")
 
 
-def test_run_instrumented_pymoo():
+@pytest.mark.parametrize("selector", ["default", "random"])
+def test_run_instrumented_pymoo(selector):
     tracked_REProblem = make_tracked(REProblem)
     problem = tracked_REProblem(REProblemConfig(), inst=0)
     result, record_stats = PerfExperiment.run_instrumented_pymoo(
         problem=problem,
         algorithm_name="NSGA2",
-        selector=None,
+        selector=selector,
         n_gen=5,
         algorithm_params={"pop_size": 10},
         seed=123,
@@ -99,14 +101,15 @@ def test_run_instrumented_pymoo():
     assert isinstance(record_stats, pd.DataFrame)
 
 
-def test_run_batch(tmp_path):
+@pytest.mark.parametrize("selector", ["default", "random"])
+def test_run_batch(tmp_path, selector):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo(problem)
     batch = Batch(
         name="test_batch",
         problem=problem,
         alg_name="NSGA2",
-        selector=None,
+        selector=selector,
         n_gen=5,
         seed=123,
         pid=pinfo.uuid,
@@ -126,7 +129,8 @@ def test_run_batch(tmp_path):
     assert batch.problem == batch_cpy.problem
 
 
-def test_post_process_batches(tmp_path):
+@pytest.mark.parametrize("selector", ["default", "random"])
+def test_post_process_batches(tmp_path, selector):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo(problem)
     batches = []
@@ -134,7 +138,7 @@ def test_post_process_batches(tmp_path):
         batch = Batch(
             problem=problem,
             alg_name="NSGA2",
-            selector=None,
+            selector=selector,
             n_gen=3,
             seed=123 + i,
             pid=pinfo.uuid,
