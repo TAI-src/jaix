@@ -1,7 +1,8 @@
+import numpy as np
+
 from mating_kernel.pymoo.mating.mating_pref_tournament_selection import (
     PreferredMatingTournamentSelection,
 )
-import numpy as np
 
 
 class RandomPrefTournamentSelection(PreferredMatingTournamentSelection):
