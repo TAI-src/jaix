@@ -20,7 +20,7 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
     def __init__(
         self,
         func_comp: Callable,
-        num_oracle_offspring: int,
+        num_oracle_offspring: int = 30,
         num_candidates: int = 1,
         candidate_pressure: int = 2,  # This is the default in pymoo
         **kwargs,
@@ -40,7 +40,8 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
             selection=selection, crossover=crossover, mutation=mutation
         )
         self.survival = RankAndCrowdingSurvival()  # Default from pymoo nsga2
-        self.num_offspring = num_oracle_offspring
+        assert num_oracle_offspring > 1, "num_oracle_offspring must be greater than 0"
+        self.num_oracle_offspring = num_oracle_offspring
 
     def eval_mate(
         self,
@@ -59,11 +60,13 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
         off = self.mating.do(
             prob_cpy,
             pop_cpy,
-            n_offsprings=self.num_offspring,
+            n_offsprings=self.num_oracle_offspring,
             parents=np.array([p]),
             random_state=random_state,
         )
-
+        assert (
+            len(off) == self.num_oracle_offspring
+        ), "Unexpected number of offspring generated."
         Evaluator().eval(prob_cpy, off)
 
         new_pop = self.survival.do(
@@ -73,7 +76,7 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
         survivors = [o for o in off if o in new_pop]
 
         return (
-            len(survivors) / self.num_offspring
+            len(survivors) / self.num_oracle_offspring
         )  # Return the proportion of surviving offspring
 
     def select_mate(
