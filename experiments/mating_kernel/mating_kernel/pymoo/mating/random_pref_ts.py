@@ -1,4 +1,8 @@
+from collections.abc import Sequence
+
 import numpy as np
+from pymoo.core.population import Population
+from pymoo.core.problem import Problem
 
 from mating_kernel.pymoo.mating.mating_pref_tournament_selection import (
     PreferredMatingTournamentSelection,
@@ -9,9 +13,10 @@ class RandomPrefTournamentSelection(PreferredMatingTournamentSelection):
 
     def select_mate(
         self,
-        parents,
-        options,
-        problem,
+        parents: Sequence[int],
+        options: Sequence[int],
+        problem: Problem,
+        pop: Population,
         random_state: np.random.Generator | None = None,
         **kwargs,
     ) -> int:

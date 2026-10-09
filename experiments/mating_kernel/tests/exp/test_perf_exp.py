@@ -51,6 +51,7 @@ def test_parsing(tmp_path):
         "n_gen": [1000],
         "num_candidates": [3, 1],
         "candidate_pressure": [2],
+        "num_oracle_simulations": [30],
     }
     assert filter_bids == [0, 1]
 
@@ -69,12 +70,16 @@ def test_get_alg_class():
         raise AssertionError("Expected get_alg_class to reject unsupported algorithm")
 
 
-@pytest.mark.parametrize("selector", ["default", "random"])
+@pytest.mark.parametrize("selector", ["default", "random", "oracle"])
 def test_get_recorded_alg(selector):
     algorithm = PerfExperiment.get_recorded_alg(
         algorithm_name="NSGA2",
         selector=selector,
-        selector_params={"num_candidates": 3, "candidate_pressure": 2},
+        selector_params={
+            "num_candidates": 3,
+            "candidate_pressure": 2,
+            "num_oracle_simulations": 5,
+        },
         algorithm_params={"pop_size": 5},
         record_args=ReproductionParser.record_args,
         record_attributes=ReproductionParser.record_attributes,
@@ -91,7 +96,7 @@ def test_get_recorded_alg(selector):
         assert attr is not None and hasattr(attr, "retrieve_records")
 
 
-@pytest.mark.parametrize("selector", ["default", "random"])
+@pytest.mark.parametrize("selector", ["default", "random", "oracle"])
 def test_run_instrumented_pymoo(selector):
     tracked_REProblem = make_tracked(REProblem)
     problem = tracked_REProblem(REProblemConfig(), inst=0)
@@ -99,7 +104,11 @@ def test_run_instrumented_pymoo(selector):
         problem=problem,
         algorithm_name="NSGA2",
         selector=selector,
-        selector_params={"num_candidates": 3, "candidate_pressure": 2},
+        selector_params={
+            "num_candidates": 3,
+            "candidate_pressure": 2,
+            "num_oracle_simulations": 2,
+        },
         n_gen=5,
         algorithm_params={"pop_size": 10},
         seed=123,
@@ -108,7 +117,7 @@ def test_run_instrumented_pymoo(selector):
     assert isinstance(record_stats, pd.DataFrame)
 
 
-@pytest.mark.parametrize("selector", ["default", "random"])
+@pytest.mark.parametrize("selector", ["default", "random", "oracle"])
 def test_run_batch(tmp_path, selector):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo(problem)
@@ -125,6 +134,7 @@ def test_run_batch(tmp_path, selector):
         parent_dir=tmp_path,
         num_candidates=3,
         candidate_pressure=2,
+        num_oracle_simulations=1,
     )
     batch_cpy = batch.model_copy()
     result_files = PerfExperiment._run_batch(batch)
@@ -138,7 +148,7 @@ def test_run_batch(tmp_path, selector):
     assert batch.problem == batch_cpy.problem
 
 
-@pytest.mark.parametrize("selector", ["default", "random"])
+@pytest.mark.parametrize("selector", ["default", "random", "oracle"])
 def test_post_process_batches(tmp_path, selector):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo(problem)
@@ -157,6 +167,7 @@ def test_post_process_batches(tmp_path, selector):
             parent_dir=tmp_path,
             num_candidates=3,
             candidate_pressure=2,
+            num_oracle_simulations=1,
         )
         PerfExperiment._run_batch(batch)
         batches.append(batch)

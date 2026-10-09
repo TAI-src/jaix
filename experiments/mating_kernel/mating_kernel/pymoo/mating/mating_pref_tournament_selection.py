@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Sequence
 
 import numpy as np
+from pymoo.core.population import Population
+from pymoo.core.problem import Problem
 from pymoo.operators.selection.tournament import TournamentSelection
 
 
@@ -8,7 +11,7 @@ class PreferredMatingTournamentSelection(TournamentSelection, ABC):
 
     def __init__(
         self,
-        func_comp,
+        func_comp: Callable,
         num_candidates: int = 1,
         candidate_pressure: int = 2,  # This is the default in pymoo
         **kwargs,
@@ -21,8 +24,8 @@ class PreferredMatingTournamentSelection(TournamentSelection, ABC):
 
     def _do(
         self,
-        problem,
-        pop,
+        problem: Problem,
+        pop: Population,
         n_select: int,
         n_parents: int = 2,
         random_state: np.random.Generator | None = None,
@@ -44,12 +47,28 @@ class PreferredMatingTournamentSelection(TournamentSelection, ABC):
         # Replace the last parent in each  mating with the preferred mate selected using the select_mate method
         for i in range(n_select):
             parents = selection[i].tolist()
+            # Remove the last parent from the list of parents since that will be
+            # replaced by the selected mate
+            parents.pop(-1)
             options = preselect[i].tolist()
             mate_idx = self.select_mate(
-                parents, options, problem, random_state=random_state, **kwargs
+                parents, options, problem, pop, random_state=random_state, **kwargs
             )
             selection[i][-1] = options[mate_idx]
         return selection
 
     @abstractmethod
-    def select_mate(self, parents, options, problem, random_state, **kwargs) -> int: ...
+    def select_mate(
+        self,
+        parents: Sequence[int],
+        options: Sequence[int],
+        problem: Problem,
+        pop: Population,
+        random_state: np.random.Generator | None,
+        **kwargs,
+    ) -> int:
+        """
+        Returns the index of the selected mate from the options list based on the parents and problem context.
+        This method should be implemented in subclasses to define the specific mate selection strategy.
+        """
+        ...
