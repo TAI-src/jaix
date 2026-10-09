@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 
 import numpy as np
@@ -6,12 +5,15 @@ from pymoo.core.population import Population
 from pymoo.core.problem import Problem
 from pymoo.operators.selection.tournament import TournamentSelection
 
+from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 
-class PreferredMatingTournamentSelection(TournamentSelection, ABC):
+
+class PreferenceTournamentSelection(TournamentSelection):
 
     def __init__(
         self,
         func_comp: Callable,
+        preference_model: PreferenceModel,
         num_candidates: int = 1,
         candidate_pressure: int = 2,  # This is the default in pymoo
         **kwargs,
@@ -21,6 +23,7 @@ class PreferredMatingTournamentSelection(TournamentSelection, ABC):
         self.candidate_selection = TournamentSelection(
             func_comp=func_comp, pressure=candidate_pressure
         )
+        self.preference_model = preference_model
 
     def _do(
         self,
@@ -57,7 +60,6 @@ class PreferredMatingTournamentSelection(TournamentSelection, ABC):
             selection[i][-1] = options[mate_idx]
         return selection
 
-    @abstractmethod
     def select_mate(
         self,
         parents: Sequence[int],
@@ -71,4 +73,12 @@ class PreferredMatingTournamentSelection(TournamentSelection, ABC):
         Returns the index of the selected mate from the options list based on the parents and problem context.
         This method should be implemented in subclasses to define the specific mate selection strategy.
         """
-        ...
+        scores = self.preference_model.evaluate(
+            parents=[pop[i] for i in parents],
+            mate_options=[pop[i] for i in options],
+            problem=problem,
+            pop=pop,
+            random_state=random_state,
+            **kwargs,
+        )
+        return int(np.argmax(scores))

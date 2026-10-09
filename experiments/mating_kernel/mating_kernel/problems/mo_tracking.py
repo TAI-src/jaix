@@ -49,6 +49,13 @@ class MOTrackingMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.archive = self._create_eval_archive(self)
+        self._enabled = True
+
+    def disable_adding(self):
+        self._enabled = False
+
+    def enable_adding(self):
+        self._enabled = True
 
     @staticmethod
     def _create_eval_archive(func: StaticProblem) -> MOArchive:
@@ -70,8 +77,9 @@ class MOTrackingMixin:
             :return: Tuple of objective function value (clean and noisy).
         """
         y_raw, y_noisy = cast(Any, super())._eval(x)
-        entry = MOEvalEntry(x=np.array(x), y=np.array(y_raw))
-        self.archive.add([entry], queue=True)
+        if self._enabled:
+            entry = MOEvalEntry(x=np.array(x), y=np.array(y_raw))
+            self.archive.add([entry], queue=True)
         return y_raw, y_noisy
 
     def get_archive_stats(self) -> dict[str, Any]:

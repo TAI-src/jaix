@@ -4,6 +4,8 @@ import logging
 import pickle
 from pathlib import Path
 
+from mating_kernel.pymoo.mating.preference_mating import PreferenceMating
+from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 import pandas as pd
 from pymoo.algorithms.moo.nsga2 import NSGA2, binary_tournament
 from pymoo.core.algorithm import Algorithm
@@ -19,6 +21,7 @@ from mating_kernel.pymoo.offspring_success_recording_callback import (
 )
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from mating_kernel.pymoo.recordable_object import make_recordable
+from mating_kernel.exp.utils.get_default import get_default
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,7 @@ class PerfExperiment(Experiment):
             help="Name of the algorithm to run.",
         )
         parser.add_argument(
-            "--selector",
+            "--pref_model",
             nargs="+",
             type=str,
             default="default",
@@ -92,22 +95,20 @@ class PerfExperiment(Experiment):
 
     @staticmethod
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
-        selector_attrs = [
-            "num_candidates",
-            "candidate_pressure",
+        pref_attrs = [
             "num_oracle_simulations",
         ]
 
-        selector_params = {
-            attr: getattr(batch, attr)
-            for attr in selector_attrs
-            if hasattr(batch, attr)
+        pref_params = {
+            attr: getattr(batch, attr) for attr in pref_attrs if hasattr(batch, attr)
         }
         result, record_stats = PerfExperiment.run_instrumented_pymoo(
             problem=batch.problem,
             algorithm_name=batch.alg_name,  # type: ignore[attr-defined]
-            selector=batch.selector,  # type: ignore[attr-defined]
-            selector_params=selector_params,
+            pref_model=batch.pref_model,  # type: ignore[attr-defined]
+            pref_params=pref_params,
+            num_candidates=batch.num_candidates,  # type: ignore[attr-defined]
+            candidate_pressure=batch.candidate_pressure,  # type: ignore[attr-defined]
             n_gen=batch.n_gen,  # type: ignore[attr-defined]
             algorithm_params={},  # type: ignore[attr-defined]
             seed=batch.seed,
@@ -167,57 +168,58 @@ class PerfExperiment(Experiment):
     @staticmethod
     def get_recorded_alg(
         algorithm_name: str,
-        selector: str | None,
-        selector_params: dict | None,
+        pref_model: str | None,
+        pref_params: dict | None,
+        num_candidates: int,
+        candidate_pressure: int,
         algorithm_params: dict | None,
         record_args: dict[str, RecordingConfig] | None = None,
         record_attributes: dict[str, RecordingConfig] | None = None,
     ) -> Algorithm:
         algorithm_class = PerfExperiment.get_alg_class(algorithm_name)
         record_alg_class = make_recordable(algorithm_class)
-        if algorithm_params is None:
-            algorithm_params = {}
-        if selector in (None, "default"):
-            from pymoo.operators.selection.tournament import TournamentSelection
-
-            algorithm_params["selection"] = TournamentSelection(
-                func_comp=binary_tournament
-            )
-        elif selector == "random":
-            from mating_kernel.pymoo.mating.random_pref_ts import (
-                RandomPrefTournamentSelection,
+        algorithm_params = algorithm_params or {}
+        pref_params = pref_params or {}
+        pref_mod: None | PreferenceModel
+        if pref_model in ("default", None):
+            pref_mod = None
+        elif pref_model == "random":
+            from mating_kernel.pymoo.pref_model.random_pref_model import (
+                RandomPreferenceModel,
             )
 
-            kwargs = selector_params or {}
-            # Select the kwargs that are relevant for RandomPrefTournamentSelection
-            relevant_kwargs = {
-                k: v
-                for k, v in kwargs.items()
-                if k in ["num_candidates", "candidate_pressure"]
-            }
-
-            algorithm_params["selection"] = RandomPrefTournamentSelection(
-                func_comp=binary_tournament, **relevant_kwargs
-            )
-        elif selector == "oracle":
-            from mating_kernel.pymoo.mating.oracle_pref_ts import (
-                OraclePrefTournamentSelection,
+            pref_mod = RandomPreferenceModel(**pref_params)
+        elif pref_model == "oracle":
+            from mating_kernel.pymoo.pref_model.oracle_pref_model import (
+                OraclePreferenceModel,
             )
 
-            kwargs = selector_params or {}
-            # Select the kwargs that are relevant for OraclePrefTournamentSelection
-            relevant_kwargs = {
-                k: v
-                for k, v in kwargs.items()
-                if k
-                in ["num_candidates", "candidate_pressure", "num_oracle_simulations"]
-            }
-
-            algorithm_params["selection"] = OraclePrefTournamentSelection(
-                func_comp=binary_tournament, **relevant_kwargs
-            )
+            # FIXME: This is a bit hacky
+            func_comp = pref_params.pop("func_comp", None)
+            if func_comp is None:
+                func_comp = (
+                    binary_tournament  # Default to binary tournament if not provided
+                )
+            pref_mod = OraclePreferenceModel(func_comp=func_comp, **pref_params)
         else:
-            raise ValueError(f"Unsupported selector: {selector}")
+            raise ValueError(f"Unsupported preference model: {pref_model}")
+        if pref_mod is not None:
+            mating_operators = {}
+            for attr in ["selection", "crossover", "mutation"]:
+                operator = algorithm_params.pop(attr, None)
+                if operator is None:
+                    operator = get_default(algorithm_class, attr)
+                mating_operators[attr] = operator
+            mating = PreferenceMating(
+                selection=mating_operators["selection"],
+                crossover=mating_operators["crossover"],
+                mutation=mating_operators["mutation"],
+                pref_model=pref_mod,
+                num_candidates=num_candidates,
+                candidate_pressure=candidate_pressure,
+            )
+            algorithm_params["mating"] = mating
+
         algorithm = record_alg_class(
             **algorithm_params,
             record_args=record_args,
@@ -229,8 +231,10 @@ class PerfExperiment(Experiment):
     def run_instrumented_pymoo(
         problem: StaticProblem,
         algorithm_name: str,
-        selector: str | None,
-        selector_params: dict | None,
+        pref_model: str | None,
+        pref_params: dict | None,
+        num_candidates: int,
+        candidate_pressure: int,
         n_gen: int,
         algorithm_params: dict | None = None,
         seed: int | None = None,
@@ -239,8 +243,10 @@ class PerfExperiment(Experiment):
         callback = OffspringSuccessRecordingCallback(pymoo_problem)
         algorithm = PerfExperiment.get_recorded_alg(
             algorithm_name=algorithm_name,
-            selector=selector,
-            selector_params=selector_params,
+            pref_model=pref_model,
+            pref_params=pref_params,
+            num_candidates=num_candidates,
+            candidate_pressure=candidate_pressure,
             algorithm_params=algorithm_params,
             record_args=callback.record_arg_keys,
             record_attributes=callback.record_attribute_keys,
