@@ -52,19 +52,22 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
     ) -> float:
         # Generate offspring with the given mate and evaluate them
         pop_cpy = copy.deepcopy(pop)
+        prob_cpy = copy.deepcopy(problem)
         assert len(parents) == 1, "This method currently supports only one parent."
         p = [pop_cpy[i] for i in parents]
         p.append(pop_cpy[mate])
         off = self.mating.do(
-            problem,
+            prob_cpy,
             pop_cpy,
             n_offsprings=self.num_offspring,
             parents=np.array([p]),
             random_state=random_state,
         )
-        Evaluator().eval(problem, off)
+
+        Evaluator().eval(prob_cpy, off)
+
         new_pop = self.survival.do(
-            problem, Population.merge(pop_cpy, off), n_survive=len(pop_cpy)
+            prob_cpy, Population.merge(pop_cpy, off), n_survive=len(pop_cpy)
         )
         # Count the surviving offspring for the given mate
         survivors = [o for o in off if o in new_pop]
