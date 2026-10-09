@@ -16,7 +16,7 @@ class PreferenceMating(Mating):
         pref_model: PreferenceModel,
         num_candidates: int = 1,
         candidate_pressure: int = 2,
-        **kwargs
+        **kwargs,
     ):
         assert isinstance(
             selection, TournamentSelection
