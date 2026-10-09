@@ -52,7 +52,7 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
         parents: Sequence[int],
         mate_options: Sequence[int],
         pop: Population,
-    ) -> list[Sequence[Individual]]:
+    ) -> Sequence[Sequence[Individual]]:
         # Generate matings for all candidate mates
         matings = []
         for mate in mate_options:
@@ -63,11 +63,11 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
 
     @staticmethod
     def count_survivors(
-        offspring: list[Individual],
+        offspring: Sequence[Individual],
         new_pop: Population,
         n_matings: int,
         n_offsprings: int,
-    ) -> list[int]:
+    ) -> Sequence[int]:
         # Determine which offspring survived for each candidate mate
         all_survived = np.array([child in new_pop for child in offspring], dtype=int)
         survived_per_mate = all_survived.reshape(n_offsprings, n_matings).sum(axis=0)
@@ -75,13 +75,13 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
 
     @staticmethod
     def simulate_matings(
-        matings: list[Sequence[Individual]],
+        matings: Sequence[Sequence[Individual]],
         problem: Problem,
         pop: Population,
         mating: Mating,
         survival: Survival,
         random_state=None,
-    ) -> list[int]:
+    ) -> Sequence[int]:
 
         pop_cpy = copy.deepcopy(pop)
         prob_cpy = copy.deepcopy(problem)
