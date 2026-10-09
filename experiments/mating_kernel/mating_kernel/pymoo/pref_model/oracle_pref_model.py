@@ -24,15 +24,17 @@ class OraclePreferenceModel(PreferenceModel):
         self,
         func_comp: Callable,
         num_oracle_simulations: int = 30,
-        crossover=SBX(eta=15, prob=0.9),  # Default from pymoo nsga2
-        mutation=PM(eta=20),  # Default from pymoo nsga2
-        survival=RankAndCrowdingSurvival(),  # Default from pymoo nsga2
+        crossover=None,
+        mutation=None,
+        survival=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        # FIXME: Should adapt to the algorithms's operators instead of hardcoding them here
         selection = TournamentSelection(func_comp=func_comp)
 
+        crossover = crossover or SBX(prob=0.9, eta=15)  # Default from pymoo nsga2
+        mutation = mutation or PM(eta=20)  # Default from pymoo nsga2
+        survival = survival or RankAndCrowdingSurvival()  # Default from pymoo nsga2
         self.mating = Mating(
             selection=selection, crossover=crossover, mutation=mutation
         )
