@@ -145,10 +145,12 @@ class OraclePreferenceModel(PreferenceModel):
         # Generate matings for all candidate mates
         matings, pop_cpy = self.generate_matings(parents, mate_options, pop)
         prob_cpy = copy.deepcopy(problem)
-        if isinstance(prob_cpy, PymooProblemWrapper):
-            prob_cpy.record = False
-        if isinstance(prob_cpy, MOTrackingMixin):
-            prob_cpy.disable_adding()  # Disable tracking for simulations
+if isinstance(prob_cpy, PymooProblemWrapper):
+    prob_cpy.record = False
+    if isinstance(prob_cpy.static_problem, MOTrackingMixin):
+        prob_cpy.static_problem.disable_adding()
+elif isinstance(prob_cpy, MOTrackingMixin):
+    prob_cpy.disable_adding()
         mate_scores = np.zeros(len(mate_options))
         for _ in range(self.num_oracle_simulations):
             survival_rates = self.simulate_matings(
