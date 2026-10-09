@@ -4,8 +4,6 @@ import logging
 import pickle
 from pathlib import Path
 
-from mating_kernel.pymoo.mating.preference_mating import PreferenceMating
-from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 import pandas as pd
 from pymoo.algorithms.moo.nsga2 import NSGA2, binary_tournament
 from pymoo.core.algorithm import Algorithm
@@ -15,13 +13,15 @@ from pymoo.optimize import minimize
 from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.exp.utils.get_default import get_default
 from mating_kernel.pymoo.do_recorder import RecordingConfig
+from mating_kernel.pymoo.mating.preference_mating import PreferenceMating
 from mating_kernel.pymoo.offspring_success_recording_callback import (
     OffspringSuccessRecordingCallback,
 )
+from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from mating_kernel.pymoo.recordable_object import make_recordable
-from mating_kernel.exp.utils.get_default import get_default
 
 logger = logging.getLogger(__name__)
 

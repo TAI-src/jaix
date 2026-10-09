@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
-from pymoo.core.problem import Problem
 from pymoo.core.individual import Individual
 from pymoo.core.population import Population
+from pymoo.core.problem import Problem
 
 
 class PreferenceModel(ABC):
