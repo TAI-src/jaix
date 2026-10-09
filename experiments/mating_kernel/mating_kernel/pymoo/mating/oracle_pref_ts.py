@@ -1,15 +1,15 @@
-from typing import Sequence, Callable
-import numpy as np
 import copy
+from collections.abc import Callable, Sequence
 
-from pymoo.operators.crossover.sbx import SBX
-from pymoo.operators.mutation.pm import PM
-from pymoo.core.mating import Mating
+import numpy as np
 from pymoo.algorithms.moo.nsga2 import RankAndCrowdingSurvival
-from pymoo.operators.selection.tournament import TournamentSelection
 from pymoo.core.evaluator import Evaluator
+from pymoo.core.mating import Mating
 from pymoo.core.population import Population
 from pymoo.core.problem import Problem
+from pymoo.operators.crossover.sbx import SBX
+from pymoo.operators.mutation.pm import PM
+from pymoo.operators.selection.tournament import TournamentSelection
 
 from mating_kernel.pymoo.mating.mating_pref_tournament_selection import (
     PreferredMatingTournamentSelection,

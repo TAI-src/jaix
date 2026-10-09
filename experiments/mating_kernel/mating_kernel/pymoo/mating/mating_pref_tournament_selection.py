@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Sequence, Callable
+from collections.abc import Callable, Sequence
 
 import numpy as np
-from pymoo.operators.selection.tournament import TournamentSelection
-from pymoo.core.problem import Problem
 from pymoo.core.population import Population
+from pymoo.core.problem import Problem
+from pymoo.operators.selection.tournament import TournamentSelection
 
 
 class PreferredMatingTournamentSelection(TournamentSelection, ABC):
