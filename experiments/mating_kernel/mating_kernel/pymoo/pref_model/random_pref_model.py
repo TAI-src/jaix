@@ -31,8 +31,9 @@ class RandomPreferenceModel(PreferenceModel):
         **kwargs,
     ) -> Sequence[float]:
         # Return random preference scores for each mate option
-        return (
+        scores = (
             random_state.uniform(0, 1, size=len(mate_options))
             if random_state
             else np.random.uniform(0, 1, size=len(mate_options))
         )
+        return list(scores)

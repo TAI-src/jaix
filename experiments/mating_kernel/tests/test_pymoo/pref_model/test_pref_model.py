@@ -9,7 +9,7 @@ class DummyPreferenceModel(PreferenceModel):
     pref_inheritance = True
 
     def __init__(self) -> None:
-        self.calls = []
+        self.calls = []  # type: ignore
 
     @property
     def n_preferences(self) -> int:
@@ -35,7 +35,7 @@ class DummyPreferenceModel(PreferenceModel):
         self.calls.append((parents, mate_options))
         vals = np.zeros(len(mate_options))
         vals[1] = 1.0  # Always prefer the second option
-        return vals
+        return list(vals)
 
 
 def test_dummy_preference_model():

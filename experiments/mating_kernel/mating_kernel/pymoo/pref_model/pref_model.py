@@ -50,7 +50,7 @@ class PreferenceModel(ABC):
 
     def validate(self, preferences: np.ndarray) -> bool:
         """Check that a preference vector is valid."""
-        return (
+        return bool(
             preferences.shape == (self.n_preferences,)
             and np.all(preferences >= self.xl)
             and np.all(preferences <= self.xu)

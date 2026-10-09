@@ -159,6 +159,6 @@ class OraclePreferenceModel(PreferenceModel):
             )
             mate_scores += survival_rates
         # Average the survival rates over the number of simulations
-        survival_rates = mate_scores / self.num_oracle_simulations
+        survival_rates = list(mate_scores / self.num_oracle_simulations)
 
         return survival_rates
