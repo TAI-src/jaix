@@ -1,11 +1,12 @@
+from collections.abc import Sequence
+
 import numpy as np
-from typing import Sequence
+from pymoo.core.population import Population
+from pymoo.core.problem import Problem
 
 from mating_kernel.pymoo.mating.mating_pref_tournament_selection import (
     PreferredMatingTournamentSelection,
 )
-from pymoo.core.problem import Problem
-from pymoo.core.population import Population
 
 
 class RandomPrefTournamentSelection(PreferredMatingTournamentSelection):
