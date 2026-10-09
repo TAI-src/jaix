@@ -62,6 +62,13 @@ class PerfExperiment(Experiment):
             nargs="+",
             help="Pressure for candidate selection",
         )
+        parser.add_argument(
+            "--num_oracle_offspring",
+            type=int,
+            default=30,
+            nargs="+",
+            help="Number of offspring to generate for each oracle evaluation",
+        )
 
         return parser
 
@@ -85,7 +92,11 @@ class PerfExperiment(Experiment):
 
     @staticmethod
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
-        selector_attrs = ["num_candidates", "candidate_pressure"]
+        selector_attrs = [
+            "num_candidates",
+            "candidate_pressure",
+            "num_oracle_offspring",
+        ]
 
         selector_params = {
             attr: getattr(batch, attr)
@@ -177,8 +188,32 @@ class PerfExperiment(Experiment):
                 RandomPrefTournamentSelection,
             )
 
+            kwargs = selector_params or {}
+            # Select the kwargs that are relevant for RandomPrefTournamentSelection
+            relevant_kwargs = {
+                k: v
+                for k, v in kwargs.items()
+                if k in ["num_candidates", "candidate_pressure"]
+            }
+
             algorithm_params["selection"] = RandomPrefTournamentSelection(
-                func_comp=binary_tournament, **(selector_params or {})
+                func_comp=binary_tournament, **relevant_kwargs
+            )
+        elif selector == "oracle":
+            from mating_kernel.pymoo.mating.oracle_pref_ts import (
+                OraclePrefTournamentSelection,
+            )
+
+            kwargs = selector_params or {}
+            # Select the kwargs that are relevant for OraclePrefTournamentSelection
+            relevant_kwargs = {
+                k: v
+                for k, v in kwargs.items()
+                if k in ["num_candidates", "candidate_pressure", "num_oracle_offspring"]
+            }
+
+            algorithm_params["selection"] = OraclePrefTournamentSelection(
+                func_comp=binary_tournament, **relevant_kwargs
             )
         else:
             raise ValueError(f"Unsupported selector: {selector}")

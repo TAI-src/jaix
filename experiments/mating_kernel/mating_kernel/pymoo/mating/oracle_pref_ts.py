@@ -1,4 +1,6 @@
+from typing import Sequence, Callable
 import numpy as np
+import copy
 
 from pymoo.operators.crossover.sbx import SBX
 from pymoo.operators.mutation.pm import PM
@@ -7,6 +9,7 @@ from pymoo.algorithms.moo.nsga2 import RankAndCrowdingSurvival
 from pymoo.operators.selection.tournament import TournamentSelection
 from pymoo.core.evaluator import Evaluator
 from pymoo.core.population import Population
+from pymoo.core.problem import Problem
 
 from mating_kernel.pymoo.mating.mating_pref_tournament_selection import (
     PreferredMatingTournamentSelection,
@@ -16,8 +19,8 @@ from mating_kernel.pymoo.mating.mating_pref_tournament_selection import (
 class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
     def __init__(
         self,
-        func_comp,
-        num_offspring: int,
+        func_comp: Callable,
+        num_oracle_offspring: int,
         num_candidates: int = 1,
         candidate_pressure: int = 2,  # This is the default in pymoo
         **kwargs,
@@ -37,16 +40,26 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
             selection=selection, crossover=crossover, mutation=mutation
         )
         self.survival = RankAndCrowdingSurvival()  # Default from pymoo nsga2
-        self.num_offspring = num_offspring
+        self.num_offspring = num_oracle_offspring
 
-    def eval_mate(self, parents, mate, problem, pop, random_state=None) -> float:
+    def eval_mate(
+        self,
+        parents: Sequence[int],
+        mate: int,
+        problem: Problem,
+        pop: Population,
+        random_state=None,
+    ) -> float:
         # Generate offspring with the given mate and evaluate them
-        pop_cpy = pop.copy()
+        pop_cpy = copy.deepcopy(pop)
+        assert len(parents) == 1, "This method currently supports only one parent."
+        p = [pop_cpy[i] for i in parents]
+        p.append(pop_cpy[mate])
         off = self.mating.do(
             problem,
             pop_cpy,
             n_offsprings=self.num_offspring,
-            parents=np.array([parents + [mate]]),
+            parents=np.array([p]),
             random_state=random_state,
         )
         Evaluator().eval(problem, off)
@@ -62,21 +75,19 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
 
     def select_mate(
         self,
-        parents,
-        options,
-        problem,
-        pop,
+        parents: Sequence[int],
+        options: Sequence[int],
+        problem: Problem,
+        pop: Population,
         random_state: np.random.Generator | None = None,
         **kwargs,
     ) -> int:
-        parent_individuals = [pop[i] for i in parents]
         mate_scores = []
         # Generate offspring with each candidate and evaluate them
         for mate in options:
-            mate_individual = pop[mate]
             score = self.eval_mate(
-                parent_individuals,
-                mate_individual,
+                parents,
+                mate,
                 problem,
                 pop,
                 random_state=random_state,
