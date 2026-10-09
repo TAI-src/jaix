@@ -63,11 +63,11 @@ class PerfExperiment(Experiment):
             help="Pressure for candidate selection",
         )
         parser.add_argument(
-            "--num_oracle_offspring",
+            "--num_oracle_simulations",
             type=int,
             default=30,
             nargs="+",
-            help="Number of offspring to generate for each oracle evaluation",
+            help="Number of times to simulate the offspring for oracle preference selection",
         )
 
         return parser
@@ -95,7 +95,7 @@ class PerfExperiment(Experiment):
         selector_attrs = [
             "num_candidates",
             "candidate_pressure",
-            "num_oracle_offspring",
+            "num_oracle_simulations",
         ]
 
         selector_params = {
@@ -209,7 +209,8 @@ class PerfExperiment(Experiment):
             relevant_kwargs = {
                 k: v
                 for k, v in kwargs.items()
-                if k in ["num_candidates", "candidate_pressure", "num_oracle_offspring"]
+                if k
+                in ["num_candidates", "candidate_pressure", "num_oracle_simulations"]
             }
 
             algorithm_params["selection"] = OraclePrefTournamentSelection(

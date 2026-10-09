@@ -51,7 +51,7 @@ def test_parsing(tmp_path):
         "n_gen": [1000],
         "num_candidates": [3, 1],
         "candidate_pressure": [2],
-        "num_oracle_offspring": [30],
+        "num_oracle_simulations": [30],
     }
     assert filter_bids == [0, 1]
 
@@ -78,7 +78,7 @@ def test_get_recorded_alg(selector):
         selector_params={
             "num_candidates": 3,
             "candidate_pressure": 2,
-            "num_oracle_offspring": 5,
+            "num_oracle_simulations": 5,
         },
         algorithm_params={"pop_size": 5},
         record_args=ReproductionParser.record_args,
@@ -107,7 +107,7 @@ def test_run_instrumented_pymoo(selector):
         selector_params={
             "num_candidates": 3,
             "candidate_pressure": 2,
-            "num_oracle_offspring": 5,
+            "num_oracle_simulations": 2,
         },
         n_gen=5,
         algorithm_params={"pop_size": 10},
@@ -134,7 +134,7 @@ def test_run_batch(tmp_path, selector):
         parent_dir=tmp_path,
         num_candidates=3,
         candidate_pressure=2,
-        num_oracle_offspring=5,
+        num_oracle_simulations=1,
     )
     batch_cpy = batch.model_copy()
     result_files = PerfExperiment._run_batch(batch)
@@ -167,7 +167,7 @@ def test_post_process_batches(tmp_path, selector):
             parent_dir=tmp_path,
             num_candidates=3,
             candidate_pressure=2,
-            num_oracle_offspring=5,
+            num_oracle_simulations=1,
         )
         PerfExperiment._run_batch(batch)
         batches.append(batch)
