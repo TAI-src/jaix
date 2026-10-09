@@ -1,10 +1,11 @@
-from pymoo.core.mating import Mating
-from pymoo.operators.selection.tournament import TournamentSelection
 import math
 from copy import deepcopy
 
-from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
+from pymoo.core.mating import Mating
+from pymoo.operators.selection.tournament import TournamentSelection
+
 from mating_kernel.pymoo.mating.pref_tourn_sel import PreferenceTournamentSelection
+from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 
 
 class PreferenceMating(Mating):

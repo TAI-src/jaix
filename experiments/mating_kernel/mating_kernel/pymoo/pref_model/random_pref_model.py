@@ -1,9 +1,10 @@
+from collections.abc import Sequence
+
+import numpy as np
 from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 from pymoo.core.individual import Individual
-from typing import Sequence
-import numpy as np
-from pymoo.core.problem import Problem
 from pymoo.core.population import Population
+from pymoo.core.problem import Problem
 
 
 class RandomPreferenceModel(PreferenceModel):
