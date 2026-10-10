@@ -1,17 +1,17 @@
-import numpy as np
-from enum import Enum
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
+from enum import Enum
+
+import numpy as np
 from pymoo.core.individual import Individual
 from pymoo.core.population import Population
 from pymoo.core.problem import Problem
 
+from jaix.env.utils.problem.cobi_problem import CobiProblem
+from jaix.env.utils.problem.re_problem.reproblem_adapter import REProblem
+from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.pymoo.pref_model.ornament_pref_model import OrnamentParser
 from mating_kernel.pymoo.recording_callback import recursive_getattr
-
-from jaix.env.utils.problem.re_problem.reproblem_adapter import REProblem
-from jaix.env.utils.problem.cobi_problem import CobiProblem
-from jaix.env.utils.problem.static_problem import StaticProblem
 
 
 class AttributeType(Enum):
