@@ -2,9 +2,6 @@ import copy
 from collections.abc import Callable, Sequence
 
 import numpy as np
-from mating_kernel.problems.mo_tracking import MOTrackingMixin
-from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
-from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from pymoo.algorithms.moo.nsga2 import RankAndCrowdingSurvival
 from pymoo.core.evaluator import Evaluator
 from pymoo.core.individual import Individual
@@ -15,6 +12,10 @@ from pymoo.core.survival import Survival
 from pymoo.operators.crossover.sbx import SBX
 from pymoo.operators.mutation.pm import PM
 from pymoo.operators.selection.tournament import TournamentSelection
+
+from mating_kernel.problems.mo_tracking import MOTrackingMixin
+from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
+from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 
 
 class OraclePreferenceModel(PreferenceModel):
