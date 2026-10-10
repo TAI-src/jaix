@@ -72,6 +72,34 @@ class PerfExperiment(Experiment):
             nargs="+",
             help="Number of times to simulate the offspring for oracle preference selection",
         )
+        parser.add_argument(
+            "--kernel",
+            action="store_true",
+            help="Whether to use kernel-based pred group ornament",
+        )
+        parser.add_argument(
+            "--abs",
+            action="store_true",
+            help="Whether to use absolute pred group ornament",
+        )
+        parser.add_argument(
+            "--rel_fit",
+            action="store_true",
+            help="Whether to use relative fitness pred group ornament",
+        )
+        parser.add_argument(
+            "--state",
+            action="store_true",
+            help="Whether to use state pred group ornament",
+        )
+        parser.add_argument(
+            "--age", action="store_true", help="Whether to use age pred group ornament"
+        )
+        parser.add_argument(
+            "--no_x",
+            action="store_true",
+            help="Whether to exclude the X feature from the ornament",
+        )
 
         return parser
 
@@ -97,6 +125,12 @@ class PerfExperiment(Experiment):
     def _run_batch(batch: Batch, **kwargs) -> list[str]:
         pref_attrs = [
             "num_oracle_simulations",
+            "kernel",
+            "abs",
+            "rel_fit",
+            "state",
+            "age",
+            "no_x",
         ]
 
         pref_params = {
@@ -175,6 +209,7 @@ class PerfExperiment(Experiment):
         algorithm_params: dict | None,
         record_args: dict[str, RecordingConfig] | None = None,
         record_attributes: dict[str, RecordingConfig] | None = None,
+        problem: StaticProblem | None = None,
     ) -> Algorithm:
         algorithm_class = PerfExperiment.get_alg_class(algorithm_name)
         record_alg_class = make_recordable(algorithm_class)
@@ -201,6 +236,26 @@ class PerfExperiment(Experiment):
                     binary_tournament  # Default to binary tournament if not provided
                 )
             pref_mod = OraclePreferenceModel(func_comp=func_comp, **pref_params)
+        elif pref_model == "ornament":
+            from mating_kernel.pymoo.pref_model.ornament_pref_model import (
+                OrnamentPreferenceModel,
+            )
+            from mating_kernel.pymoo.pref_model.ornament.feature_parser import (
+                FeatureOrnamentParser,
+            )
+            from mating_kernel.pymoo.pref_model.ornament.dist_scorer import (
+                DistScorer,
+            )
+
+            features = FeatureOrnamentParser.get_features(
+                problem=problem,
+                **pref_params,
+            )
+
+            pref_mod = OrnamentPreferenceModel(
+                ornament_parser=FeatureOrnamentParser(features=features),
+                scorer=DistScorer(),
+            )
         else:
             raise ValueError(f"Unsupported preference model: {pref_model}")
         if pref_mod is not None:
@@ -250,6 +305,7 @@ class PerfExperiment(Experiment):
             algorithm_params=algorithm_params,
             record_args=callback.record_arg_keys,
             record_attributes=callback.record_attribute_keys,
+            problem=problem,
         )
 
         result = minimize(
