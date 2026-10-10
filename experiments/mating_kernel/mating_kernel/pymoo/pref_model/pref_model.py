@@ -91,9 +91,10 @@ class PreferenceModel(ABC):
             for ind in pop:
                 if not hasattr(ind, "pref"):
                     self.init_individual(ind, random_state=random_state)
-        return self._evaluate(
+        scores = self._evaluate(
             parents, mate_options, problem, pop, random_state=random_state, **kwargs
         )
+        return scores
 
     def dummy_problem(self) -> Problem:
         problem = Problem(

@@ -1,6 +1,7 @@
 import inspect
 
 from mating_kernel.pymoo.do_recorder import DoRecorderMixin, RecordingConfig
+from mating_kernel.pymoo.recording_callback import recursive_getattr
 
 
 def make_recorded(operator, recording_config: RecordingConfig):
@@ -35,7 +36,14 @@ def make_recordable(cls):
             # Bind arguments exactly as Python would bind them to __init__
             bound = signature.bind(self, *args, **kwargs)
             bound.apply_defaults()
+            # Extract keyword arguments captured by **kwargs
+            extra_kwargs = bound.arguments.pop("kwargs", {})
 
+            # Remove self
+            bound.arguments.pop("self")
+
+            # Flatten additional keyword arguments
+            bound.arguments.update(extra_kwargs)
             # Replace requested operators with recording versions
             for name, rec_config in record_args.items():
                 operator = bound.arguments[name]
@@ -49,12 +57,11 @@ def make_recordable(cls):
                     ), f"{name} is not a DoRecorderMixin"
 
             # Call the original constructor with the modified arguments
-            bound.arguments.pop("self")
             super().__init__(**bound.arguments)
 
             # Check for any missing arguments that were requested to be recorded
             for name, rec_config in record_attributes.items():
-                attr_value = getattr(self, name, None)
+                attr_value = recursive_getattr(self, name, None)
                 if attr_value is None:
                     raise ValueError(
                         f"Cannot record '{name}': attribute not found in instance."
@@ -65,7 +72,7 @@ def make_recordable(cls):
                     make_recorded(attr_value, recording_config=rec_config),
                 )
                 assert isinstance(
-                    getattr(self, name), DoRecorderMixin
+                    recursive_getattr(self, name), DoRecorderMixin
                 ), f"{name} is not a DoRecorderMixin"
 
     RecordableObject.__name__ = f"Recorded{cls.__name__}"

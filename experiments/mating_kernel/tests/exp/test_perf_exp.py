@@ -85,6 +85,10 @@ def test_get_recorded_alg(pref_model):
     from pymoo.algorithms.moo.nsga2 import NSGA2
 
     assert isinstance(algorithm, NSGA2)
+    if pref_model != "default":
+        assert hasattr(algorithm.mating, "pref_model")
+        assert algorithm.mating.pref_model is not None
+
     assert algorithm.pop_size == 5
     record_ret = ReproductionParser.record_retrieval
     for attr in record_ret:
