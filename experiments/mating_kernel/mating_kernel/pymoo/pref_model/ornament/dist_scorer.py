@@ -1,6 +1,6 @@
-from typing import Sequence
-import numpy as np
+from collections.abc import Sequence
 
+import numpy as np
 
 from mating_kernel.pymoo.pref_model.ornament_pref_model import Scorer
 
