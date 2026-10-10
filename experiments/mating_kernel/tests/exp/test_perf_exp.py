@@ -30,7 +30,7 @@ def test_parsing(tmp_path):
             "--nth",
             "0",
             "1",
-            "--selector",
+            "--pref_model",
             "random",
             "default",
             "--n_gen",
@@ -47,7 +47,7 @@ def test_parsing(tmp_path):
     assert config.out_dir == tmp_path / "results"
     assert config.settings == {
         "alg_name": ["NSGA2"],
-        "selector": ["random", "default"],
+        "pref_model": ["random", "default"],
         "n_gen": [1000],
         "num_candidates": [3, 1],
         "candidate_pressure": [2],
@@ -70,16 +70,14 @@ def test_get_alg_class():
         raise AssertionError("Expected get_alg_class to reject unsupported algorithm")
 
 
-@pytest.mark.parametrize("selector", ["default", "random", "oracle"])
-def test_get_recorded_alg(selector):
+@pytest.mark.parametrize("pref_model", ["default", "random", "oracle"])
+def test_get_recorded_alg(pref_model):
     algorithm = PerfExperiment.get_recorded_alg(
         algorithm_name="NSGA2",
-        selector=selector,
-        selector_params={
-            "num_candidates": 3,
-            "candidate_pressure": 2,
-            "num_oracle_simulations": 5,
-        },
+        pref_model=pref_model,
+        pref_params={"num_oracle_simulations": 5},
+        candidate_pressure=2,
+        num_candidates=3,
         algorithm_params={"pop_size": 5},
         record_args=ReproductionParser.record_args,
         record_attributes=ReproductionParser.record_attributes,
@@ -87,6 +85,10 @@ def test_get_recorded_alg(selector):
     from pymoo.algorithms.moo.nsga2 import NSGA2
 
     assert isinstance(algorithm, NSGA2)
+    if pref_model != "default":
+        assert hasattr(algorithm.mating, "pref_model")
+        assert algorithm.mating.pref_model is not None
+
     assert algorithm.pop_size == 5
     record_ret = ReproductionParser.record_retrieval
     for attr in record_ret:
@@ -96,19 +98,17 @@ def test_get_recorded_alg(selector):
         assert attr is not None and hasattr(attr, "retrieve_records")
 
 
-@pytest.mark.parametrize("selector", ["default", "random", "oracle"])
-def test_run_instrumented_pymoo(selector):
+@pytest.mark.parametrize("pref_model", ["default", "random", "oracle"])
+def test_run_instrumented_pymoo(pref_model):
     tracked_REProblem = make_tracked(REProblem)
     problem = tracked_REProblem(REProblemConfig(), inst=0)
     result, record_stats = PerfExperiment.run_instrumented_pymoo(
         problem=problem,
         algorithm_name="NSGA2",
-        selector=selector,
-        selector_params={
-            "num_candidates": 3,
-            "candidate_pressure": 2,
-            "num_oracle_simulations": 2,
-        },
+        pref_model=pref_model,
+        pref_params={"num_oracle_simulations": 5},
+        num_candidates=3,
+        candidate_pressure=2,
         n_gen=5,
         algorithm_params={"pop_size": 10},
         seed=123,
@@ -117,15 +117,15 @@ def test_run_instrumented_pymoo(selector):
     assert isinstance(record_stats, pd.DataFrame)
 
 
-@pytest.mark.parametrize("selector", ["default", "random", "oracle"])
-def test_run_batch(tmp_path, selector):
+@pytest.mark.parametrize("pref_model", ["default", "random", "oracle"])
+def test_run_batch(tmp_path, pref_model):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo(problem)
     batch = Batch(
         name="test_batch",
         problem=problem,
         alg_name="NSGA2",
-        selector=selector,
+        pref_model=pref_model,
         n_gen=5,
         seed=123,
         pid=pinfo.uuid,
@@ -148,8 +148,8 @@ def test_run_batch(tmp_path, selector):
     assert batch.problem == batch_cpy.problem
 
 
-@pytest.mark.parametrize("selector", ["default", "random", "oracle"])
-def test_post_process_batches(tmp_path, selector):
+@pytest.mark.parametrize("pref_model", ["default", "random", "oracle"])
+def test_post_process_batches(tmp_path, pref_model):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo(problem)
     batches = []
@@ -157,7 +157,7 @@ def test_post_process_batches(tmp_path, selector):
         batch = Batch(
             problem=problem,
             alg_name="NSGA2",
-            selector=selector,
+            pref_model=pref_model,
             n_gen=3,
             seed=123 + i,
             pid=pinfo.uuid,

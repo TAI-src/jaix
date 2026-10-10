@@ -1,4 +1,3 @@
-import copy
 from collections.abc import Callable, Sequence
 
 import numpy as np
@@ -13,53 +12,47 @@ from pymoo.operators.crossover.sbx import SBX
 from pymoo.operators.mutation.pm import PM
 from pymoo.operators.selection.tournament import TournamentSelection
 
-from mating_kernel.pymoo.mating.mating_pref_tournament_selection import (
-    PreferredMatingTournamentSelection,
-)
+from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 
 
-class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
+class OraclePreferenceModel(PreferenceModel):
+    pref_inheritance = False  # Preferences are not inherited from parents
+
     def __init__(
         self,
         func_comp: Callable,
         num_oracle_simulations: int = 30,
-        num_candidates: int = 1,
-        candidate_pressure: int = 2,  # This is the default in pymoo
+        crossover=None,
+        mutation=None,
+        survival=None,
         **kwargs,
     ):
-        super().__init__(
-            func_comp=func_comp,
-            num_candidates=num_candidates,
-            candidate_pressure=candidate_pressure,
-            **kwargs,
-        )
-        # FIXME: Should adapt to the algorithms's operators instead of hardcoding them here
-        crossover = SBX(eta=15, prob=0.9)  # Default from pymoo nsga2
-        mutation = PM(eta=20)  # Default from pymoo nsga2
+        super().__init__(**kwargs)
         selection = TournamentSelection(func_comp=func_comp)
 
+        crossover = crossover or SBX(prob=0.9, eta=15)  # Default from pymoo nsga2
+        mutation = mutation or PM(eta=20)  # Default from pymoo nsga2
+        survival = survival or RankAndCrowdingSurvival()  # Default from pymoo nsga2
         self.mating = Mating(
             selection=selection, crossover=crossover, mutation=mutation
         )
-        self.survival = RankAndCrowdingSurvival()  # Default from pymoo nsga2
+        self.survival = survival
         assert (
             num_oracle_simulations > 0
         ), "num_oracle_simulations must be greater than 0"
         self.num_oracle_simulations = num_oracle_simulations
 
-    @staticmethod
-    def generate_matings(
-        parents: Sequence[int],
-        mate_options: Sequence[int],
-        pop: Population,
-    ) -> Sequence[Sequence[Individual]]:
-        # Generate matings for all candidate mates
-        matings = []
-        for mate in mate_options:
-            p = [pop[i] for i in parents]
-            p.append(pop[mate])
-            matings.append(p)
-        return matings
+    @property
+    def n_preferences(self) -> int:
+        return 1
+
+    @property
+    def xl(self) -> np.ndarray:
+        return np.array([0.0])
+
+    @property
+    def xu(self) -> np.ndarray:
+        return np.array([1.0])
 
     @staticmethod
     def count_survivors(
@@ -81,13 +74,11 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
         mating: Mating,
         survival: Survival,
         random_state=None,
-    ) -> Sequence[int]:
+    ) -> Sequence[float]:
 
-        pop_cpy = copy.deepcopy(pop)
-        prob_cpy = copy.deepcopy(problem)
         off = mating._do(
-            prob_cpy,
-            pop_cpy,
+            problem,
+            pop,
             n_offsprings=-1,  # This is ignored
             parents=np.array(matings),
             random_state=random_state,
@@ -95,42 +86,48 @@ class OraclePrefTournamentSelection(PreferredMatingTournamentSelection):
         assert (
             len(off) == len(matings) * mating.crossover.n_offsprings
         ), "Unexpected number of offspring generated."
-        Evaluator().eval(prob_cpy, off)
+        Evaluator().eval(problem, off)
 
         new_pop = survival.do(
-            prob_cpy, Population.merge(pop_cpy, off), n_survive=len(pop_cpy)
+            problem,
+            Population.merge(pop, off),
+            n_survive=len(pop),
+            random_state=random_state,
         )
         # Determine which offspring survived for each candidate mate
-        survived_per_mate = OraclePrefTournamentSelection.count_survivors(
+        survived_per_mate = OraclePreferenceModel.count_survivors(
             off,
             new_pop,
             n_matings=len(matings),
             n_offsprings=mating.crossover.n_offsprings,
         )
+        survival_rate = np.array(survived_per_mate) / mating.crossover.n_offsprings
 
-        return survived_per_mate
+        return survival_rate
 
-    def select_mate(
+    def _evaluate(
         self,
-        parents: Sequence[int],
-        options: Sequence[int],
+        parents: Sequence[Individual],
+        mate_options: Sequence[Individual],
         problem: Problem,
         pop: Population,
         random_state: np.random.Generator | None = None,
         **kwargs,
-    ) -> int:
-
-        # Generate offspring for all matings and evaluate them
-        pop_cpy = copy.deepcopy(pop)
-        matings = self.generate_matings(parents, options, pop_cpy)
-
-        mate_scores = [0] * len(options)
+    ) -> Sequence[float]:
+        # Generate matings for all candidate mates
+        matings = [list(parents) + [mate] for mate in mate_options]
+        mate_scores = np.zeros(len(mate_options))
         for _ in range(self.num_oracle_simulations):
-            survived = self.simulate_matings(
-                matings, problem, pop_cpy, self.mating, self.survival, random_state
+            survival_rates = self.simulate_matings(
+                matings,
+                problem,
+                pop,
+                self.mating,
+                self.survival,
+                random_state=random_state,
             )
-            mate_scores = [score + s for score, s in zip(mate_scores, survived)]
+            mate_scores += survival_rates
+        # Average the survival rates over the number of simulations
+        survival_rates = list(mate_scores / self.num_oracle_simulations)
 
-        # Select the candidate with the highest score
-        best_candidate_idx = int(np.argmax(mate_scores))
-        return best_candidate_idx
+        return survival_rates

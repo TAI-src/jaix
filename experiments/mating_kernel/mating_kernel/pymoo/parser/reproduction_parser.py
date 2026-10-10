@@ -15,11 +15,12 @@ CrossoverRecordingConfig = RecordingConfig(
 
 class ReproductionParser(RecordingParser):
     record_args: ClassVar[dict[str, RecordingConfig]] = {
-        "selection": SelectionRecordingConfig,
-        "crossover": CrossoverRecordingConfig,
         "survival": SurvivalRecordingConfig,
     }
-    record_attributes: ClassVar[dict[str, RecordingConfig]] = {}
+    record_attributes: ClassVar[dict[str, RecordingConfig]] = {
+        "mating.selection": SelectionRecordingConfig,
+        "mating.crossover": CrossoverRecordingConfig,
+    }
     record_retrieval: ClassVar[list[str]] = [
         "mating.selection",
         "mating.crossover",
