@@ -29,11 +29,13 @@ def test_preferred_mate_selection():
         assert len(options) == 3
         expected_option = options[
             1
-        ]  # Since DummyPreferenceModel always returns index 1
-        chosen_index = result[i, -1]
-        assert (
-            pop[chosen_index] == expected_option
-        )  # Check that the chosen mate is the expected one
+        ].X  # Since DummyPreferenceModel always returns index 1
+        chosen = pop[
+            result[i, -1]
+        ].X  # The last index in result corresponds to the chosen mate
+        assert np.array_equal(
+            chosen, expected_option
+        ), f"Chosen mate does not match expected option for mating {i}"
 
 
 def test_candidate_selection_configuration():

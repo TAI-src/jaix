@@ -85,12 +85,6 @@ class PreferenceModel(ABC):
         **kwargs,
     ) -> Sequence[float]:
         """Evaluates mate options and returns preference scores."""
-        if self.pref_inheritance:
-            # If preferences are inherited
-            # make sure every individual has preferences. otherwise initialise.
-            for ind in pop:
-                if not hasattr(ind, "pref"):
-                    self.init_individual(ind, random_state=random_state)
         scores = self._evaluate(
             parents, mate_options, problem, pop, random_state=random_state, **kwargs
         )

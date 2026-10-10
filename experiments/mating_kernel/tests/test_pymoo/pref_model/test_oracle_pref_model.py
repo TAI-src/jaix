@@ -18,25 +18,6 @@ from mating_kernel.pymoo.mating.pref_tourn_sel import (
 from .. import dummy_comp, create_pop
 
 
-@pytest.mark.parametrize("p_idx", [[0], [1, 2]])
-def test_generate_matings(p_idx):
-    # Create a dummy problem and population
-    problem = get_problem("zdt1")
-    pop = create_pop(problem, size=10)
-
-    mate_opt_idx = [2, 3, 4]  # Indices of the candidate mates in the population
-    parents = [pop[i] for i in p_idx]  # Select parents based on indices
-    mate_options = [pop[i] for i in mate_opt_idx]  # Select mate
-    matings, pop_cpy = OraclePreferenceModel.generate_matings(
-        parents, mate_options, pop
-    )
-
-    assert len(matings) == len(mate_options)
-    assert all(
-        pop != pop_cpy
-    )  # Ensure the original population is not connected to these individuals anymore
-
-
 @pytest.mark.parametrize(
     ("survival_flags", "expected"),
     [
@@ -72,10 +53,7 @@ def test_simulate_matings_seeding():
     p_idx = [0]  # Indices of the parents in the population
     parents = [pop[i] for i in p_idx]  # Select parents based on indices
     mate_options = [pop[i] for i in mate_opt_idx]  # Select mate
-    matings, pop_cpy = OraclePreferenceModel.generate_matings(
-        parents, mate_options, pop
-    )
-
+    matings = [list(parents) + [mate] for mate in mate_options]
     # Create an instance of OraclePrefTournamentSelection
     selection = OraclePreferenceModel(func_comp=dummy_comp, num_oracle_simulations=5)
 
@@ -83,7 +61,7 @@ def test_simulate_matings_seeding():
     survival_counts_1 = OraclePreferenceModel.simulate_matings(
         matings,
         problem,
-        pop_cpy,
+        pop,
         selection.mating,
         selection.survival,
         random_state=np.random.default_rng(42),
@@ -93,7 +71,7 @@ def test_simulate_matings_seeding():
     survival_counts_2 = OraclePreferenceModel.simulate_matings(
         matings,
         problem,
-        pop_cpy,
+        pop,
         selection.mating,
         selection.survival,
         random_state=np.random.default_rng(42),
@@ -110,10 +88,7 @@ def test_simulate_matings():
     p_idx = [0]  # Indices of the parents in the population
     parents = [pop[i] for i in p_idx]  # Select parents based on indices
     mate_options = [pop[i] for i in mate_idx]  # Select mate
-    matings, pop_cpy = OraclePreferenceModel.generate_matings(
-        parents, mate_options, pop
-    )
-
+    matings = [list(parents) + [mate] for mate in mate_options]
     # Create an instance of OraclePrefTournamentSelection
     selection = OraclePreferenceModel(func_comp=dummy_comp, num_oracle_simulations=5)
 
@@ -121,7 +96,7 @@ def test_simulate_matings():
     survival_counts = OraclePreferenceModel.simulate_matings(
         matings,
         problem,
-        pop_cpy,
+        pop,
         selection.mating,
         selection.survival,
         random_state=np.random.default_rng(42),
@@ -161,25 +136,10 @@ def test_count_survivors_per_mating_edge_cases():
     assert result == [2, 2]
 
 
-@pytest.mark.parametrize("archive_enabled", [True, False])
-def test_evaluate(archive_enabled):
-    # Create a dummy problem and population
-    if not archive_enabled:
-        problem = get_problem("zdt1")
-    else:
-        tracked_REProblem = make_tracked(REProblem)
-        static_problem = tracked_REProblem(REProblemConfig(), inst=0)
-        problem = PymooProblemWrapper(static_problem)
-    pop = create_pop(problem, size=10)
-    pop_cpy = deepcopy(pop)  # Make a copy of the original population
-    if archive_enabled:
-        stats = (
-            problem.static_problem.get_archive_stats()
-        )  # Ensure the archive is initialized
-        assert stats["size"] > 0  # Previous evaluations
-        len_records = len(problem.records)  # Store the original length of records
+def test_evaluate():
     num_sim = 5  # Number of simulations for mate selection
-
+    problem = get_problem("zdt1")
+    pop = create_pop(problem, size=10)
     pref_model = OraclePreferenceModel(
         func_comp=dummy_comp, num_oracle_simulations=num_sim
     )
@@ -195,21 +155,6 @@ def test_evaluate(archive_enabled):
     assert all(isinstance(score, float) for score in scores)
     assert all(score >= pref_model.xl for score in scores)  # Check lower bound
     assert all(score <= pref_model.xu for score in scores)  # Check upper bound
-
-    # Check that the original population has not been modified
-    assert len(pop) == 10
-    for ind_original, ind_copied in zip(pop, pop_cpy):
-        assert ind_original.F.tolist() == ind_copied.F.tolist()
-        assert ind_original.data == ind_copied.data
-
-    if archive_enabled:
-        # Ensure that the archive and records have not been modified
-        assert len(problem.records) == len_records
-        assert problem.static_problem.get_archive_stats() == stats
-        assert problem.record is True  # Ensure that the record attribute is still True
-        assert (
-            problem.static_problem._enabled is True
-        )  # Ensure that the _enabled attribute is still True
 
 
 @pytest.mark.parametrize("mock", [True, False])
@@ -260,3 +205,38 @@ def test_integration(mock):
         assert (
             pref_model.simulate_matings.call_count == num_sim
         )  # Ensure eval_mate was called for each candidate
+
+
+def test_archive_disable():
+    tracked_REProblem = make_tracked(REProblem)
+    static_problem = tracked_REProblem(REProblemConfig(), inst=0)
+    problem = PymooProblemWrapper(static_problem)
+    pop = create_pop(problem, size=10)
+    pop_cpy = deepcopy(pop)  # Make a copy of the original population
+    num_sim = 5  # Number of simulations for mate selection
+    len_records = len(problem.records)
+    stats = problem.static_problem.get_archive_stats()
+    pref_model = OraclePreferenceModel(
+        func_comp=dummy_comp, num_oracle_simulations=num_sim
+    )
+    selection = PreferenceTournamentSelection(
+        func_comp=dummy_comp,
+        preference_model=pref_model,
+        num_candidates=3,
+    )
+    selection._do(
+        problem, pop, n_select=5, n_parents=2, random_state=np.random.default_rng(42)
+    )
+    # Check that the original population has not been modified
+    assert len(pop) == 10
+    for ind_original, ind_copied in zip(pop, pop_cpy):
+        assert ind_original.F.tolist() == ind_copied.F.tolist()
+        assert ind_original.data == ind_copied.data
+
+    # Ensure that the archive and records have not been modified
+    assert len(problem.records) == len_records
+    assert problem.static_problem.get_archive_stats() == stats
+    assert problem.record is True  # Ensure that the record attribute is still True
+    assert (
+        problem.static_problem._enabled is True
+    )  # Ensure that the _enabled attribute is still True

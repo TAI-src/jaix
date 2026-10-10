@@ -1,4 +1,5 @@
 from collections.abc import Callable, Sequence
+import copy
 
 import numpy as np
 from pymoo.core.population import Population
@@ -6,6 +7,8 @@ from pymoo.core.problem import Problem
 from pymoo.operators.selection.tournament import TournamentSelection
 
 from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
+from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
+from mating_kernel.problems.mo_tracking import MOTrackingMixin
 
 
 class PreferenceTournamentSelection(TournamentSelection):
@@ -47,6 +50,16 @@ class PreferenceTournamentSelection(TournamentSelection):
             **kwargs,
         )
 
+        # Make copies of pop and problem to prevent any modifications to the original objects
+        prob_cpy = copy.deepcopy(problem)
+        if isinstance(prob_cpy, PymooProblemWrapper):
+            prob_cpy.record = False
+            if isinstance(prob_cpy.static_problem, MOTrackingMixin):
+                prob_cpy.static_problem.disable_adding()
+        elif isinstance(prob_cpy, MOTrackingMixin):
+            prob_cpy.disable_adding()
+        pop_cpy = copy.deepcopy(pop)
+
         # Replace the last parent in each  mating with the preferred mate selected using the select_mate method
         for i in range(n_select):
             parents = selection[i].tolist()
@@ -55,7 +68,7 @@ class PreferenceTournamentSelection(TournamentSelection):
             parents.pop(-1)
             options = preselect[i].tolist()
             mate_idx = self.select_mate(
-                parents, options, problem, pop, random_state=random_state, **kwargs
+                parents, options, prob_cpy, pop_cpy, random_state=random_state, **kwargs
             )
             selection[i][-1] = options[mate_idx]
         return selection

@@ -57,32 +57,6 @@ class OraclePreferenceModel(PreferenceModel):
         return np.array([1.0])
 
     @staticmethod
-    def generate_matings(
-        parents: Sequence[Individual],
-        mate_options: Sequence[Individual],
-        pop: Population,
-    ) -> tuple[Sequence[Sequence[Individual]], Population]:
-        """
-        Creates a list of matings for all candidate mates.
-        Individuals belong to a copied population to avoid modifying the original.
-        """
-        pop_cpy = copy.deepcopy(pop)
-
-        # Map original individual identities to their population indices.
-        index_by_id = {id(ind): i for i, ind in enumerate(pop)}
-
-        parent_idx = [index_by_id[id(ind)] for ind in parents]
-
-        matings = []
-        for mate in mate_options:
-            p = [pop_cpy[i] for i in parent_idx]
-            mate_idx = index_by_id[id(mate)]
-            p.append(pop_cpy[mate_idx])
-            matings.append(p)
-
-        return matings, pop_cpy
-
-    @staticmethod
     def count_survivors(
         offspring: Sequence[Individual],
         new_pop: Population,
@@ -143,20 +117,13 @@ class OraclePreferenceModel(PreferenceModel):
         **kwargs,
     ) -> Sequence[float]:
         # Generate matings for all candidate mates
-        matings, pop_cpy = self.generate_matings(parents, mate_options, pop)
-        prob_cpy = copy.deepcopy(problem)
-        if isinstance(prob_cpy, PymooProblemWrapper):
-            prob_cpy.record = False
-            if isinstance(prob_cpy.static_problem, MOTrackingMixin):
-                prob_cpy.static_problem.disable_adding()
-        elif isinstance(prob_cpy, MOTrackingMixin):
-            prob_cpy.disable_adding()
+        matings = [list(parents) + [mate] for mate in mate_options]
         mate_scores = np.zeros(len(mate_options))
         for _ in range(self.num_oracle_simulations):
             survival_rates = self.simulate_matings(
                 matings,
-                prob_cpy,
-                pop_cpy,
+                problem,
+                pop,
                 self.mating,
                 self.survival,
                 random_state=random_state,

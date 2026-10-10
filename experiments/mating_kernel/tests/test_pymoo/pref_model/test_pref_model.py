@@ -59,12 +59,3 @@ def test_dummy_preference_model():
     assert len(model.calls) == 1
     assert model.calls[0][0] == parents
     assert model.calls[0][1] == mate_options
-
-
-def test_preference_model_initialization():
-    model = DummyPreferenceModel()
-    pop = create_pop(size=5)
-    model.evaluate(pop, pop, None, pop)  # Call evaluate to populate calls
-    assert pop[0].pref is not None
-    assert pop[0].pref.shape == (model.n_preferences,)
-    assert len(model.calls) == 1
