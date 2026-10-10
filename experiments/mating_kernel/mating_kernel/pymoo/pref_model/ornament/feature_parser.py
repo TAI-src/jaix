@@ -11,6 +11,7 @@ from mating_kernel.pymoo.recording_callback import recursive_getattr
 
 from jaix.env.utils.problem.re_problem.reproblem_adapter import REProblem
 from jaix.env.utils.problem.cobi_problem import CobiProblem
+from jaix.env.utils.problem.static_problem import StaticProblem
 
 
 class AttributeType(Enum):
@@ -104,7 +105,7 @@ class FeatureOrnamentParser(OrnamentParser):
 
     @staticmethod
     def get_features(
-        problem: REProblem | CobiProblem,
+        problem: StaticProblem | None = None,
         kernel: bool = False,
         abs: bool = False,
         rel_fit: bool = False,
@@ -115,6 +116,16 @@ class FeatureOrnamentParser(OrnamentParser):
     ) -> list[Feature]:
         features = []
         if kernel:
+            assert problem is not None, "Problem must be provided when kernel=True"
+            assert isinstance(
+                problem, (REProblem, CobiProblem)
+            ), "Problem must be an instance of REProblem or CobiProblem"
+            assert (
+                problem.ideal_point is not None
+            ), "Problem must have an ideal point defined"
+            assert (
+                problem.nadir_point is not None
+            ), "Problem must have a nadir point defined"
             max_f_dist = np.linalg.norm(problem.ideal_point - problem.nadir_point)
             features.append(
                 Feature(
@@ -125,7 +136,9 @@ class FeatureOrnamentParser(OrnamentParser):
                 )
             )
             if not no_x:
-                max_x_dist = np.linalg.norm(problem.lower_bounds - problem.upper_bounds)
+                max_x_dist = np.linalg.norm(
+                    np.array(problem.lower_bounds) - np.array(problem.upper_bounds)
+                )
 
                 features.append(
                     Feature(
