@@ -1,14 +1,14 @@
-from collections.abc import Callable, Sequence
 import copy
+from collections.abc import Callable, Sequence
 
 import numpy as np
 from pymoo.core.population import Population
 from pymoo.core.problem import Problem
 from pymoo.operators.selection.tournament import TournamentSelection
 
+from mating_kernel.problems.mo_tracking import MOTrackingMixin
 from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
-from mating_kernel.problems.mo_tracking import MOTrackingMixin
 
 
 class PreferenceTournamentSelection(TournamentSelection):
