@@ -52,6 +52,12 @@ def test_parsing(tmp_path):
         "num_candidates": [3, 1],
         "candidate_pressure": [2],
         "num_oracle_simulations": [30],
+        "kernel": [False],
+        "abs": [False],
+        "rel_fit": [False],
+        "state": [False],
+        "age": [False],
+        "no_x": [False],
     }
     assert filter_bids == [0, 1]
 
@@ -70,17 +76,19 @@ def test_get_alg_class():
         raise AssertionError("Expected get_alg_class to reject unsupported algorithm")
 
 
-@pytest.mark.parametrize("pref_model", ["default", "random", "oracle"])
+@pytest.mark.parametrize("pref_model", ["default", "random", "oracle", "ornament"])
 def test_get_recorded_alg(pref_model):
+    re_problem = REProblem(REProblemConfig(), inst=0)
     algorithm = PerfExperiment.get_recorded_alg(
         algorithm_name="NSGA2",
         pref_model=pref_model,
-        pref_params={"num_oracle_simulations": 5},
+        pref_params={"num_oracle_simulations": 5, "kernel": True, "abs": False},
         candidate_pressure=2,
         num_candidates=3,
         algorithm_params={"pop_size": 5},
         record_args=ReproductionParser.record_args,
         record_attributes=ReproductionParser.record_attributes,
+        problem=re_problem,
     )
     from pymoo.algorithms.moo.nsga2 import NSGA2
 
@@ -98,7 +106,7 @@ def test_get_recorded_alg(pref_model):
         assert attr is not None and hasattr(attr, "retrieve_records")
 
 
-@pytest.mark.parametrize("pref_model", ["default", "random", "oracle"])
+@pytest.mark.parametrize("pref_model", ["default", "random", "oracle", "ornament"])
 def test_run_instrumented_pymoo(pref_model):
     tracked_REProblem = make_tracked(REProblem)
     problem = tracked_REProblem(REProblemConfig(), inst=0)
@@ -106,7 +114,7 @@ def test_run_instrumented_pymoo(pref_model):
         problem=problem,
         algorithm_name="NSGA2",
         pref_model=pref_model,
-        pref_params={"num_oracle_simulations": 5},
+        pref_params={"num_oracle_simulations": 5, "kernel": True, "abs": False},
         num_candidates=3,
         candidate_pressure=2,
         n_gen=5,
@@ -117,7 +125,7 @@ def test_run_instrumented_pymoo(pref_model):
     assert isinstance(record_stats, pd.DataFrame)
 
 
-@pytest.mark.parametrize("pref_model", ["default", "random", "oracle"])
+@pytest.mark.parametrize("pref_model", ["default", "random", "oracle", "ornament"])
 def test_run_batch(tmp_path, pref_model):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo(problem)
@@ -135,6 +143,12 @@ def test_run_batch(tmp_path, pref_model):
         num_candidates=3,
         candidate_pressure=2,
         num_oracle_simulations=1,
+        kernel=True,
+        abs=False,
+        rel_fit=False,
+        state=False,
+        age=False,
+        no_x=False,
     )
     batch_cpy = batch.model_copy()
     result_files = PerfExperiment._run_batch(batch)
@@ -148,7 +162,7 @@ def test_run_batch(tmp_path, pref_model):
     assert batch.problem == batch_cpy.problem
 
 
-@pytest.mark.parametrize("pref_model", ["default", "random", "oracle"])
+@pytest.mark.parametrize("pref_model", ["default", "random", "oracle", "ornament"])
 def test_post_process_batches(tmp_path, pref_model):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo(problem)
@@ -168,6 +182,12 @@ def test_post_process_batches(tmp_path, pref_model):
             num_candidates=3,
             candidate_pressure=2,
             num_oracle_simulations=1,
+            kernel=True,
+            abs=False,
+            rel_fit=False,
+            state=False,
+            age=False,
+            no_x=False,
         )
         PerfExperiment._run_batch(batch)
         batches.append(batch)

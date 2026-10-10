@@ -56,10 +56,15 @@ class PreferenceMating(Mating):
             self.pref_model.dummy_problem,
             pref_parents,
             random_state=random_state,
+            record=False,
             **kwargs,
         )
         off_pref = self.mutation(
-            self.pref_model.dummy_problem, off_pref, random_state=random_state, **kwargs
+            self.pref_model.dummy_problem,
+            off_pref,
+            random_state=random_state,
+            record=False,
+            **kwargs,
         )
 
         # Now assign the preferences of the offspring created through crossover and mutation to the offspring created through crossover and mutation
@@ -124,4 +129,5 @@ class PreferenceMating(Mating):
         if self.pref_model.pref_inheritance:
             # If preference inheritance is enabled, we will perform crossover and mutation on the preference vectors of the parents to create the preference vectors for the offspring
             self._set_pref(parent_pop, off, random_state=random_state, **kwargs)
+
         return off

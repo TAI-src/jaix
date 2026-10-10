@@ -34,7 +34,10 @@ class DoRecorderMixin:
         }
         self._records.append(meta)
 
-    def do(self, *args, **kwargs):
+    def do(self, *args, record=True, **kwargs):
+        if not record:
+            return cast(Any, super()).do(*args, **kwargs)
+
         args_cpy = [
             deepcopy(args[i]) for i in self.recording_config.cpy_args if i < len(args)
         ]

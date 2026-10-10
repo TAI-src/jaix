@@ -71,6 +71,8 @@ class ReproductionParser(RecordingParser):
         ind_dict = {"X": ind.X, "F": ind.F, **ind.data}
         if ideal is not None and len(ind.F) > 0:
             ind_dict["dist_to_ideal"] = np.linalg.norm(ind.F - ideal)
+        if hasattr(ind, "pref"):
+            ind_dict["pref"] = ind.pref
         return ind_dict
 
     @staticmethod
