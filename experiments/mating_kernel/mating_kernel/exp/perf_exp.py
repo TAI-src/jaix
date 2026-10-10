@@ -237,14 +237,14 @@ class PerfExperiment(Experiment):
                 )
             pref_mod = OraclePreferenceModel(func_comp=func_comp, **pref_params)
         elif pref_model == "ornament":
-            from mating_kernel.pymoo.pref_model.ornament_pref_model import (
-                OrnamentPreferenceModel,
+            from mating_kernel.pymoo.pref_model.ornament.dist_scorer import (
+                DistScorer,
             )
             from mating_kernel.pymoo.pref_model.ornament.feature_parser import (
                 FeatureOrnamentParser,
             )
-            from mating_kernel.pymoo.pref_model.ornament.dist_scorer import (
-                DistScorer,
+            from mating_kernel.pymoo.pref_model.ornament_pref_model import (
+                OrnamentPreferenceModel,
             )
 
             features = FeatureOrnamentParser.get_features(
