@@ -30,6 +30,7 @@ class Feature:
 class FeatureOrnamentParser(OrnamentParser):
     def __init__(self, features: list[Feature]):
         self._n_dim = len(features)
+        assert self._n_dim > 0, "Features list must not be empty"
         self._features = features
         if any(f.attribute_type == AttributeType.DISTANCE for f in features):
             self._relative = True
