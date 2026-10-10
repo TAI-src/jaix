@@ -1,13 +1,13 @@
 import math
 from copy import deepcopy
-import numpy as np
-from pymoo.core.problem import Problem
 
-from pymoo.core.mating import Mating
-from pymoo.operators.selection.tournament import TournamentSelection
+import numpy as np
 from pymoo.core.crossover import Crossover
+from pymoo.core.mating import Mating
 from pymoo.core.mutation import Mutation
 from pymoo.core.population import Population
+from pymoo.core.problem import Problem
+from pymoo.operators.selection.tournament import TournamentSelection
 
 from mating_kernel.pymoo.mating.pref_tourn_sel import PreferenceTournamentSelection
 from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
@@ -48,7 +48,7 @@ class PreferenceMating(Mating):
         pref_parents = deepcopy(parents)
         for mating in pref_parents:
             for p in mating:
-                p.X = getattr(p, "pref")
+                p.X = p.pref
 
         # The dummy problem is just used for information about the preference model, such as the number of preference variables and their bounds.
         # It is not used for any optimization or evaluation.
@@ -64,7 +64,7 @@ class PreferenceMating(Mating):
 
         # Now assign the preferences of the offspring created through crossover and mutation to the offspring created through crossover and mutation
         for i in range(len(off)):
-            setattr(off[i], "pref", off_pref[i].X)
+            off[i].pref = off_pref[i].X
 
     @staticmethod
     def init_pref(
