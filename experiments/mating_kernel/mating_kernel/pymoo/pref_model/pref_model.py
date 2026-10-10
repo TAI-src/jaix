@@ -33,28 +33,20 @@ class PreferenceModel(ABC):
 
     def initialize(self, random_state: np.random.Generator) -> np.ndarray:
         """Generate an initial preference vector."""
-        return random_state.uniform(
-            self.xl,
-            self.xu,
-        )
+        random_vector = random_state.uniform(self.xl, self.xu, size=self.n_preferences)
+        return random_vector
 
     def init_individual(
         self, ind: Individual, random_state: np.random.Generator | None = None
     ):
         """Initialize an individual with a random preference vector."""
+        if not self.pref_inheritance or (hasattr(ind, "pref") and ind.pref is not None):
+            return  # Individual already has a preference vector, do not reinitialize
         if random_state is None:
             rng = np.random.default_rng()
             ind.pref = self.initialize(rng)
         else:
             ind.pref = self.initialize(random_state)
-
-    def validate(self, preferences: np.ndarray) -> bool:
-        """Check that a preference vector is valid."""
-        return bool(
-            preferences.shape == (self.n_preferences,)
-            and np.all(preferences >= self.xl)
-            and np.all(preferences <= self.xu)
-        )
 
     @abstractmethod
     def _evaluate(
@@ -90,6 +82,7 @@ class PreferenceModel(ABC):
         )
         return scores
 
+    @property
     def dummy_problem(self) -> Problem:
         problem = Problem(
             n_var=self.n_preferences,
