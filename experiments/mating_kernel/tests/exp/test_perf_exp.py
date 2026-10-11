@@ -144,10 +144,10 @@ def test_run_batch(tmp_path, pref_model):
         candidate_pressure=2,
         num_oracle_simulations=1,
         kernel=True,
-        abs=False,
-        rel_fit=False,
+        abs=True,
+        rel_fit=True,
         state=False,
-        age=False,
+        age=True,
         no_x=False,
     )
     batch_cpy = batch.model_copy()

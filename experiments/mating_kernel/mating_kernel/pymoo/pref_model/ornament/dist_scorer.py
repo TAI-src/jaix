@@ -15,4 +15,4 @@ class DistScorer(Scorer):
         distances = [
             np.linalg.norm(ornament_values - pref) for pref in parent_preferences
         ]
-        return float(np.sum(distances))
+        return float(np.nanmean(distances))
