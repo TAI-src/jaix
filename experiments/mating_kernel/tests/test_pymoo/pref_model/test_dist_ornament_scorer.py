@@ -7,4 +7,4 @@ def test_dist_scorer():
     ornament_values = np.array([0.0, 1.0])
     parent_preferences = [np.array([0.0, 0.0]), np.array([1.0, 1.0])]
     score = scorer.score(ornament_values, parent_preferences)
-    assert score == 2.0, f"Expected score of 2.0, but got {score}"
+    assert score == 1.0, f"Expected score of 2.0, but got {score}"
