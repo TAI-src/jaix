@@ -1,37 +1,48 @@
 name: "Run TODO to Issue"
+
 on:
   push:
     branches:
       - main
     paths-ignore:
       - 'docs/**'
-      - "**.md"
-      - "docker/**"
-  workflow_dispatch: # allow triggering workflow manually
-    inputs: {}
+      - '**.md'
+      - 'docker/**'
+
+  workflow_dispatch:
+
 jobs:
   build:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
+
     permissions:
       contents: write
       issues: write
       pull-requests: write
+
     steps:
-      - uses: "actions/checkout@v6"
+      - uses: actions/checkout@v6
+
       - name: "TODO to Issue"
-        uses: "alstr/todo-to-issue-action@v5"
+        uses: alstr/todo-to-issue-action@v5
         with:
           INSERT_ISSUE_URLS: "true"
           CLOSE_ISSUES: "true"
-          IDENTIFIERS: [{"name": "TODO", "labels": ["todo"]},{"name": "FIXME", "labels": ["fixme"]}]
+          IDENTIFIERS: >-
+            [
+              {"name": "TODO", "labels": ["todo"]},
+              {"name": "FIXME", "labels": ["fixme"]}
+            ]
+
       - name: Set Git user
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Commit and Push Changes
         run: |
           git add -A
-          if [[ `git status --porcelain` ]]; then
+          if [[ -n "$(git status --porcelain)" ]]; then
             git commit -m "Automatically added GitHub issue links to TODOs"
             git push origin main
           else
