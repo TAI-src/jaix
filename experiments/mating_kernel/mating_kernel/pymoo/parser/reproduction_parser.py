@@ -15,11 +15,12 @@ CrossoverRecordingConfig = RecordingConfig(
 
 class ReproductionParser(RecordingParser):
     record_args: ClassVar[dict[str, RecordingConfig]] = {
-        "selection": SelectionRecordingConfig,
-        "crossover": CrossoverRecordingConfig,
         "survival": SurvivalRecordingConfig,
     }
-    record_attributes: ClassVar[dict[str, RecordingConfig]] = {}
+    record_attributes: ClassVar[dict[str, RecordingConfig]] = {
+        "mating.selection": SelectionRecordingConfig,
+        "mating.crossover": CrossoverRecordingConfig,
+    }
     record_retrieval: ClassVar[list[str]] = [
         "mating.selection",
         "mating.crossover",
@@ -70,6 +71,8 @@ class ReproductionParser(RecordingParser):
         ind_dict = {"X": ind.X, "F": ind.F, **ind.data}
         if ideal is not None and len(ind.F) > 0:
             ind_dict["dist_to_ideal"] = np.linalg.norm(ind.F - ideal)
+        if hasattr(ind, "pref"):
+            ind_dict["pref"] = ind.pref
         return ind_dict
 
     @staticmethod

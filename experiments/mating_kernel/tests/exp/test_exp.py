@@ -52,7 +52,7 @@ class DummyExperiment(Experiment):
         return [[str(pp_file)] for batch in batches]
 
 
-def test_parse_args():
+def test_parse_args(tmp_path):
     config, filter_bids = DummyExperiment.parse_args(
         [
             "--cobi",
@@ -63,7 +63,7 @@ def test_parse_args():
             "--seed",
             "123",
             "--out_dir",
-            "results",
+            str(tmp_path / "results"),
             "--nth",
             "1",
             "3",
@@ -80,7 +80,7 @@ def test_parse_args():
     assert config.reps == 5
     assert config.num_batches == 2
     assert config.seed == 123
-    assert config.out_dir == Path("results")
+    assert config.out_dir == tmp_path / "results"
 
     assert config.settings == {"foo": [99, 100], "bar": ["default"]}
     assert config.group_by == ["pid", "sid"]

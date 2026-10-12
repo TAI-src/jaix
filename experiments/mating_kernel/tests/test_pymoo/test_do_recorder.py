@@ -61,3 +61,7 @@ def test_do_recorder():
         assert "output_cpy" in record
         assert record["args"] == []
         assert record["output_cpy"] is None
+
+    # Check with record = False
+    selection.do(None, pop, n_select=1, n_parents=2, record=False)
+    assert len(selection.records) == 1  # no new record added
