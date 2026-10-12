@@ -17,8 +17,16 @@ on:
       MANUAL_BASE_REF:
         description: "Base commit SHA (before the TODOs were added)"
         required: true
+        
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}-${{ github.triggering_actor == 'auto-cid' || github.triggering_actor == 'github-actions[bot]' }}
+  cancel-in-progress: true
+
+        
 jobs:
   build:
+    if: github.triggering_actor != 'github-actions[bot]' && github.triggering_actor != 'auto-cid'
     runs-on: ubuntu-latest
 
     permissions:
