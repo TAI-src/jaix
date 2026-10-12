@@ -134,6 +134,8 @@ if __name__ == "__main__":
             sweep_values = args.sweep_values  # type: list[Any]
             launch_arguments["sweep"] = (sweep_keys, sweep_values)  # type: ignore
         # TODO: better validation of arguments
+        # Issue URL: https://github.com/TAI-src/jaix/issues/309
+        # Issue URL: https://github.com/TAI-src/jaix/issues/308
     results = launch_jaix_experiment(**launch_arguments)  # type: ignore
     # Aggregate exit codes. If any experiment failed, the script will return something different than 0
     exit_codes = [max(result["exit_codes"]) for result in results.values()]
