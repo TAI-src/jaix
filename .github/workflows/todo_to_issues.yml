@@ -10,7 +10,13 @@ on:
       - 'docker/**'
 
   workflow_dispatch:
-
+    inputs:
+      MANUAL_COMMIT_REF:
+        description: "Target commit SHA (usually current main)"
+        required: true
+      MANUAL_BASE_REF:
+        description: "Base commit SHA (before the TODOs were added)"
+        required: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,6 +31,9 @@ jobs:
 
       - name: "TODO to Issue"
         uses: alstr/todo-to-issue-action@v5
+        env:
+          MANUAL_COMMIT_REF: ${{ inputs.MANUAL_COMMIT_REF }}
+          MANUAL_BASE_REF: ${{ inputs.MANUAL_BASE_REF }}
         with:
           INSERT_ISSUE_URLS: "true"
           CLOSE_ISSUES: "true"
