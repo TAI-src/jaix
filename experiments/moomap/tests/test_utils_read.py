@@ -1,6 +1,12 @@
 from pathlib import Path
 
-from utils_read import find_data_files, get_config_dict, get_nsga3x_results
+from utils_read import (
+    find_data_files,
+    get_config_dict,
+    get_nsga3x_results,
+    get_pred_overview_results,
+)
+import pandas as pd
 
 
 def test_get_config_file():
@@ -58,3 +64,53 @@ def test_get_nsga3x_results():
             assert "config_file" in run_info
             assert "config" in run_info
             assert isinstance(run_info["config"], dict)
+
+
+def test_pred_overview_results():
+    # Test that the get_pred_overview_results function returns the correct results
+    test_folder = Path(__file__).parent.parent / "data/feat_imp"
+    problem_ids = None
+    results_df = get_pred_overview_results(test_folder, problem_ids=problem_ids)
+    assert isinstance(results_df, pd.DataFrame)
+    assert set(results_df.columns) == {
+        "problem_id",
+        "scenario_id",
+        "cv_score_mean",
+        "cobi",
+        "target_col",
+        "batch_id",
+    }
+
+    from plots_grid import plot_grid
+
+    plot_file = plot_grid(
+        results_df.reset_index(),
+        max_grid=None,
+        grid_colx="problem_id",
+        grid_coly="scenario_id",
+        hue_col="cv_score_mean",
+        output_dir=".",
+    )
+
+    from config_pred import get_grouped_scenario
+
+    scenario_groups, feature_names = get_grouped_scenario()
+    # add a name column based on the scenario_id and feature_names
+    results_df["feat_name"] = [feature_names[i] for i in results_df["scenario_id"]]
+
+    for group, scenario_ids in scenario_groups.items():
+        subset_df = results_df[results_df["scenario_id"].isin(scenario_ids)]
+        print(
+            f"Group: {group}, Scenario IDs: {scenario_ids}, Subset shape: {subset_df.shape}"
+        )
+
+        plot_file = plot_grid(
+            subset_df.reset_index(),
+            max_grid=None,
+            grid_colx="problem_id",
+            grid_coly="feat_name",
+            hue_col="cv_score_mean",
+            output_dir=".",
+            file_prefix=f"group_{group}",
+            annot=True,
+        )

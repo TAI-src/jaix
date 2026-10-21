@@ -18,7 +18,7 @@ from sklearn.model_selection import (
     cross_val_score,
 )
 
-from config_pred import get_config_dicts, parse_args
+from config_pred import get_config_dicts, parse_args, get_grouped_scenario
 
 
 def get_model(
@@ -219,6 +219,7 @@ def run_analysis(
         loo_cv_scores_std.append(loo_cv_score_std)
     feature_df["loo_cv_score"] = loo_cv_scores
     feature_df["loo_cv_score_std"] = loo_cv_scores_std
+    # FIXME: the cv score is to be maximized, so the drop is negative if the feature is important. We should probably rename this to "loo_score_change" or something similar.
     feature_df["loo_score_drop"] = feature_df["loo_cv_score"] - cv_score_mean
     feature_df["loo_score_drop_rel"] = feature_df["loo_score_drop"] / cv_score_mean
     feature_df["loo_score_drop_rel_std"] = feature_df["loo_cv_score_std"] / cv_score_std
@@ -249,6 +250,104 @@ def main(args):
         config_file = f"{file_prefix}_config.json"
         with open(out_dir / config_file, "w") as f:
             json.dump(config_dict, f, indent=4, default=str)
+
+
+def plot_results(
+    results_dir: str | Path,
+    output_dir: str | Path,
+    problem_ids: list[int] | None = None,
+    features: list[str] | None = None,
+):
+    if features is None:
+        features = [
+            "mutual_info",
+            "perm_importance",
+            "loo_score_drop",
+        ]
+    from utils_read import read_feat_imp
+    from config_pred import get_aggregation_scenarios
+    from plots_parallel_coordinate_plot import plot_pcp
+
+    imp_df = read_feat_imp(results_dir)
+    scenarios = get_aggregation_scenarios()
+    avg = imp_df.copy()[["feature"] + features].groupby("feature").mean().reset_index()
+    plot_df = (
+        avg.set_index("feature").T.reset_index().rename(columns={"index": "metric"})
+    )
+    plot_file = "fimp_avg.pdf"
+    plot_pcp(
+        plot_df,
+        line_col_name="metric",
+        class_col_name=None,
+        save_path=f"{output_dir}/{plot_file}",
+    )
+
+    plot_df.to_csv(f"{output_dir}/fimp_avg.csv", index=False)
+    avg["group"] = "avg"
+    for scenario in scenarios:
+        scenario_name = "_".join(scenario)
+        print(scenario_name)
+        grouped_df = imp_df.groupby(scenario)
+        for group_name, group_df in grouped_df:
+            name = [f"{s}_{g}" for s, g in zip(scenario, group_name)]
+            name = "_".join(name)
+
+            group_avg = (
+                group_df[["feature"] + features].groupby("feature").mean().reset_index()
+            )
+            plot_df = (
+                group_avg.set_index("feature")
+                .T.reset_index()
+                .rename(columns={"index": "metric"})
+            )
+            plot_file = f"fimp_{name}.pdf"
+            plot_pcp(
+                plot_df,
+                line_col_name="metric",
+                class_col_name=None,
+                save_path=f"{output_dir}/{plot_file}",
+            )
+
+            group_avg["group"] = str(name)
+            res_df = pd.concat([avg, group_avg], ignore_index=True)
+
+            line_styles = {"avg": "--"}
+            if len(scenario) > 1:
+                # add additional average for each individual scenario in the group
+                for i, s in enumerate(scenario):
+                    filtered_df = imp_df[imp_df[s] == group_name[i]]
+                    filter_avg = (
+                        filtered_df.groupby(["feature"])[features].mean().reset_index()
+                    )
+                    filter_name = f"{s}_{group_name[i]}"
+                    filter_avg["group"] = str(filter_name)
+                    res_df = pd.concat([res_df, filter_avg], ignore_index=True)
+                    line_styles[filter_name] = ":" if i == 0 else "-."
+            res_df.to_csv(f"{output_dir}/fimp_{name}.csv", index=False)
+            # normlise columns in res_df to [0, 1] for each metric
+            for metric in features:
+                min_val = res_df[metric].min()
+                max_val = res_df[metric].max()
+                if max_val - min_val > 0:
+                    res_df[metric] = (res_df[metric] - min_val) / (max_val - min_val)
+
+            res_df = (
+                res_df.set_index(["group", "feature"])
+                .T.stack(level=0)
+                .reset_index()
+                .rename(columns={"level_0": "metric", "level_1": "group"})
+            )
+            # remove columns with any nan values (these are not in the group)
+            res_df = res_df.dropna(axis=1, how="any")
+            plot_file = f"fimp_{name}_avg.pdf"
+
+            plot_pcp(
+                res_df,
+                line_col_name="metric",
+                class_col_name="group",
+                linestyles=line_styles,
+                save_path=f"{output_dir}/{plot_file}",
+            )
 
 
 if __name__ == "__main__":

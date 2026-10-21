@@ -7,13 +7,14 @@ import seaborn as sns
 
 def plot_grid(
     source_df: pd.DataFrame,
-    max_grid: int,
+    max_grid: int | None,
     grid_colx: str,
     grid_coly: str,
     hue_col: str,
     output_dir: str,
     file_prefix: str = "",
     cmap_pal: str = "viridis",
+    annot: bool = False,
 ) -> str:
     """
     Plots a grid heatmap using hue_col as the color intensity for each grid cell defined by grid_colx and grid_coly.
@@ -21,17 +22,23 @@ def plot_grid(
     grid_data = source_df.copy()
     # create a pivot table using grid_colx and grid_coly as indices and hue_col as values
     # grid labels should be from 0 to max_grid, so we can create a pivot table for the complete grid
-    idx = pd.MultiIndex.from_product(
-        [range(max_grid), range(max_grid)], names=[grid_colx, grid_coly]
-    )
-    grid_data = grid_data.set_index([grid_colx, grid_coly]).reindex(idx).reset_index()
+    if max_grid is not None:
+        idx = pd.MultiIndex.from_product(
+            [range(max_grid), range(max_grid)], names=[grid_colx, grid_coly]
+        )
+        grid_data = (
+            grid_data.set_index([grid_colx, grid_coly]).reindex(idx).reset_index()
+        )
     pivot_table = grid_data.pivot(index=grid_colx, columns=grid_coly, values=hue_col)
+    # add average value for each row and column
+    pivot_table["row_mean"] = pivot_table.mean(axis=1)
+    pivot_table.loc["col_mean"] = pivot_table.mean(axis=0)
     cmap = sns.color_palette(cmap_pal, as_cmap=True)
     cmap.set_bad("lightgray")
     plt.figure(figsize=(10, 8))
     sns.heatmap(
         pivot_table,
-        annot=False,
+        annot=annot,
         fmt=".2f",
         cmap=cmap,
         cbar_kws={"label": hue_col},
