@@ -17,6 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           submodules: true
 
       - name: Update submodule
@@ -37,6 +38,14 @@ jobs:
           black jaix -t py37 -t py312
           ruff check jaix --fix --unsafe-fixes
 
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create pull request
         if: steps.changes.outputs.changed == 'true'
