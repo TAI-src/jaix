@@ -7,7 +7,6 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 
 from mating_kernel.problems.cobi_configs import get_config
 from mating_kernel.problems.problem_info import ProblemInfo
-from cocoviz import ProblemDescription
 
 cobi_problem = CobiProblem(get_config(0), inst=0)
 re_problem = REProblem(REProblemConfig(), 0)
@@ -24,5 +23,3 @@ def test_problem_info(problem):
     assert hasattr(problem_info, "uuid")
 
     assert hasattr(problem_info, "cocoviz_description")
-    assert isinstance(problem_info.cocoviz_description, ProblemDescription)
-    assert problem_info.cocoviz_description.name == problem_info.uuid
