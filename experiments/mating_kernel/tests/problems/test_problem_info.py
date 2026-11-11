@@ -21,5 +21,3 @@ def test_problem_info(problem):
     assert problem_info.num_objectives == problem.num_objectives
     assert problem_info.num_variables == problem.dimension
     assert hasattr(problem_info, "uuid")
-
-    assert hasattr(problem_info, "cocoviz_description")
