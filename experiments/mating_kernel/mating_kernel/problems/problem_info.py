@@ -1,4 +1,5 @@
 from jaix.env.utils.problem.static_problem import StaticProblem
+from cocoviz import ProblemDescription
 
 
 class ProblemInfo:
@@ -22,3 +23,9 @@ class ProblemInfo:
             self.uuid = f"{self.problem}_{self.num_variables}_{self.num_objectives}"
             if hasattr(problem, "inst"):
                 self.uuid += f"_{problem.inst}"
+        self.cocoviz_description = ProblemDescription(
+            name=self.uuid,
+            instance=0,
+            number_of_variables=problem.dimension,
+            number_of_objectives=problem.num_objectives,
+        )
