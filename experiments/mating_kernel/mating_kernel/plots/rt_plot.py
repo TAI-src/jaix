@@ -1,9 +1,10 @@
-from cocoviz import ProblemDescription, Result, ResultSet, Indicator, rtpplot
-from mating_kernel.problems.problem_info import ProblemInfo
-import pandas as pd
-
 from pathlib import Path
+
 import matplotlib.pyplot as plt
+import pandas as pd
+from cocoviz import Indicator, ProblemDescription, Result, ResultSet, rtpplot
+
+from mating_kernel.problems.problem_info import ProblemInfo
 
 
 def get_description(pinfo: ProblemInfo) -> ProblemDescription:
