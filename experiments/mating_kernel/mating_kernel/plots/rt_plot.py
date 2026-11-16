@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -5,14 +6,15 @@ import pandas as pd
 from cocoviz import (
     Indicator,
     ProblemDescription,
-    Result as CVResult,
     ResultSet,
     rtpplot,
+)
+from cocoviz import (
+    Result as CVResult,
 )
 from cocoviz._typing import FrameLike
 
 from mating_kernel.problems.problem_info import ProblemInfo
-import logging
 
 logger = logging.getLogger(__name__)
 
