@@ -11,7 +11,7 @@ WORKDIR /jaix
 RUN pip install pip-tools && \
    pip-compile --extra hpo --output-file requirements.txt setup.py && \
    pip install --no-cache-dir --no-deps -r requirements.txt && \
-   pip install --no-cache-dir numpy==1.26.4 'requests<2.31' 'urllib3<2'
+   pip install --no-cache-dir numpy==1.26.4 pandas==3.0.6 'requests<2.31' 'urllib3<2'
 RUN pip install --no-deps --no-cache-dir -e .[hpo]
 
 WORKDIR /tests
