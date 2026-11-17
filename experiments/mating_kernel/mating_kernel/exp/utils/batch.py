@@ -1,14 +1,14 @@
 import hashlib
 import json
-from pathlib import Path
-from pydantic import BaseModel, ConfigDict
-from typing import Self
+import logging
 import pickle
+from pathlib import Path
+from typing import Self
+
+from pydantic import BaseModel, ConfigDict
 
 from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.problems.problem_info import ProblemInfo
-
-import logging
 
 logger = logging.getLogger(__name__)
 
