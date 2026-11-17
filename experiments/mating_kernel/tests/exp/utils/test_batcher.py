@@ -14,7 +14,7 @@ from .test_batch import sim_run
 
 def make_batch(tmp_path, **kwargs) -> Batch:
     problem = REProblem(REProblemConfig(), 0)
-    pinfo = ProblemInfo(problem)
+    pinfo = ProblemInfo.from_problem(problem)
     defaults = {
         "pid": "p1",
         "sid": 0,

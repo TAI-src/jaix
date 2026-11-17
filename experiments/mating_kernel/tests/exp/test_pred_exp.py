@@ -63,7 +63,7 @@ def test_parsing(tmp_path):
 
 def test_get_batch(tmp_path):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
-    pinfo = ProblemInfo(problem)
+    pinfo = ProblemInfo.from_problem(problem)
     batch = Batch(
         problem=problem,
         n_gen=5,
@@ -137,9 +137,9 @@ def make_batches(tmp_path, settings, num_batches=2):
         Batch(
             problem=problem,
             seed=123,
-            pid=ProblemInfo(problem).uuid,
+            pid=ProblemInfo.from_problem(problem).uuid,
             sid=0,
-            pinfo=ProblemInfo(problem),
+            pinfo=ProblemInfo.from_problem(problem),
             parent_dir=tmp_path,
             perf_stats_dir=str(Path(__file__).parent.parent / "data"),
             **settings,

@@ -157,6 +157,7 @@ class PerfExperiment(Experiment):
             pickle.dump(result_cpy, f)
         record_stats.to_csv(files["record_stats"], index=False)
         # Save the archive as pkl as well
+        assert batch.problem is not None, "Batch problem is None"
         if hasattr(batch.problem, "archive") and hasattr(
             batch.problem.archive, "archived_entries"
         ):

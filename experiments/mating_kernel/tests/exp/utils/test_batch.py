@@ -7,7 +7,6 @@ from jaix.env.utils.problem.re_problem.reproblem_adapter import (
 )
 
 from mating_kernel.exp.utils.batch import Batch
-from mating_kernel.exp.exp import Experiment
 from mating_kernel.problems.problem_info import ProblemInfo
 
 
@@ -20,13 +19,13 @@ def sim_run(batch: Batch, incomplete=False):
         # Create an incomplete run by not creating the batch file
         return
     # Create the batch file to simulate a completed batch
-    batch_file_pth = Experiment.file_paths(batch)["batch"]
-    batch_file_pth.touch()  # create the batch file
+    batch.write()
+    assert batch.exists()  # Check if the batch now exists (completed run)
 
 
 def test_batch_creation(tmp_path):
     problem = REProblem(REProblemConfig(), 0)
-    pinfo = ProblemInfo(problem)
+    pinfo = ProblemInfo.from_problem(problem)
     batch = Batch(
         problem=problem,
         pinfo=pinfo,
@@ -120,7 +119,7 @@ def test_batch_creation(tmp_path):
 
 def test_batch_missing_values(tmp_path):
     problem = REProblem(REProblemConfig(), 0)
-    pinfo = ProblemInfo(problem)
+    pinfo = ProblemInfo.from_problem(problem)
     batch = Batch(
         problem=problem,
         pinfo=pinfo,
@@ -134,3 +133,38 @@ def test_batch_missing_values(tmp_path):
     assert batch.seed is None
     with pytest.raises(ValueError):
         _ = batch.run_id  # Should raise ValueError because seed is None
+
+
+def test_load(tmp_path):
+    problem = REProblem(REProblemConfig(), 0)
+    pinfo = ProblemInfo.from_problem(problem)
+    batch = Batch(
+        problem=problem,
+        pinfo=pinfo,
+        pid=pinfo.uuid,
+        sid=5,
+        algorithm_name="NSGA2",
+        selector="tournament",
+        n_gen=100,
+        parent_dir=tmp_path,
+        seed=42,  # Set a seed for reproducibility
+    )
+    batch.write()  # Write the batch to create the batch file
+    assert batch.exists()  # Check if the batch now exists (completed run)
+    b2 = Batch.load(batch.batch_file)  # Load the batch from the file
+    assert b2.name == batch.name  # Check if the loaded batch has the same name
+    assert (
+        b2.settings == batch.settings
+    )  # Check if the loaded batch has the same settings
+    assert b2.pid == batch.pid  # Check if the loaded batch has the same pid
+    assert b2.sid == batch.sid  # Check if the loaded batch has the same sid
+    assert b2.pinfo == batch.pinfo  # Check if the loaded batch has the same pinfo
+    assert (
+        b2.problem is None
+    )  # turned None for serialization, check if the loaded batch has the same problem
+    assert b2.parent_dir == str(
+        batch.parent_dir
+    )  # Check if the loaded batch has the same parent_dir
+    assert b2.seed == batch.seed  # Check if the loaded batch has the same seed
+    assert b2.rep == batch.rep  # Check if the loaded batch has the same rep
+    assert b2.out_dir == batch.out_dir  # Check if the loaded batch has the same out_dir

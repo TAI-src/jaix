@@ -128,7 +128,7 @@ def test_run_instrumented_pymoo(pref_model):
 @pytest.mark.parametrize("pref_model", ["default", "random", "oracle", "ornament"])
 def test_run_batch(tmp_path, pref_model):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
-    pinfo = ProblemInfo(problem)
+    pinfo = ProblemInfo.from_problem(problem)
     batch = Batch(
         name="test_batch",
         problem=problem,
@@ -165,7 +165,7 @@ def test_run_batch(tmp_path, pref_model):
 @pytest.mark.parametrize("pref_model", ["default", "random", "oracle", "ornament"])
 def test_post_process_batches(tmp_path, pref_model):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
-    pinfo = ProblemInfo(problem)
+    pinfo = ProblemInfo.from_problem(problem)
     batches = []
     for i in range(3):
         batch = Batch(
