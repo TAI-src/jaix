@@ -1,6 +1,8 @@
-from jaix.env.utils.problem.static_problem import StaticProblem
-from pydantic import BaseModel
 from typing import Self
+
+from pydantic import BaseModel
+
+from jaix.env.utils.problem.static_problem import StaticProblem
 
 
 class ProblemInfo(BaseModel):
