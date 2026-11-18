@@ -1,8 +1,8 @@
 import argparse
 import logging
 from abc import ABC
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.batcher import Batcher
