@@ -1,4 +1,5 @@
 import shutil
+import pickle
 
 import pytest
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
@@ -135,7 +136,8 @@ def test_batch_missing_values(tmp_path):
         _ = batch.run_id  # Should raise ValueError because seed is None
 
 
-def test_load(tmp_path):
+@pytest.mark.parametrize("legacy", [True, False])
+def test_load(tmp_path, legacy):
     problem = REProblem(REProblemConfig(), 0)
     pinfo = ProblemInfo.from_problem(problem)
     batch = Batch(
@@ -149,9 +151,17 @@ def test_load(tmp_path):
         parent_dir=tmp_path,
         seed=42,  # Set a seed for reproducibility
     )
-    batch.write()  # Write the batch to create the batch file
+    if legacy:
+        batch_file = batch.batch_file.with_suffix(".pkl")
+        # Previously saved as pickle, now saved as json. Simulate a legacy batch by saving it as a pickle file.
+        with open(batch_file, "wb") as f:
+            b_copy = batch.model_copy(update={"problem": str(batch.problem)})
+            pickle.dump(b_copy, f)
+    else:
+        batch_file = batch.batch_file
+        batch.write()  # Write the batch to create the batch file
     assert batch.exists()  # Check if the batch now exists (completed run)
-    b2 = Batch.load(batch.batch_file)  # Load the batch from the file
+    b2 = Batch.load(batch_file)  # Load the batch from the file
     assert b2.name == batch.name  # Check if the loaded batch has the same name
     assert (
         b2.settings == batch.settings
@@ -162,7 +172,7 @@ def test_load(tmp_path):
     assert (
         b2.problem is None
     )  # turned None for serialization, check if the loaded batch has the same problem
-    assert b2.parent_dir == str(
+    assert str(b2.parent_dir) == str(
         batch.parent_dir
     )  # Check if the loaded batch has the same parent_dir
     assert b2.seed == batch.seed  # Check if the loaded batch has the same seed

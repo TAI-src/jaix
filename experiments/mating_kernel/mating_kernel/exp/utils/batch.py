@@ -132,7 +132,7 @@ class Batch(BaseModel):
             )
             # For backward compatibility, also check for pickle file
             if self.out_dir.exists():
-                pkl_file = str(self.batch_file).replace(".json", ".pkl")
+                pkl_file = self.batch_file.with_suffix(".pkl")
                 logger.debug(
                     f"Checking if pickle file {pkl_file} exists for batch {self.name}."
                 )
