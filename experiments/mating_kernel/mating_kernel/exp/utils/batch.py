@@ -173,11 +173,7 @@ class Batch(BaseModel):
         Override the default model_dump_json to exclude the problem field.
         """
         # merge exclude with the default exclude
-        if "exclude" in kwargs:
-            excludes = self._default_exclude
-            excludes.update(kwargs["exclude"])
-            kwargs["exclude"] = excludes
-        else:
+        if "exclude" not in kwargs:
             kwargs["exclude"] = self._default_exclude
         return super().model_dump(**kwargs)
 
