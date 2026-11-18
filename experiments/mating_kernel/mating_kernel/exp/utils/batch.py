@@ -158,7 +158,7 @@ class Batch(BaseModel):
                 data = pickle.load(f)
             # Ensure problem is set to None when loading from pickle
             # This is to ensure consistency with the JSON loading, which does not include the problem object.
-            setattr(data, "problem", None)  # noqa: B009
+            setattr(data, "problem", None)  # noqa: B010
         elif Path(batch_file).suffix == ".json":
             data = json.loads(Path(batch_file).read_text())
         else:
