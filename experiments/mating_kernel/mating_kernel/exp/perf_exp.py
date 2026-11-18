@@ -157,6 +157,7 @@ class PerfExperiment(Experiment):
             pickle.dump(result_cpy, f)
         record_stats.to_csv(files["record_stats"], index=False)
         # Save the archive as pkl as well
+        assert batch.problem is not None, "Batch problem is None"
         if hasattr(batch.problem, "archive") and hasattr(
             batch.problem.archive, "archived_entries"
         ):
@@ -284,7 +285,7 @@ class PerfExperiment(Experiment):
 
     @staticmethod
     def run_instrumented_pymoo(
-        problem: StaticProblem,
+        problem: StaticProblem | None,
         algorithm_name: str,
         pref_model: str | None,
         pref_params: dict | None,
@@ -294,6 +295,9 @@ class PerfExperiment(Experiment):
         algorithm_params: dict | None = None,
         seed: int | None = None,
     ) -> tuple[Result, pd.DataFrame]:
+        # NOTE: In the future, potentially identify problem via name and load it from a registry, rather than passing the problem object directly.
+        if problem is None:
+            raise ValueError("Problem must be provided for the experiment.")
         pymoo_problem = PymooProblemWrapper(problem)
         callback = OffspringSuccessRecordingCallback(pymoo_problem)
         algorithm = PerfExperiment.get_recorded_alg(

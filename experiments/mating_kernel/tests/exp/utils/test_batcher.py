@@ -14,7 +14,7 @@ from .test_batch import sim_run
 
 def make_batch(tmp_path, **kwargs) -> Batch:
     problem = REProblem(REProblemConfig(), 0)
-    pinfo = ProblemInfo(problem)
+    pinfo = ProblemInfo.from_problem(problem)
     defaults = {
         "pid": "p1",
         "sid": 0,
@@ -222,6 +222,8 @@ def test_create_batches(tmp_path):
     assert len(batches) == 3  # Split into 3 batches
     total_batches = sum(len(batch_group) for batch_group in batches)
     assert total_batches == 24
+    assert batches[0][0].batch_num == 0
+    assert batches[0][0].batch_size == 24
 
 
 def test_create_batches_with_filter(tmp_path):

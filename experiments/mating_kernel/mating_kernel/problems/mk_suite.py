@@ -39,7 +39,7 @@ class MKSuite(ConfigurableObject):
         self.problems = MKSuite.generate_problem_list(
             self.cobi, self.re, self.constrained, self.num_objectives
         )
-        self.problem_info_list = [ProblemInfo(p) for p in self.problems]
+        self.problem_info_list = [ProblemInfo.from_problem(p) for p in self.problems]
         self.problem_id_map = {
             pinfo.uuid: {"problem": p, "info": pinfo}
             for p, pinfo in zip(self.problems, self.problem_info_list)
