@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class Batch(BaseModel):
+    batch_num: int | None = None
+    batch_size: int | None = None
     pid: str
     sid: int
     rep: int | None = None

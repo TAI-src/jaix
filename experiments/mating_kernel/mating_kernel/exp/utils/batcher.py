@@ -130,6 +130,10 @@ class Batcher:
         seeded_batches = Batcher.seed_batches(
             batches, reps=reps, seed=seed, skip_existing=skip_existing
         )
+        # number batches
+        for bid, batch in enumerate(seeded_batches):
+            batch.batch_num = bid
+            batch.batch_size = len(seeded_batches)
         if group_by is not None:
             grouped_batches = Batcher.group_batches(seeded_batches, group_by=group_by)
             # Flatten the grouped batches into a list of lists

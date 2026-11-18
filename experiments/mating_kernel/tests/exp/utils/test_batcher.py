@@ -222,6 +222,8 @@ def test_create_batches(tmp_path):
     assert len(batches) == 3  # Split into 3 batches
     total_batches = sum(len(batch_group) for batch_group in batches)
     assert total_batches == 24
+    assert batches[0][0].batch_num == 0
+    assert batches[0][0].batch_size == 24
 
 
 def test_create_batches_with_filter(tmp_path):
