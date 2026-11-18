@@ -162,7 +162,7 @@ class Experiment(ABC):
         elif isinstance(config, BatchedExperimentConfig):
             return cls.run_batched(config, filter_bids=filter_bids, **kwargs)
         else:
-            raise ValueError(
+            raise TypeError(
                 f"Unknown config type: {type(config)}. Must be ResultsConfig or BatchedExperimentConfig."
             )
 
