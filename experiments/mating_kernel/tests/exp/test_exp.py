@@ -286,3 +286,15 @@ def test_force_recompute(skip_existing, tmp_path):
     config.force_recompute = True
     results_third_run = DummyExperiment.run(config)
     assert len(results_third_run) == 2  # Should recompute all batches
+
+
+def test_run_results_mode(tmp_path):
+    config = ResultsConfig(
+        input_dirs=[tmp_path / "input1", tmp_path / "input2"],
+        out_dir=tmp_path / "results",
+        settings={"foo": [1]},
+    )
+    results = DummyExperiment.run(config)
+    assert len(results) == 1
+    assert len(results[0]) == 1
+    assert Path(results[0][0]).name == "results.txt"
