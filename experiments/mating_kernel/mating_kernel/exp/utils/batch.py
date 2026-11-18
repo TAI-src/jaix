@@ -89,6 +89,7 @@ class Batch(BaseModel):
         Check in the given path how many folders with the experiment id exist
         """
         # TODO: update
+        # Issue URL: https://github.com/TAI-src/jaix/issues/322
         dir = Path(dir) if dir is not None else Path(self.parent_dir)
         if not dir.exists():
             return 0
