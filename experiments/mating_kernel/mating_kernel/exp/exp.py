@@ -56,17 +56,15 @@ class Experiment(ABC):
         """
         checked = [False] * len(batches)
         for i, batch in enumerate(batches):
-            files_to_check = list(cls.file_paths(batch).values()) + list(
-                Experiment.file_paths(batch).values()
-            )
+            files_to_check = list(cls.file_paths(batch).values())
             for file_path in files_to_check:
                 if not file_path.exists():
                     logger.log(
                         log_level, f"Batch {batch.name} is missing file: {file_path}"
                     )
                     break
-            else:  # If all files exist, mark the batch as checked
-                checked[i] = True
+            else:  # If all cls files exist, check if the batch is complete
+                checked[i] = batch.exists()
 
         return checked
 

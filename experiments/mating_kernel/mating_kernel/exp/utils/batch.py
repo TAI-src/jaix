@@ -156,6 +156,9 @@ class Batch(BaseModel):
         if Path(batch_file).suffix == ".pkl":
             with open(batch_file, "rb") as f:
                 data = pickle.load(f)
+            # Ensure problem is set to None when loading from pickle
+            # This is to ensure consistency with the JSON loading, which does not include the problem object.
+            setattr(data, "problem", None)
         elif Path(batch_file).suffix == ".json":
             data = json.loads(Path(batch_file).read_text())
         else:
