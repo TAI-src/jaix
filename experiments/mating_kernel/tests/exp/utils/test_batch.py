@@ -178,3 +178,29 @@ def test_load(tmp_path, legacy):
     assert b2.seed == batch.seed  # Check if the loaded batch has the same seed
     assert b2.rep == batch.rep  # Check if the loaded batch has the same rep
     assert b2.out_dir == batch.out_dir  # Check if the loaded batch has the same out_dir
+
+
+@pytest.mark.parametrize("exclude", [None, {"pid", "sid", "problem"}])
+def test_batch_dump_exclude(tmp_path, exclude):
+    problem = REProblem(REProblemConfig(), 0)
+    pinfo = ProblemInfo.from_problem(problem)
+    batch = Batch(
+        problem=problem,
+        pinfo=pinfo,
+        pid=pinfo.uuid,
+        sid=5,
+        algorithm_name="NSGA2",
+        selector="tournament",
+        n_gen=100,
+        parent_dir=tmp_path,
+        seed=42,  # Set a seed for reproducibility
+    )
+    if exclude is not None:
+        str_dump = batch.model_dump(exclude=exclude)
+        for field in exclude:
+            assert (
+                field not in str_dump
+            )  # Check that the excluded fields are not in the dump
+    else:
+        str_dump = batch.model_dump()
+        assert '"problem"' not in str_dump  # Check that the problem field is excluded

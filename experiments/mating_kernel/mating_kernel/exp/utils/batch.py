@@ -168,16 +168,14 @@ class Batch(BaseModel):
             raise ValueError(f"Unsupported file format: {batch_file}")
         return cls.model_validate(data)
 
-    def model_dump_json(self, **kwargs) -> str:
+    def model_dump(self, **kwargs) -> str:
         """
         Override the default model_dump_json to exclude the problem field.
         """
         # merge exclude with the default exclude
-        if "exclude" in kwargs:
-            kwargs["exclude"] = self._default_exclude.update(kwargs["exclude"])
-        else:
+        if "exclude" not in kwargs:
             kwargs["exclude"] = self._default_exclude
-        return super().model_dump_json(mode="json", **kwargs)
+        return super().model_dump(**kwargs)
 
 
 def hash_dict(d: dict, length: int = 12) -> str:

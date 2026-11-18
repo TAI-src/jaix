@@ -1,8 +1,24 @@
 import argparse
 
+from mating_kernel.exp.utils.factory import ExperimentMode
+
+
+def exp_parser():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument(
+        "--mode",
+        choices=["run", "check", "pp", "results"],
+        default="run",
+        help="Mode of operation. Run, check, post-process, or results.",
+    )
+    parser.add_argument(
+        "--out_dir", type=str, required=True, help="Output directory for the results."
+    )
+    return parser
+
 
 def mk_suite_parser():
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser(add_help=False, parents=[exp_parser()])
     parser.add_argument(
         "--cobi", action="store_true", help="Include Cobi problems in the experiment."
     )
@@ -24,7 +40,28 @@ def mk_suite_parser():
     return parser
 
 
-def experiment_parser():
+def results_parser():
+    parser = argparse.ArgumentParser(add_help=False, parents=[exp_parser()])
+    parser.add_argument(
+        "--input_dirs",
+        type=str,
+        nargs="+",
+        required=True,
+        help="Input directories for the results.",
+    )
+    return parser
+
+
+def experiment_parser(mode: ExperimentMode | None = None) -> argparse.ArgumentParser:
+    if mode is None:
+        return exp_parser()
+    if mode == ExperimentMode.RESULTS:
+        return results_parser()
+    else:
+        return batched_experiment_parser()
+
+
+def batched_experiment_parser():
     parser = argparse.ArgumentParser(add_help=False, parents=[mk_suite_parser()])
     parser.add_argument(
         "--seed", type=int, default=None, help="Random seed for the experiment."
@@ -38,20 +75,9 @@ def experiment_parser():
         default=1,
         help="Number of batches to split the experiment into.",
     )
-    parser.add_argument(
-        "--out_dir",
-        type=str,
-        required=True,
-        help="Output directory for the experiment results.",
-    )
+
     parser.add_argument(
         "--nth", type=int, nargs="+", default=None, help="Run only the nth batch(es)."
-    )
-    parser.add_argument(
-        "--mode",
-        choices=["run", "check", "pp"],
-        default="run",
-        help="Mode of operation. Run, check, or post-process.",
     )
     parser.add_argument(
         "--group_by",

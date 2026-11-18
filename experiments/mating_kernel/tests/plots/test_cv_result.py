@@ -74,3 +74,8 @@ def test_write_read(tmp_path):
 
     # read back the result and check if it matches
     res_read = Result.from_parquet(expected_file)
+    assert res_read.algorithm == result.algorithm
+    assert res_read.problem.name == result.problem.name
+    assert res_read.batch.pid == result.batch.pid
+    assert res_read.batch.sid == result.batch.sid
+    assert res_read.batch.seed == result.batch.seed
