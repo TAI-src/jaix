@@ -111,7 +111,7 @@ class Experiment(ABC):
             if not isinstance(value, list):
                 settings_dict[key] = [value]
 
-        config = parse_config(mode_args.mode, exp_args, settings_dict)
+        config = parse_config(mode, exp_args, settings_dict)
         nth = getattr(exp_args, "nth", [])
         return config, nth
 
