@@ -4,6 +4,7 @@ import logging
 import pickle
 from pathlib import Path
 
+from mating_kernel.exp.utils.factory import ExperimentMode
 import pandas as pd
 from pymoo.algorithms.moo.nsga2 import NSGA2, binary_tournament
 from pymoo.core.algorithm import Algorithm
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 class PerfExperiment(Experiment):
 
     @staticmethod
-    def parser() -> argparse.ArgumentParser:
+    def parser(mode: ExperimentMode = ExperimentMode.RUN) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument(
             "--alg_name",

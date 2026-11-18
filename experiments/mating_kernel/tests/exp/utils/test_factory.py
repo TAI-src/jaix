@@ -1,7 +1,7 @@
 import argparse
 
 from mating_kernel.exp.utils.factory import (
-    ExperimentConfig,
+    BatchedExperimentConfig,
     parse_experiment_config,
     parse_mk_suite_args,
     ExperimentMode,
@@ -54,4 +54,4 @@ def test_experiment_config_parser(tmp_path):
     assert experiment_config.group_by == ["pid", "sid"]
     assert experiment_config.skip_existing is True
     assert experiment_config.force_recompute is True
-    assert isinstance(experiment_config, ExperimentConfig)
+    assert isinstance(experiment_config, BatchedExperimentConfig)

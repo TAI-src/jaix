@@ -4,6 +4,7 @@ import pickle
 from pathlib import Path
 
 import numpy as np
+from mating_kernel.exp.utils.factory import ExperimentMode
 import pandas as pd
 
 from mating_kernel.exp.exp import Experiment
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class PredExperiment(Experiment):
     @staticmethod
-    def parser() -> argparse.ArgumentParser:
+    def parser(mode: ExperimentMode = ExperimentMode.RUN) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument(
             "--perf_stats_dir",

@@ -2,15 +2,20 @@ import argparse
 import logging
 from abc import ABC
 from pathlib import Path
+from typing import Sequence
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.batcher import Batcher
 from mating_kernel.exp.utils.factory import (
+    BatchedExperimentConfig,
     ExperimentConfig,
     ExperimentMode,
-    parse_experiment_config,
+    ResultsConfig,
+    parse_config,
 )
-from mating_kernel.exp.utils.parse_args import experiment_parser
+from mating_kernel.exp.utils.parse_args import (
+    experiment_parser,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +44,7 @@ class Experiment(ABC):
         return file_paths_dict
 
     @staticmethod
-    def parser() -> argparse.ArgumentParser:
+    def parser(mode: ExperimentMode = ExperimentMode.RUN) -> argparse.ArgumentParser:
         """
         Return an argparse.ArgumentParser for the experiment.
         """
@@ -68,6 +73,16 @@ class Experiment(ABC):
 
         return checked
 
+    @classmethod
+    def _produce_results(cls, config: ResultsConfig, **kwargs) -> list[str]:
+        """
+        Produce results from the batch output.
+        Returns a list of file paths to the results.
+        """
+        raise NotImplementedError(
+            "Experiment cls must implement the _produce_results() method to produce results from the batch output."
+        )
+
     @staticmethod
     def _post_process_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
         """
@@ -84,9 +99,11 @@ class Experiment(ABC):
         """
         Create an ExperimentConfig from command line arguments.
         """
-        exp_args, unknown_args = experiment_parser().parse_known_args(argv)
+        mode_args, _ = experiment_parser(mode=None).parse_known_args(argv)
+        mode = ExperimentMode(mode_args.mode)
+        exp_args, unknown_args = experiment_parser(mode).parse_known_args(argv)
 
-        setting_args = cls.parser().parse_args(unknown_args)
+        setting_args = cls.parser(mode).parse_args(unknown_args)
         # Create a dictionary of settings from the parsed arguments
         settings_dict = vars(setting_args)
         # turn all single values into lists
@@ -94,8 +111,9 @@ class Experiment(ABC):
             if not isinstance(value, list):
                 settings_dict[key] = [value]
 
-        exp_config = parse_experiment_config(exp_args, settings_dict)
-        return exp_config, exp_args.nth
+        config = parse_config(mode_args.mode, exp_args, settings_dict)
+        nth = getattr(exp_args, "nth", [])
+        return config, nth
 
     @classmethod
     def run_from_args(cls, argv: list[str] | None = None, **kwargs):
@@ -108,7 +126,7 @@ class Experiment(ABC):
 
     @staticmethod
     def create_batches(
-        config: ExperimentConfig, filter_bids: list[int] | None = None
+        config: BatchedExperimentConfig, filter_bids: list[int] | None = None
     ) -> list[list[Batch]]:
         """
         Create batches for the experiment.
@@ -128,11 +146,47 @@ class Experiment(ABC):
 
     @classmethod
     def run(
-        cls, config: ExperimentConfig, filter_bids: list[int] | None = None, **kwargs
-    ) -> list[list[str] | bool]:
+        cls,
+        config: ExperimentConfig,
+        filter_bids: list[int] | None = None,
+        **kwargs,
+    ) -> Sequence[Sequence[str] | bool]:
         """
         Run all batches of the experiment.
         """
+        if isinstance(config, ResultsConfig):
+            assert (
+                config.mode == ExperimentMode.RESULTS
+            ), "ResultsConfig must have mode RESULTS."
+            return cls.run_results(config, **kwargs)
+        elif isinstance(config, BatchedExperimentConfig):
+            return cls.run_batched(config, filter_bids=filter_bids, **kwargs)
+        else:
+            raise ValueError(
+                f"Unknown config type: {type(config)}. Must be ResultsConfig or BatchedExperimentConfig."
+            )
+
+    @classmethod
+    def run_results(
+        cls,
+        config: ResultsConfig,
+        **kwargs,
+    ) -> Sequence[Sequence[str]]:
+        """
+        Run the experiment in RESULTS mode.
+        """
+        logger.info(f"Running Experiment {cls.__name__} in RESULTS mode.")
+        results_files = cls._produce_results(config, **kwargs)
+        return [results_files]
+
+    @classmethod
+    def run_batched(
+        cls,
+        config: BatchedExperimentConfig,
+        filter_bids: list[int] | None = None,
+        **kwargs,
+    ) -> list[list[str] | bool]:
+
         batch_groups = Experiment.create_batches(config, filter_bids=filter_bids)
         total_batches = sum(len(bgroup) for bgroup in batch_groups)
         logger.info(

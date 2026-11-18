@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Batch(BaseModel):
+    _default_exclude = {"problem"}
     batch_num: int | None = None
     batch_size: int | None = None
     pid: str
@@ -146,7 +147,6 @@ class Batch(BaseModel):
     def write(self) -> Path:
         data = self.model_dump(
             mode="json",
-            exclude={"problem"},
         )
 
         self.batch_file.write_text(json.dumps(data, indent=2))
@@ -167,6 +167,17 @@ class Batch(BaseModel):
         else:
             raise ValueError(f"Unsupported file format: {batch_file}")
         return cls.model_validate(data)
+
+    def model_dump(self, **kwargs) -> str:
+        """
+        Override the default model_dump_json to exclude the problem field.
+        """
+        # merge exclude with the default exclude
+        if "exclude" in kwargs:
+            kwargs["exclude"] = self._default_exclude.update(kwargs["exclude"])
+        else:
+            kwargs["exclude"] = self._default_exclude
+        return super().model_dump(**kwargs)
 
 
 def hash_dict(d: dict, length: int = 12) -> str:

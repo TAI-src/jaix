@@ -12,9 +12,35 @@ class ExperimentMode(Enum):
     RUN = "run"
     CHECK = "check"
     PP = "pp"
+    RESULTS = "results"
 
 
 class ExperimentConfig(Config):
+    def __init__(
+        self,
+        mode: ExperimentMode,
+        out_dir: str | Path = Path("."),
+        settings: dict[str, Any] | None = None,
+    ):
+        super().__init__()
+        self.mode = mode
+        self.out_dir = Path(out_dir)
+        self.out_dir.mkdir(parents=True, exist_ok=True)
+        self.settings = settings if settings is not None else {}
+
+
+class ResultsConfig(ExperimentConfig):
+    def __init__(
+        self,
+        input_dirs: list[str] | list[Path],
+        out_dir: str | Path,
+        settings: dict[str, Any] | None = None,
+    ):
+        super().__init__(ExperimentMode.RESULTS, out_dir=out_dir, settings=settings)
+        self.input_dirs = [Path(d) for d in input_dirs]
+
+
+class BatchedExperimentConfig(ExperimentConfig):
     def __init__(
         self,
         suite_config: MKSuiteConfig,
@@ -28,15 +54,11 @@ class ExperimentConfig(Config):
         skip_existing: bool = False,
         force_recompute: bool = False,
     ):
-        super().__init__()
+        super().__init__(mode=mode, out_dir=out_dir, settings=settings)
         self.suite_config = suite_config
         self.reps = reps
-        self.settings = settings
         self.num_batches = num_batches
         self.seed = seed
-        self.out_dir = Path(out_dir)
-        self.out_dir.mkdir(parents=True, exist_ok=True)
-        self.mode = mode
         self.group_by = group_by
         self.skip_existing = skip_existing
         self.force_recompute = force_recompute
@@ -51,11 +73,30 @@ def parse_mk_suite_args(args: argparse.Namespace) -> MKSuiteConfig:
     )
 
 
+def parse_config(
+    mode: ExperimentMode, args: argparse.Namespace, settings: dict[str, Any]
+) -> ResultsConfig | BatchedExperimentConfig:
+    if mode == ExperimentMode.RESULTS:
+        return parse_results_config(args, settings)
+    else:
+        return parse_experiment_config(args, settings)
+
+
+def parse_results_config(
+    args: argparse.Namespace, settings: dict[str, Any]
+) -> ResultsConfig:
+    return ResultsConfig(
+        input_dirs=args.input_dirs,
+        out_dir=args.out_dir,
+        settings=settings,
+    )
+
+
 def parse_experiment_config(
     args: argparse.Namespace, settings: dict[str, Any]
-) -> ExperimentConfig:
+) -> BatchedExperimentConfig:
     suite_config = parse_mk_suite_args(args)
-    return ExperimentConfig(
+    return BatchedExperimentConfig(
         suite_config=suite_config,
         settings=settings,
         reps=args.reps,
