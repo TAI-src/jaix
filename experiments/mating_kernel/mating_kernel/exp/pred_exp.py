@@ -4,11 +4,11 @@ import pickle
 from pathlib import Path
 
 import numpy as np
-from mating_kernel.exp.utils.factory import ExperimentMode
 import pandas as pd
 
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.exp.utils.factory import ExperimentMode
 from mating_kernel.exp.utils.pre_pred_exp import (
     get_data,
     get_features,
