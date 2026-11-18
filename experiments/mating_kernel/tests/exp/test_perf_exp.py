@@ -1,10 +1,12 @@
 from pathlib import Path
+from mating_kernel.exp.utils.factory import ResultsConfig
 import pytest
 import pandas as pd
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
     REProblemConfig,
 )
+from cocoviz import ResultSet
 
 from mating_kernel.exp.perf_exp import PerfExperiment
 from mating_kernel.exp.utils.batch import Batch
@@ -193,7 +195,10 @@ def test_post_process_batches(tmp_path, pref_model):
         batches.append(batch)
     merged_files = PerfExperiment._post_process_batches(batches)
     assert len(merged_files) == 1
-    merged_file = merged_files[0][0]
+    assert len(merged_files[0]) == 4  # record_stats + 3 pq files
+    merged_file = merged_files[0][
+        -1
+    ]  # the merged record_stats file is the last one in the list
     assert Path(merged_file).exists()
     merged_df = pd.read_csv(merged_file)
     assert (
@@ -202,3 +207,51 @@ def test_post_process_batches(tmp_path, pref_model):
     assert "seed" in merged_df.columns
     unique_seeds = merged_df["seed"].unique()
     assert set(unique_seeds) == {123, 124, 125}  # seeds used in the batches
+
+    # Check out the pq files
+    pq_files = merged_files[0][:-1]  # all but the last file are pq files
+    res_set = ResultSet.from_directory(tmp_path)
+    for i, res in enumerate(res_set):
+        assert Path(pq_files[i]).exists()
+        assert res.batch.seed == 123 + i
+
+
+def test_produce_results():
+    tmp_path = Path("tmp_test_results")
+    problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
+    pinfo = ProblemInfo.from_problem(problem)
+    input_dirs = []
+    for pref_model in ["default", "random", "oracle", "ornament"]:
+        batches = []
+        pdir = tmp_path / pref_model
+        input_dirs.append(pdir / "pq")
+        for i in range(3):
+            batch = Batch(
+                problem=problem,
+                alg_name="NSGA2",
+                pref_model=pref_model,
+                n_gen=3,
+                seed=123 + i,
+                pid=pinfo.uuid,
+                sid=0,
+                rep=i,
+                pinfo=pinfo,
+                parent_dir=pdir,
+                num_candidates=3,
+                candidate_pressure=2,
+                num_oracle_simulations=1,
+                kernel=True,
+                abs=False,
+                rel_fit=False,
+                state=False,
+                age=False,
+                no_x=False,
+            )
+            PerfExperiment._run_batch(batch)
+            batches.append(batch)
+        PerfExperiment._post_process_batches(batches)
+    config = ResultsConfig(input_dirs=input_dirs, out_dir=tmp_path / "results")
+    plots = PerfExperiment._produce_results(config)
+    assert len(plots) == len(PerfExperiment.INDICATOR_SPECS)
+    for plot in plots:
+        assert Path(plot).exists()

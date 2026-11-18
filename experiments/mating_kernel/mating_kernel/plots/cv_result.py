@@ -143,6 +143,7 @@ class Result(CVResult):
         # NOTE: had to reproduce to change metadata
         tbl = cls.parent_from_parquet(path)
 
+        assert hasattr(tbl.schema, "metadata") and tbl.schema.metadata is not None
         batch_data = tbl.schema.metadata[b"batch"].decode("utf8")
         batch = Batch.model_validate_json(batch_data)
         data = pl.from_arrow(tbl)

@@ -3,7 +3,7 @@ import json
 import logging
 import pickle
 from pathlib import Path
-from typing import Self
+from typing import Any, Self
 
 from pydantic import BaseModel, ConfigDict
 
@@ -168,7 +168,7 @@ class Batch(BaseModel):
             raise ValueError(f"Unsupported file format: {batch_file}")
         return cls.model_validate(data)
 
-    def model_dump(self, **kwargs) -> str:
+    def model_dump(self, **kwargs) -> dict[str, Any]:
         """
         Override the default model_dump_json to exclude the problem field.
         """
