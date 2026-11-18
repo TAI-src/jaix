@@ -1,10 +1,16 @@
+from mating_kernel.exp.utils import batch
 import pytest
-
-from mating_kernel.exp.utils.parse_args import experiment_parser
+import argparse
+from mating_kernel.exp.utils.parse_args import (
+    batched_experiment_parser,
+    experiment_parser,
+    exp_parser,
+    results_parser,
+)
 
 
 def test_experiment_parser_defaults(tmp_path):
-    parser = experiment_parser()
+    parser = batched_experiment_parser()
 
     args = parser.parse_args(["--out_dir", str(tmp_path / "results")])
 
@@ -21,7 +27,7 @@ def test_experiment_parser_defaults(tmp_path):
 
 
 def test_experiment_parser_parses_all_arguments(tmp_path):
-    parser = experiment_parser()
+    parser = batched_experiment_parser()
 
     args = parser.parse_args(
         [
@@ -65,7 +71,7 @@ def test_experiment_parser_parses_all_arguments(tmp_path):
 
 
 def test_exp_parser_with_options(tmp_path):
-    parser = experiment_parser()
+    parser = batched_experiment_parser()
 
     args = parser.parse_args(
         [
@@ -85,14 +91,14 @@ def test_exp_parser_with_options(tmp_path):
 
 
 def test_experiment_parser_requires_out_dir():
-    parser = experiment_parser()
+    parser = batched_experiment_parser()
 
     with pytest.raises(SystemExit):
         parser.parse_args([])
 
 
 def test_experiment_parser_rejects_unknown_arguments(tmp_path):
-    parser = experiment_parser()
+    parser = batched_experiment_parser()
 
     with pytest.raises(SystemExit):
         parser.parse_args(
@@ -103,3 +109,31 @@ def test_experiment_parser_rejects_unknown_arguments(tmp_path):
                 "--does-not-exist",
             ]
         )
+
+
+def test_results_parser(tmp_path):
+    parser = results_parser()
+
+    args = parser.parse_args(
+        [
+            "--input_dirs",
+            str(tmp_path / "input1"),
+            "--out_dir",
+            str(tmp_path / "results"),
+            "--mode",
+            "results",
+        ]
+    )
+    assert args.input_dirs == [str(tmp_path / "input1")]
+    assert args.out_dir == str(tmp_path / "results")
+    assert args.mode == "results"
+
+
+@pytest.mark.parametrize("mode", [None, "check", "pp", "run", "results"])
+def test_experiments_parser(mode):
+    parser = experiment_parser(mode=mode)
+    assert isinstance(parser, argparse.ArgumentParser)
+    args, unknown = parser.parse_known_args(
+        ["--mode", mode if mode is not None else "run", "--out_dir", "results"]
+    )
+    assert args.mode == (mode if mode is not None else "run")

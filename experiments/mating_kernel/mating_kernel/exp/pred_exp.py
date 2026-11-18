@@ -8,6 +8,7 @@ import pandas as pd
 
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.exp.utils.factory import ExperimentMode
 from mating_kernel.exp.utils.pre_pred_exp import (
     get_data,
     get_features,
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class PredExperiment(Experiment):
     @staticmethod
-    def parser() -> argparse.ArgumentParser:
+    def parser(mode: ExperimentMode = ExperimentMode.RUN) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument(
             "--perf_stats_dir",

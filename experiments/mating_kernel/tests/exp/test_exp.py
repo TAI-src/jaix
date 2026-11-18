@@ -5,12 +5,16 @@ import pytest
 
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
-from mating_kernel.exp.utils.factory import ExperimentConfig, ExperimentMode
+from mating_kernel.exp.utils.factory import (
+    BatchedExperimentConfig,
+    ExperimentMode,
+    ResultsConfig,
+)
 
 
 class DummyExperiment(Experiment):
     @staticmethod
-    def parser() -> argparse.ArgumentParser:
+    def parser(mode: ExperimentMode = ExperimentMode.RUN) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument(
             "--foo",
@@ -50,6 +54,12 @@ class DummyExperiment(Experiment):
     def _post_process_batches(batches: list[Batch], **kwargs) -> list[list[str]]:
         pp_file = batches[0].out_dir / f"pp_{batches[0].name}"
         return [[str(pp_file)] for batch in batches]
+
+    @staticmethod
+    def _produce_results(config: ResultsConfig, **kwargs) -> list[str]:
+        results_file = Path(config.out_dir) / "results.txt"
+        results_file.touch()
+        return [str(results_file)]
 
 
 def test_parse_args(tmp_path):
@@ -150,7 +160,7 @@ def test_run_from_args(tmp_path):
 
 
 def test_check_batch_out(tmp_path):
-    config = ExperimentConfig(
+    config = BatchedExperimentConfig(
         suite_config=MKSuiteConfig(
             cobi=True, re=True, constrained=False, num_objectives=[4]
         ),
@@ -189,7 +199,7 @@ def test_check_batch_out(tmp_path):
     [ExperimentMode.CHECK, ExperimentMode.PP, ExperimentMode.RUN],
 )
 def test_run_check_mode(mode, tmp_path):
-    config = ExperimentConfig(
+    config = BatchedExperimentConfig(
         suite_config=MKSuiteConfig(
             cobi=True, re=True, constrained=False, num_objectives=[4]
         ),
@@ -219,7 +229,7 @@ def test_run_check_mode(mode, tmp_path):
     [True, False],
 )
 def test_skip_existing(skip_existing, tmp_path):
-    config = ExperimentConfig(
+    config = BatchedExperimentConfig(
         suite_config=MKSuiteConfig(
             cobi=True, re=True, constrained=False, num_objectives=[4]
         ),
@@ -252,7 +262,7 @@ def test_skip_existing(skip_existing, tmp_path):
 
 @pytest.mark.parametrize("skip_existing", [True, False])
 def test_force_recompute(skip_existing, tmp_path):
-    config = ExperimentConfig(
+    config = BatchedExperimentConfig(
         suite_config=MKSuiteConfig(
             cobi=True, re=True, constrained=False, num_objectives=[4]
         ),
@@ -276,3 +286,15 @@ def test_force_recompute(skip_existing, tmp_path):
     config.force_recompute = True
     results_third_run = DummyExperiment.run(config)
     assert len(results_third_run) == 2  # Should recompute all batches
+
+
+def test_run_results_mode(tmp_path):
+    config = ResultsConfig(
+        input_dirs=[tmp_path / "input1", tmp_path / "input2"],
+        out_dir=tmp_path / "results",
+        settings={"foo": [1]},
+    )
+    results = DummyExperiment.run(config)
+    assert len(results) == 1
+    assert len(results[0]) == 1
+    assert Path(results[0][0]).name == "results.txt"
