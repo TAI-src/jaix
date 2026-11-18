@@ -60,15 +60,6 @@ test_data_regular = [
 ]
 
 
-@pytest.mark.parametrize("problem", [cobi_problem, re_problem])
-def test_get_description(problem):
-    problem_info = ProblemInfo(problem)
-    desc = get_description(problem_info)  # Ensure it runs without errors
-    assert desc.name == problem_info.uuid
-    assert desc.number_of_variables == problem_info.num_variables
-    assert isinstance(desc, ProblemDescription)
-
-
 def test_from_df():
     df = pd.DataFrame(test_data_regular)
     res_set = results_from_df(

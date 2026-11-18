@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 import pandas as pd
 from cocoviz import (
@@ -9,13 +8,11 @@ from cocoviz import (
     ResultSet,
     rtpplot,
 )
-from cocoviz import (
-    Result as CVResult,
-)
-from cocoviz._typing import FrameLike
+
 
 from mating_kernel.problems.problem_info import ProblemInfo
 from mating_kernel.exp.utils.batch import Batch
+from mating_kernel.plots.cv_result import Result
 
 logger = logging.getLogger(__name__)
 
@@ -34,35 +31,8 @@ indicator_specs = [
 INDICATOR_SPECS = [(f"a_{ind}", lib) for ind, lib in indicator_specs]
 
 
-class Result(CVResult):
-    def __init__(
-        self,
-        algorithm: str,
-        problem: ProblemDescription,
-        data: FrameLike,
-        batch: Batch,
-        fevals_column: str = "fevals",
-    ):
-        self.batch = batch
-        self.seed = batch.seed
-        self.pq_file_name = f"{problem.name}_{algorithm}_{self.seed}.parquet"
-        super().__init__(algorithm, problem, data, fevals_column)
-
-
-def get_description(pinfo: ProblemInfo) -> ProblemDescription:
-    cocoviz_description = ProblemDescription(
-        name=pinfo.uuid,
-        instance=0,
-        number_of_variables=pinfo.num_variables,
-        number_of_objectives=pinfo.num_objectives,
-    )
-    return cocoviz_description
-
-
 def result_from_df(
     source_df: pd.DataFrame,
-    exp_name: str,
-    pdesc: ProblemDescription,
     batch: Batch,
     indicators: list[str] | None,
 ) -> Result:
@@ -85,8 +55,6 @@ def result_from_df(
     # group dataset by seed and a_fevals, and compute the mean of each indicator for each group
     indicator_means = source_df.groupby(["a_fevals"])[indicators].mean().reset_index()
     result = Result(
-        algorithm=exp_name,
-        problem=pdesc,
         data=indicator_means,
         batch=batch,
         fevals_column="a_fevals",
@@ -96,8 +64,6 @@ def result_from_df(
 
 def get_result_set(
     source_df: pd.DataFrame | None,
-    exp_name: str,
-    pdesc: ProblemDescription,
     indicators: list[str],
     pq_path: Path | None = None,
 ) -> ResultSet:
@@ -113,7 +79,7 @@ def get_result_set(
     assert "seed" in source_df.columns and "exp_id" in source_df.columns
     res_set = ResultSet()
     for df in source_df.groupby(["exp_id", "seed"]):
-        res = result_from_df(source_df, exp_name, pdesc, indicators)
+        res = result_from_df(source_df, batch, indicators)
         res_set.append(res)
 
     return res_set
