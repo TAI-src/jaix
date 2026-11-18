@@ -29,8 +29,16 @@ class ProblemInfo(BaseModel):
 
         return cls(
             problem=str(problem),
-            ideal_point=getattr(problem, "ideal_point", None),
-            nadir_point=getattr(problem, "nadir_point", None),
+            ideal_point=(
+                list(getattr(problem, "ideal_point"))
+                if getattr(problem, "ideal_point", None) is not None
+                else None
+            ),
+            nadir_point=(
+                list(getattr(problem, "nadir_point"))
+                if getattr(problem, "nadir_point", None) is not None
+                else None
+            ),
             num_objectives=num_objectives,
             num_variables=num_variables,
             lower_bounds=problem.lower_bounds,
