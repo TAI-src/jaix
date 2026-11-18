@@ -4,9 +4,9 @@ import logging
 import pickle
 from pathlib import Path
 from typing import ClassVar
-from cocoviz import ResultSet
 
 import pandas as pd
+from cocoviz import ResultSet
 from pymoo.algorithms.moo.nsga2 import NSGA2, binary_tournament
 from pymoo.core.algorithm import Algorithm
 from pymoo.core.result import Result
@@ -17,6 +17,8 @@ from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.factory import ExperimentMode, ResultsConfig
 from mating_kernel.exp.utils.get_default import get_default
+from mating_kernel.plots.cv_result import Result as CVResult
+from mating_kernel.plots.rt_plot import plot_rt
 from mating_kernel.pymoo.do_recorder import RecordingConfig
 from mating_kernel.pymoo.mating.preference_mating import PreferenceMating
 from mating_kernel.pymoo.offspring_success_recording_callback import (
@@ -25,8 +27,6 @@ from mating_kernel.pymoo.offspring_success_recording_callback import (
 from mating_kernel.pymoo.pref_model.pref_model import PreferenceModel
 from mating_kernel.pymoo.problem_wrapper import PymooProblemWrapper
 from mating_kernel.pymoo.recordable_object import make_recordable
-from mating_kernel.plots.cv_result import Result as CVResult
-from mating_kernel.plots.rt_plot import plot_rt
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +196,7 @@ class PerfExperiment(Experiment):
             "a_fevals"
         ]
         batch_dfs = []
-        pq_folder = Path(batches[0].parent_dir) / f"pq"
+        pq_folder = Path(batches[0].parent_dir) / "pq"
         pq_folder.mkdir(parents=True, exist_ok=True)
         out_files = []
         # Merge the record_stats files into one
