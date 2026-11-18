@@ -14,7 +14,7 @@ re_problem = REProblem(REProblemConfig(), 0)
 
 @pytest.mark.parametrize("problem", [cobi_problem, re_problem])
 def test_problem_info(problem):
-    problem_info = ProblemInfo(problem)
+    problem_info = ProblemInfo.from_problem(problem)
     assert problem_info.problem == str(problem)
     assert hasattr(problem_info, "ideal_point")
 

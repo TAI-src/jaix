@@ -1,6 +1,5 @@
 import argparse
 import logging
-import pickle
 from abc import ABC
 from pathlib import Path
 
@@ -24,22 +23,19 @@ class Experiment(ABC):
         """
         Run a single batch of the experiment.
         """
-        batch_files = [Experiment.file_paths(batch)["batch"] for batch in batches]
-        for batch, batch_file in zip(batches, batch_files):
-            logger.debug(f"Finishing batch {batch.name} and saving to {batch_file}")
-            with open(batch_file, "wb") as f:
-                b_copy = batch.model_copy(update={"problem": str(batch.problem)})
-                pickle.dump(b_copy, f)
-        return [[str(b_file)] for b_file in batch_files]
+        file_names = []
+        for batch in batches:
+            batch_file = batch.write()
+            logger.debug(f"Finished batch {batch.name} and saved to {batch_file}")
+            file_names.append([str(batch_file)])
+        return file_names
 
     @staticmethod
     def file_paths(batch: Batch) -> dict[str, Path]:
         """
         Return a dictionary of file paths for the batch.
         """
-        file_paths_dict = {
-            "batch": batch.out_dir / f"batch_{batch.name}.pkl",
-        }
+        file_paths_dict = {"batch": batch.batch_file}
         return file_paths_dict
 
     @staticmethod
@@ -60,17 +56,15 @@ class Experiment(ABC):
         """
         checked = [False] * len(batches)
         for i, batch in enumerate(batches):
-            files_to_check = list(cls.file_paths(batch).values()) + list(
-                Experiment.file_paths(batch).values()
-            )
+            files_to_check = list(cls.file_paths(batch).values())
             for file_path in files_to_check:
                 if not file_path.exists():
                     logger.log(
                         log_level, f"Batch {batch.name} is missing file: {file_path}"
                     )
                     break
-            else:  # If all files exist, mark the batch as checked
-                checked[i] = True
+            else:  # If all cls files exist, check if the batch is complete
+                checked[i] = batch.exists()
 
         return checked
 

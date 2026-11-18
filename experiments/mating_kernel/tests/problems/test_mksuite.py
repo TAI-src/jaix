@@ -23,7 +23,7 @@ def test_cobi_problem_list():
     assert all(hasattr(p, "name") for p in problems)
     assert problems[0].name == "cobi_lin"
     # Quick integration test to ensure that the name is override is passed on
-    pinfo = ProblemInfo(problems[0])
+    pinfo = ProblemInfo.from_problem(problems[0])
     assert pinfo.uuid == "cobi_lin"
     assert all(isinstance(p, CobiProblem) for p in problems)
 

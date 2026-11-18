@@ -1,20 +1,27 @@
 import hashlib
 import json
+import logging
+import pickle
 from pathlib import Path
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
 from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.problems.problem_info import ProblemInfo
 
+logger = logging.getLogger(__name__)
+
 
 class Batch(BaseModel):
+    batch_num: int | None = None
+    batch_size: int | None = None
     pid: str
     sid: int
     rep: int | None = None
     seed: int | None = None
-    problem: StaticProblem
     pinfo: ProblemInfo
+    problem: StaticProblem | None = None
     parent_dir: str | Path = Path(".")
     model_config = ConfigDict(
         extra="allow", arbitrary_types_allowed=True
@@ -37,6 +44,13 @@ class Batch(BaseModel):
         out_path = Path(self.parent_dir) / self.run_id
         out_path.mkdir(parents=True, exist_ok=True)
         return out_path
+
+    @property
+    def batch_file(self) -> Path:
+        """
+        The file to save batch info to
+        """
+        return self.out_dir / f"batch_{self.name}.json"
 
     @property
     def settings(self) -> dict:
@@ -74,6 +88,7 @@ class Batch(BaseModel):
         """
         Check in the given path how many folders with the experiment id exist
         """
+        # TODO: update
         dir = Path(dir) if dir is not None else Path(self.parent_dir)
         if not dir.exists():
             return 0
@@ -107,20 +122,50 @@ class Batch(BaseModel):
                 seeds.append(seed)
         return seeds
 
-    def exists(self, dir: str | Path | None = None) -> bool:
+    def exists(self) -> bool:
         """
         Check if a folder with the same run id already exists in the given path
         """
-        dir = Path(dir) if dir is not None else Path(self.parent_dir)
-        if not dir.exists():
-            return False
-        # check if self.out_dir is empty (it will always exist as it is created in the out_dir property)
-        run_dir = dir / self.run_id
-        if not run_dir.exists():
-            return False
         # Check for batch file since they are the last thing to be written
-        # FIXME: This is a hacky way to check if the run is complete, but it works for now.
-        return bool(any(f.name.startswith("batch_") for f in run_dir.iterdir()))
+        batch_exists = self.batch_file.exists()
+        if not batch_exists:
+            logger.debug(
+                f"Batch file {self.batch_file} does not exist for batch {self.name}."
+            )
+            # For backward compatibility, also check for pickle file
+            if self.out_dir.exists():
+                pkl_file = self.batch_file.with_suffix(".pkl")
+                logger.debug(
+                    f"Checking if pickle file {pkl_file} exists for batch {self.name}."
+                )
+                batch_exists = Path(pkl_file).exists()
+        logger.debug(f"Batch {self.name} exists: {batch_exists}")
+        return batch_exists
+
+    def write(self) -> Path:
+        data = self.model_dump(
+            mode="json",
+            exclude={"problem"},
+        )
+
+        self.batch_file.write_text(json.dumps(data, indent=2))
+        logger.debug(f"Batch {self.name} written to {self.batch_file}")
+
+        return self.batch_file
+
+    @classmethod
+    def load(cls, batch_file: str | Path) -> Self:
+        if Path(batch_file).suffix == ".pkl":
+            with open(batch_file, "rb") as f:
+                data = pickle.load(f)
+            # Ensure problem is set to None when loading from pickle
+            # This is to ensure consistency with the JSON loading, which does not include the problem object.
+            setattr(data, "problem", None)  # noqa: B010
+        elif Path(batch_file).suffix == ".json":
+            data = json.loads(Path(batch_file).read_text())
+        else:
+            raise ValueError(f"Unsupported file format: {batch_file}")
+        return cls.model_validate(data)
 
 
 def hash_dict(d: dict, length: int = 12) -> str:
