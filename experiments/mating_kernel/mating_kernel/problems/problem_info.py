@@ -30,12 +30,12 @@ class ProblemInfo(BaseModel):
         return cls(
             problem=str(problem),
             ideal_point=(
-                list(getattr(problem, "ideal_point"))
+                list(getattr(problem, "ideal_point"))  # noqa: B009
                 if getattr(problem, "ideal_point", None) is not None
                 else None
             ),
             nadir_point=(
-                list(getattr(problem, "nadir_point"))
+                list(getattr(problem, "nadir_point"))  # noqa: B009
                 if getattr(problem, "nadir_point", None) is not None
                 else None
             ),
