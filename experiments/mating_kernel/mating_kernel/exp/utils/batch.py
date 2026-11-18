@@ -174,7 +174,9 @@ class Batch(BaseModel):
         """
         # merge exclude with the default exclude
         if "exclude" in kwargs:
-            kwargs["exclude"] = self._default_exclude.update(kwargs["exclude"])
+            excludes = self._default_exclude
+            excludes.update(kwargs["exclude"])
+            kwargs["exclude"] = excludes
         else:
             kwargs["exclude"] = self._default_exclude
         return super().model_dump(**kwargs)
