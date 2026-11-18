@@ -41,7 +41,7 @@ class ProblemInfo(BaseModel):
             ),
             num_objectives=num_objectives,
             num_variables=num_variables,
-            lower_bounds=problem.lower_bounds,
-            upper_bounds=problem.upper_bounds,
+            lower_bounds=list(problem.lower_bounds),
+            upper_bounds=list(problem.upper_bounds),
             uuid=uuid,
         )
