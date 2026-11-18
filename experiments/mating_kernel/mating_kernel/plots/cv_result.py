@@ -1,15 +1,15 @@
-import polars as pl
 import io
 import json
 from pathlib import Path
-from cocoviz._typing import FrameLike, FilePath
+
+import polars as pl
+from cocoviz import ProblemDescription
 from cocoviz import (
     Result as CVResult,
 )
-from cocoviz import ProblemDescription
+from cocoviz._typing import FilePath, FrameLike
 
 from mating_kernel.exp.utils.batch import Batch
-
 from mating_kernel.problems.problem_info import ProblemInfo
 
 
