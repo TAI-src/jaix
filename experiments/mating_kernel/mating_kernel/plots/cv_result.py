@@ -4,8 +4,9 @@ from pathlib import Path
 from typing import Self
 
 import polars as pl
-from cocoviz import ProblemDescription, Indicator
-from cocoviz import Result as CVResult, ResultSet as CVResultSet
+from cocoviz import Indicator, ProblemDescription
+from cocoviz import Result as CVResult
+from cocoviz import ResultSet as CVResultSet
 from cocoviz._typing import FilePath, FrameLike, NumericVector
 
 from mating_kernel.exp.utils.batch import Batch
