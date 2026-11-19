@@ -58,7 +58,7 @@ class Result(CVResult):
             "problem": self.problem.to_json(),
             "batch": json.dumps(batch_dict),
         }
-        schema = tbl.schema.with_metadata(metadata)
+schema = tbl.schema.with_metadata({k.encode(): v.encode() for k, v in metadata.items()})
         tbl = pa.Table.from_arrays(list(tbl.itercolumns()), schema=schema)
         pq.write_table(tbl, str(path))
 

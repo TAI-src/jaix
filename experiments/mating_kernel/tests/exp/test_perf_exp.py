@@ -216,8 +216,7 @@ def test_post_process_batches(tmp_path, pref_model):
         assert res.batch.seed == 123 + i
 
 
-def test_produce_results():
-    tmp_path = Path("tmp_test_results")
+def test_produce_results(tmp_path):
     problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
     pinfo = ProblemInfo.from_problem(problem)
     input_dirs = []
