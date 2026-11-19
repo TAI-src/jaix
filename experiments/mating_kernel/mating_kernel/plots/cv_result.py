@@ -163,11 +163,13 @@ class Result(CVResult):
         tbl = cls.parent_from_parquet(path)
 
         assert hasattr(tbl.schema, "metadata") and tbl.schema.metadata is not None
-        batch_data = tbl.schema.metadata[b"batch"].decode("utf8")
+        metadata = tbl.schema.metadata
+        assert metadata is not None
+        batch_data = metadata[b"batch"].decode("utf8")
         batch = Batch.model_validate_json(batch_data)
         data = pl.from_arrow(tbl)
-
-        return cls(data, batch, "__fevals")
+        algorithm = metadata[b"algorithm"].decode("utf8")
+        return cls(data, batch, "__fevals", algorithm)
 
     @staticmethod
     def get_description(pinfo: ProblemInfo) -> ProblemDescription:
