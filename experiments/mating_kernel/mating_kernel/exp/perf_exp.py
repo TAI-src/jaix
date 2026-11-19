@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class PerfExperiment(Experiment):
-    # Indicator specs are all prepened with "a_" to indicate they are after generation indicators
+    # Indicator specs are all prepended with "a_" to indicate they are after generation indicators
     INDICATOR_SPECS: ClassVar[list[tuple[str, bool]]] = [
         ("a_coverage", True),
         ("a_size", True),

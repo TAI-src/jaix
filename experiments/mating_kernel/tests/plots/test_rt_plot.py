@@ -53,7 +53,7 @@ test_data_regular = [
 
 
 def test_plot_rt(tmp_path):
-    # load data directry from test data folder
+    # load data directory from test data folder
     res_set = ResultSet.from_directory(test_folder)
     indicator_specs = [("a_score", True), ("a_coverage", True)]
     file_names = plot_rt(
