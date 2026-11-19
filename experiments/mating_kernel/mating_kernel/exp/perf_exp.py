@@ -16,7 +16,8 @@ from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.factory import ExperimentMode, ResultsConfig
 from mating_kernel.exp.utils.get_default import get_default
-from mating_kernel.plots.cv_result import Result as CVResult, ResultSet
+from mating_kernel.plots.cv_result import Result as CVResult
+from mating_kernel.plots.cv_result import ResultSet
 from mating_kernel.plots.rt_plot import plot_rt
 from mating_kernel.pymoo.do_recorder import RecordingConfig
 from mating_kernel.pymoo.mating.preference_mating import PreferenceMating
