@@ -3,18 +3,22 @@ import copy
 import logging
 import pickle
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 from pymoo.algorithms.moo.nsga2 import NSGA2, binary_tournament
 from pymoo.core.algorithm import Algorithm
-from pymoo.core.result import Result
+from pymoo.core.result import Result as PymooResult
 from pymoo.optimize import minimize
 
 from jaix.env.utils.problem.static_problem import StaticProblem
 from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
-from mating_kernel.exp.utils.factory import ExperimentMode
+from mating_kernel.exp.utils.factory import ExperimentMode, ResultsConfig
 from mating_kernel.exp.utils.get_default import get_default
+from mating_kernel.plots.cv_result import Result as CVResult
+from mating_kernel.plots.cv_result import ResultSet
+from mating_kernel.plots.rt_plot import plot_rt
 from mating_kernel.pymoo.do_recorder import RecordingConfig
 from mating_kernel.pymoo.mating.preference_mating import PreferenceMating
 from mating_kernel.pymoo.offspring_success_recording_callback import (
@@ -28,6 +32,17 @@ logger = logging.getLogger(__name__)
 
 
 class PerfExperiment(Experiment):
+    # Indicator specs are all prepended with "a_" to indicate they are after generation indicators
+    INDICATOR_SPECS: ClassVar[list[tuple[str, bool]]] = [
+        ("a_coverage", True),
+        ("a_size", True),
+        ("a_score", True),
+        ("a_avg_dist_to_niches", False),
+        ("a_avg_niche_count", True),
+        ("a_filled_niches", True),
+        ("a_avg_dist_to_ideal", False),
+        ("a_niche_perf_avg", False),
+    ]
 
     @staticmethod
     def parser(mode: ExperimentMode = ExperimentMode.RUN) -> argparse.ArgumentParser:
@@ -177,22 +192,58 @@ class PerfExperiment(Experiment):
         assert all(
             b.experiment_id == exp_id for b in batches
         ), "All batches must have the same experiment id"
-        # Merge the record_stats files into one
-        record_stats_files = [
-            PerfExperiment.file_paths(b)["record_stats"] for b in batches
+        cols_top_keep = [ind for ind, _ in PerfExperiment.INDICATOR_SPECS] + [
+            "a_fevals"
         ]
-        seeds = [b.seed for b in batches]
-        merged_record_stats = pd.concat(
-            [
-                pd.read_csv(f).assign(seed=seed)
-                for f, seed in zip(record_stats_files, seeds)
-            ],
-            ignore_index=True,
-        )
+        batch_dfs = []
+
+        out_files = []
+        # Merge the record_stats files into one
+        for batch in batches:
+            file = PerfExperiment.file_paths(batch)["record_stats"]
+            df = pd.read_csv(file).assign(seed=batch.seed)
+            # only keep columns with indicators (and a_fevals)
+            result_data = df[cols_top_keep]
+            # group by a_fevals and take the mean of the indicators
+            # This is because the data also contains x and y values, but the indicators are only computed after the generation, so we can just take the mean of the indicators for each generation
+            result_data = result_data.groupby("a_fevals").mean().reset_index()
+            result = CVResult(data=result_data, batch=batch, fevals_column="a_fevals")
+            out_files.append(str(result.write(batch.out_dir)))
+            batch_dfs.append(df)
+
+        merged_record_stats = pd.concat(batch_dfs, ignore_index=True)
+
         # Save the merged record_stats to a new file
         out_path = Path(batches[0].parent_dir) / f"merged_record_stats_{exp_id}.csv"
         merged_record_stats.to_csv(out_path, index=False)
-        return [[str(out_path)]]
+        out_files.append(str(out_path))
+        return [
+            out_files
+        ]  # Return a list of lists of file paths, to be consistent with _run_batches
+
+    @staticmethod
+    def get_result_set(input_dirs: list[Path]) -> ResultSet:
+        res_set = ResultSet()
+        for in_dir in input_dirs:
+            in_res_set = ResultSet.from_directory(in_dir)
+            # rename the algorithm name in each result to the directory name, so that the plots can be distinguished by a human readable name
+            algorithm_name = Path(in_dir).name
+            for res in in_res_set:
+                res.algorithm = algorithm_name
+            res_set.extend(in_res_set)
+        return res_set
+
+    @staticmethod
+    def _produce_results(config: ResultsConfig, **kwargs) -> list[str]:
+        # Build up result set from all input directories, i.e. across all runs of the experiment
+        res_set = PerfExperiment.get_result_set(config.input_dirs)
+        plots = plot_rt(
+            results=res_set,
+            indicator_specs=PerfExperiment.INDICATOR_SPECS,
+            output_dir=config.out_dir,
+            file_prefix="mk_perf",
+        )
+        return plots
 
     @staticmethod
     def get_alg_class(algorithm_name: str) -> Algorithm:
@@ -295,7 +346,7 @@ class PerfExperiment(Experiment):
         n_gen: int,
         algorithm_params: dict | None = None,
         seed: int | None = None,
-    ) -> tuple[Result, pd.DataFrame]:
+    ) -> tuple[PymooResult, pd.DataFrame]:
         # NOTE: In the future, potentially identify problem via name and load it from a registry, rather than passing the problem object directly.
         if problem is None:
             raise ValueError("Problem must be provided for the experiment.")
