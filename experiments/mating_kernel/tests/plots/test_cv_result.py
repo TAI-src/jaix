@@ -1,6 +1,6 @@
 from mating_kernel.problems.problem_info import ProblemInfo
 from mating_kernel.exp.utils.batch import Batch
-from mating_kernel.plots.cv_result import Result
+from mating_kernel.plots.cv_result import Result, ResultSet
 from jaix.env.utils.problem.cobi_problem import CobiProblem
 from jaix.env.utils.problem.re_problem.reproblem_adapter import (
     REProblem,
@@ -79,3 +79,20 @@ def test_write_read(tmp_path):
     assert res_read.batch.pid == result.batch.pid
     assert res_read.batch.sid == result.batch.sid
     assert res_read.batch.seed == result.batch.seed
+
+
+def test_result_set(tmp_path):
+    batch1 = create_test_batch(cobi_problem)
+    result1 = Result(data=pd.DataFrame(test_data), batch=batch1)
+    result1.write(tmp_path)
+    batch2 = create_test_batch(re_problem)
+    result2 = Result(data=pd.DataFrame(test_data), batch=batch2)
+    # writing to subdir to test that ResultSet can handle different directories
+    result2.write(tmp_path / "subdir")
+    res_set = ResultSet.from_directory(tmp_path)
+    assert len(res_set) == 2
+    for res in res_set:
+        assert isinstance(res, Result)
+        assert res.batch is not None
+        assert isinstance(res.batch, Batch)
+        assert hasattr(res, "pq_file_name")

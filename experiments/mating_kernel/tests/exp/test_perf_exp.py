@@ -216,41 +216,59 @@ def test_post_process_batches(tmp_path, pref_model):
         assert res.batch.seed == 123 + i
 
 
-def test_produce_results(tmp_path):
-    problem = make_tracked(REProblem)(REProblemConfig(), inst=0)
-    pinfo = ProblemInfo.from_problem(problem)
+def simulate_pp(out_path):
     input_dirs = []
     for pref_model in ["default", "random", "oracle", "ornament"]:
-        batches = []
-        pdir = tmp_path / pref_model
-        input_dirs.append(pdir / "pq")
-        for i in range(3):
-            batch = Batch(
-                problem=problem,
-                alg_name="NSGA2",
-                pref_model=pref_model,
-                n_gen=3,
-                seed=123 + i,
-                pid=pinfo.uuid,
-                sid=0,
-                rep=i,
-                pinfo=pinfo,
-                parent_dir=pdir,
-                num_candidates=3,
-                candidate_pressure=2,
-                num_oracle_simulations=1,
-                kernel=True,
-                abs=False,
-                rel_fit=False,
-                state=False,
-                age=False,
-                no_x=False,
-            )
-            PerfExperiment._run_batch(batch)
-            batches.append(batch)
-        PerfExperiment._post_process_batches(batches)
+        pdir = out_path / pref_model
+        input_dirs.append(pdir)
+        for instance in range(2):
+            problem = make_tracked(REProblem)(REProblemConfig(), inst=instance)
+            pinfo = ProblemInfo.from_problem(problem)
+            batches = []
+            for i in range(3):
+                batch = Batch(
+                    problem=problem,
+                    alg_name="NSGA2",
+                    pref_model=pref_model,
+                    n_gen=3,
+                    seed=123 + i,
+                    pid=pinfo.uuid,
+                    sid=0,
+                    rep=i,
+                    pinfo=pinfo,
+                    parent_dir=pdir,
+                    num_candidates=3,
+                    candidate_pressure=2,
+                    num_oracle_simulations=1,
+                    kernel=True,
+                    abs=False,
+                    rel_fit=False,
+                    state=False,
+                    age=False,
+                    no_x=False,
+                )
+                PerfExperiment._run_batch(batch)
+                batches.append(batch)
+            PerfExperiment._post_process_batches(batches)
+    return input_dirs
+
+
+def test_get_result_set(tmp_path):
+    input_dirs = simulate_pp(tmp_path)
+    res_set = PerfExperiment.get_result_set(input_dirs)
+    assert len(res_set) == 2 * 4 * 3  # 2 problems, 4 pref_models, 3 reps
+    # check that the algorithm names are correct (i.e. the folder names)
+    for algo, by_algo in res_set.by_algorithm():
+        assert algo in ["default", "random", "oracle", "ornament"]
+        assert len(by_algo) == 2 * 3  # 2 problems, 3 reps
+
+
+def test_produce_results(tmp_path):
+    input_dirs = simulate_pp(tmp_path)
     config = ResultsConfig(input_dirs=input_dirs, out_dir=tmp_path / "results")
     plots = PerfExperiment._produce_results(config)
-    assert len(plots) == len(PerfExperiment.INDICATOR_SPECS)
+    assert len(plots) == 2 * len(
+        PerfExperiment.INDICATOR_SPECS
+    )  # 2 different problems, each with the number of indicator specs
     for plot in plots:
         assert Path(plot).exists()

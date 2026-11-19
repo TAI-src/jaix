@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import Self
 
 import polars as pl
-from cocoviz import ProblemDescription
+from cocoviz import ProblemDescription, Indicator
 from cocoviz import Result as CVResult, ResultSet as CVResultSet
-from cocoviz._typing import FilePath, FrameLike
+from cocoviz._typing import FilePath, FrameLike, NumericVector
 
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.problems.problem_info import ProblemInfo
@@ -18,8 +18,10 @@ class Result(CVResult):
         data: FrameLike,
         batch: Batch,
         fevals_column: str = "a_fevals",
+        algorithm: str | None = None,
     ):
-        algorithm = "_".join(f"{k}={v}" for k, v in batch.settings.items())
+        if algorithm is None:
+            algorithm = "_".join(f"{k}={v}" for k, v in batch.settings.items())
         problem = Result.get_description(batch.pinfo)
         self.batch = batch
         self.pq_file_name = f"{batch.run_id}.parquet"
@@ -58,14 +60,31 @@ class Result(CVResult):
             "problem": self.problem.to_json(),
             "batch": json.dumps(batch_dict),
         }
-schema = tbl.schema.with_metadata({k.encode(): v.encode() for k, v in metadata.items()})
+        schema = tbl.schema.with_metadata(
+            {k.encode(): v.encode() for k, v in metadata.items()}
+        )
         tbl = pa.Table.from_arrays(list(tbl.itercolumns()), schema=schema)
         pq.write_table(tbl, str(path))
 
     def write(self, dir: FilePath) -> Path:
         path = Path(dir) / self.pq_file_name
+        path.parent.mkdir(parents=True, exist_ok=True)
         self.to_parquet(path)
         return path
+
+    def at_indicator(self, indicator: Indicator | str, targets: NumericVector):
+        # Since parent has a different signature, we need to override it since this method creates a new instance
+        cv_result = CVResult(
+            self.algorithm,
+            self.problem,
+            self._data,
+            "__fevals",  # This is what the parent class renames the column to
+        )
+        at_indicator_result = cv_result.at_indicator(indicator, targets)
+        new_result = Result(
+            at_indicator_result._data, self.batch, "__fevals", self.algorithm
+        )
+        return new_result
 
     @classmethod
     def parent_from_parquet(cls, path: FilePath) -> pl.DataFrame:

@@ -6,10 +6,9 @@ from pathlib import Path
 from typing import ClassVar
 
 import pandas as pd
-from cocoviz import ResultSet
 from pymoo.algorithms.moo.nsga2 import NSGA2, binary_tournament
 from pymoo.core.algorithm import Algorithm
-from pymoo.core.result import Result
+from pymoo.core.result import Result as PymooResult
 from pymoo.optimize import minimize
 
 from jaix.env.utils.problem.static_problem import StaticProblem
@@ -17,7 +16,7 @@ from mating_kernel.exp.exp import Experiment
 from mating_kernel.exp.utils.batch import Batch
 from mating_kernel.exp.utils.factory import ExperimentMode, ResultsConfig
 from mating_kernel.exp.utils.get_default import get_default
-from mating_kernel.plots.cv_result import Result as CVResult
+from mating_kernel.plots.cv_result import Result as CVResult, ResultSet
 from mating_kernel.plots.rt_plot import plot_rt
 from mating_kernel.pymoo.do_recorder import RecordingConfig
 from mating_kernel.pymoo.mating.preference_mating import PreferenceMating
@@ -196,8 +195,7 @@ class PerfExperiment(Experiment):
             "a_fevals"
         ]
         batch_dfs = []
-        pq_folder = Path(batches[0].parent_dir) / "pq"
-        pq_folder.mkdir(parents=True, exist_ok=True)
+
         out_files = []
         # Merge the record_stats files into one
         for batch in batches:
@@ -209,7 +207,7 @@ class PerfExperiment(Experiment):
             # This is because the data also contains x and y values, but the indicators are only computed after the generation, so we can just take the mean of the indicators for each generation
             result_data = result_data.groupby("a_fevals").mean().reset_index()
             result = CVResult(data=result_data, batch=batch, fevals_column="a_fevals")
-            out_files.append(str(result.write(pq_folder)))
+            out_files.append(str(result.write(batch.out_dir)))
             batch_dfs.append(df)
 
         merged_record_stats = pd.concat(batch_dfs, ignore_index=True)
@@ -223,16 +221,21 @@ class PerfExperiment(Experiment):
         ]  # Return a list of lists of file paths, to be consistent with _run_batches
 
     @staticmethod
-    def _produce_results(config: ResultsConfig, **kwargs) -> list[str]:
-        # Build up result set from all input directories, i.e. across all runs of the experiment
+    def get_result_set(input_dirs: list[Path]) -> ResultSet:
         res_set = ResultSet()
-        for in_dir in config.input_dirs:
+        for in_dir in input_dirs:
             in_res_set = ResultSet.from_directory(in_dir)
             # rename the algorithm name in each result to the directory name, so that the plots can be distinguished by a human readable name
-            algorithm_name = Path(in_dir).parent.name
+            algorithm_name = Path(in_dir).name
             for res in in_res_set:
                 res.algorithm = algorithm_name
             res_set.extend(in_res_set)
+        return res_set
+
+    @staticmethod
+    def _produce_results(config: ResultsConfig, **kwargs) -> list[str]:
+        # Build up result set from all input directories, i.e. across all runs of the experiment
+        res_set = PerfExperiment.get_result_set(config.input_dirs)
         plots = plot_rt(
             results=res_set,
             indicator_specs=PerfExperiment.INDICATOR_SPECS,
@@ -342,7 +345,7 @@ class PerfExperiment(Experiment):
         n_gen: int,
         algorithm_params: dict | None = None,
         seed: int | None = None,
-    ) -> tuple[Result, pd.DataFrame]:
+    ) -> tuple[PymooResult, pd.DataFrame]:
         # NOTE: In the future, potentially identify problem via name and load it from a registry, rather than passing the problem object directly.
         if problem is None:
             raise ValueError("Problem must be provided for the experiment.")

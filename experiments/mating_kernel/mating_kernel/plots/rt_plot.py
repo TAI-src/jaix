@@ -18,7 +18,7 @@ def plot_rt(
     for problem, by_prob in results.by_problem_name():
         for ind_col, lib in indicator_specs:
             ind = Indicator(ind_col, larger_is_better=lib)
-ax = rtpplot(by_prob, ind)
+            ax = rtpplot(by_prob, ind)
             # save the plot to a file
             file_name = (
                 f"{file_prefix}_rt_{problem}_{ind_col}.pdf"
