@@ -1,12 +1,11 @@
 import io
 import json
 from pathlib import Path
+from typing import Self
 
 import polars as pl
 from cocoviz import ProblemDescription
-from cocoviz import (
-    Result as CVResult,
-)
+from cocoviz import Result as CVResult, ResultSet as CVResultSet
 from cocoviz._typing import FilePath, FrameLike
 
 from mating_kernel.exp.utils.batch import Batch
@@ -115,7 +114,7 @@ class Result(CVResult):
         return tbl
 
     @classmethod
-    def from_parquet(cls, path: FilePath):
+    def from_parquet(cls, path: FilePath) -> Self:
         """
         Load a `Result` from parquet.
 
@@ -160,3 +159,37 @@ class Result(CVResult):
         )
 
         return cocoviz_description
+
+
+class ResultSet(CVResultSet):
+
+    @classmethod
+    def from_directory(cls, dir: FilePath) -> Self:
+        """
+        Load a `ResultSet` from a directory containing parquet files.
+        Also looks into subdirectories.
+
+        Parameters
+        ----------
+        dir : path-like
+            Directory containing parquet files.
+
+        Returns
+        -------
+        ResultSet
+
+        Raises
+        ------
+        ImportError
+            If the optional `pyarrow` package is not installed.
+        """
+        dir = Path(dir)
+        if not dir.is_dir():
+            raise ValueError(f"{dir} is not a directory.")
+
+        results = []
+        for pq_file in dir.rglob("*.parquet"):
+            result = Result.from_parquet(pq_file)
+            results.append(result)
+
+        return cls(results)
